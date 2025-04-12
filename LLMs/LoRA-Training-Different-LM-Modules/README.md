@@ -213,7 +213,7 @@ Modules trained:
 
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/1.png)
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/1.png)
 
 ### Scenario 2 
 Modules trained：
@@ -224,7 +224,7 @@ Modules trained：
 
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/2.png)
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/2.png)
 
 
 
@@ -237,7 +237,8 @@ Modules trained：
 
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/3.png)
+
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/3.png)
 
 
 ### Scenario 4 
@@ -249,7 +250,7 @@ Modules trained：
 
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/4.png)
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/4.png)
 
 
 ### Scenario 5
@@ -258,7 +259,7 @@ Modules trained：
 *target_modules= ['k_proj', 'q_proj', 'v_proj', 'o_proj', "gate_proj", "down_proj", "up_proj"]*
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/5.png)
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/5.png)
 
 ### Scenario 6
 Modules trained：
@@ -266,4 +267,4 @@ Modules trained：
 *target_modules= ['k_proj', 'q_proj', 'v_proj', 'o_proj', "gate_proj", "down_proj", "up_proj","fc2","fc1"]*
 
 The results of the training are as follows:
-![image](https://github.com/davidsajare/LoRA-Training-Different-LM-Modules/blob/main/images/6.png)
+![image](https://raw.githubusercontent.com/xinyuwei-david/david-share/refs/heads/master/LLMs/LoRA-Training-Different-LM-Modules/images/6.png)

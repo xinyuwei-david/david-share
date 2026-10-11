@@ -8,12 +8,15 @@ Author: Xinyu Wei · [中文](README_CN.md)
 
 ## Purpose
 
-Of the GPU hours you pay for on Azure GPU VMs, how many ran real work, and whose work was it? This repository collects NVIDIA DCGM metrics on each GPU VM and leaves everything else to Azure Monitor. You can then:
-- see GPU hours per VM, hour, day, Linux user, AML job and submitter;
-- view them in a workbook in the Azure portal;
-- read them from your platform through the Log Analytics query API.
+Of the GPU hours you pay for on Azure GPU VMs, how many ran real work, and whose work was it? Azure's built-in VM metrics cannot answer this, because they have no GPU metric:
 
-No custom storage, service or user interface is needed.
+| Question | Azure built-in only (VM metrics, billing) | With this repository |
+|---|---|---|
+| Is each GPU computing? | Not visible: VM platform metrics cover CPU, memory, disk and network only ([official metric list](https://learn.microsoft.com/azure/azure-monitor/reference/supported-metrics/microsoft-compute-virtualmachines-metrics)) | GPU Util, SM Active, memory and power per GPU per minute |
+| How many paid GPU hours ran real work? | Only how long each VM ran | Allocated, busy and effective GPU-hours by VM, hour and day |
+| Whose work was it? | Not visible: with no GPU metric there is no split by user or job | By Linux user, AML job and submitter |
+
+This repository collects NVIDIA DCGM metrics on each GPU VM and leaves everything else to Azure Monitor: view the results in a workbook in the Azure portal, or read them from your platform through the Log Analytics query API. No custom storage, service or user interface is needed.
 
 <img src="images/architecture-en.png" width="900" alt="Data path: DCGM, the gpumon collector and the Azure Monitor Agent on each GPU VM; the data collection endpoint, rule and Log Analytics workspace in Azure Monitor; your platform reads through the query API">
 
@@ -109,6 +112,8 @@ EOF
 az vm run-command invoke -g "$VM_RG" -n "$VM_NAME" --command-id RunShellScript --scripts @check-runid.sh --query "value[0].message" -o tsv
 ```
 
+Each GPU process prints one line: `pid <PID>: AZUREML_RUN_ID=<job ID>` means its GPU time is counted to that job; `pid <PID>: no AZUREML_RUN_ID` means it is counted to no job, so pass the ID as above the next time it starts; no line means no GPU process is running on that VM.
+
 **6. Deploy the workbook.**
 
 ```bash
@@ -123,7 +128,7 @@ source gpu-hours.outputs.env
 ./scripts/query-gpu-hours.sh -c gpu-hours.query.env -q kql/summary.kql -t P1D   # check sign-in and query
 ```
 
-`create-query-identity.sh` grants only Log Analytics Reader on the workspace and writes the tenant ID, client ID, secret and workspace GUID to `gpu-hours.query.env`. The file is mode 600 and git-ignored, and the secret is never printed. `query-gpu-hours.sh` needs only `curl` and `jq`; exit 4 means the sign-in was refused, 5 that the identity cannot query.
+`create-query-identity.sh` grants only Log Analytics Reader on the workspace and writes the tenant ID, client ID, secret and workspace GUID to `gpu-hours.query.env`. The file is mode 600 and git-ignored, and the secret is never printed. `query-gpu-hours.sh` needs only `curl` and `jq`. On success it exits 0, prints `signed in as client <client ID> …` and `query summary.kql over P1D: HTTP 200`, then the result as JSON (`summary` is one row with `AllocatedGpuHours`, `BusyGpuHours`, `EffectiveGpuHours` and more); exit 4 means the sign-in was refused, 5 that the identity cannot query.
 
 **8. Call the query API from your platform.** Exchange the client credentials for a token, then query with it; the query is the full text of one file in [`kql/`](kql/):
 
@@ -135,6 +140,8 @@ POST https://api.loganalytics.azure.com/v1/workspaces/<WORKSPACE_GUID>/query
 Authorization: Bearer <access_token>
 {"query": "<full text of kql/per_job.kql>", "timespan": "<start>/<end>"}
 ```
+
+A successful call returns HTTP 200 with `{"tables":[{"columns":[…],"rows":[[…]]}]}`: `columns` holds the column names and types, and each entry in `rows` is one of the objects named in the "One row per" column below.
 
 From Python, use the reference client: `python examples/gpu_hours_client.py --credentials gpu-hours.query.env --view per_job --start <start> --end <end>`.
 

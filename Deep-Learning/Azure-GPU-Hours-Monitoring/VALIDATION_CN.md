@@ -618,6 +618,7 @@ CI 在 Ubuntu 和 Windows 上、分别用 Python 3.10 和 3.12 执行同样的�
   - 某台失败时，命令以退出码 2 结束，并为这台 VM 单独留下日志；修好后可以重跑。
 - `NOT_MEASURED`：以 Azure Cloud Shell 作为运行环境。实测用的是 Windows 上的 Git Bash。
 - `SOURCE_FACT`：Azure CLI 的 `log-analytics` 扩展没有正式版（本次为 1.0.0b2）。客户平台应通过 REST 或 SDK 调用查询 API。
+- `SOURCE_FACT`：Azure VM 的平台指标只有 CPU、内存、磁盘和网络，没有 GPU 指标（[官方指标列表](https://learn.microsoft.com/azure/azure-monitor/reference/supported-metrics/microsoft-compute-virtualmachines-metrics)）。README 目的一节对比表中"只用 Azure 自带功能"一列以此为依据。
 - 分配卡时反映的是代理上报的 VM 运行时间，不是账单记录；对账请用 Cost Management。
 
 **目录。**

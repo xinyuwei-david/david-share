@@ -567,6 +567,7 @@ Not tested here: VMs with more than one GPU, MIG, DCGM 4.x, Azure Private Link, 
 - `NOT_MEASURED`: `configure.sh` on Azure with a scale set or with several VMs at once; `configure-2` onboarded one listed VM, and the scale-set and parallel paths ran only against a stand-in `az`. Before a fleet rollout, run the preflight (`-p`) on the whole fleet, then the full command; a VM that fails ends with exit 2 and a log of its own, and the command can be run again.
 - `NOT_MEASURED`: Azure Cloud Shell as the operator shell. The measured runs used Git Bash on Windows.
 - `SOURCE_FACT`: the `log-analytics` Azure CLI extension has no stable version (1.0.0b2 in this run). A platform should call the Query API through REST or the SDK.
+- `SOURCE_FACT`: Azure VM platform metrics cover CPU, memory, disk and network and include no GPU metric ([official metric list](https://learn.microsoft.com/azure/azure-monitor/reference/supported-metrics/microsoft-compute-virtualmachines-metrics)). This is the basis of the "Azure built-in only" column in the comparison table under Purpose in the README.
 - Allocated hours follow VM running time as the agent reports it. They are not billing records: reconcile invoices with Cost Management.
 
 **Assets.**

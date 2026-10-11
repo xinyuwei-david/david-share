@@ -8,12 +8,15 @@
 
 ## 目的
 
-Azure GPU VM 上付了钱的卡时，有多少真正在算、算的是谁的任务？本仓库在每台 GPU VM 上用 NVIDIA DCGM 采集指标，其余全部交给 Azure Monitor，统计结果可以：
-- 按 VM、小时、天、Linux 用户、AML 作业、提交人查看卡时；
-- 在 Azure 门户的报表里查看；
-- 由客户平台通过 Log Analytics 查询 API 读取。
+Azure GPU VM 上付了钱的卡时，有多少真正在算、算的是谁的任务？只用 Azure 自带的 VM 指标回答不了，因为里面没有 GPU：
 
-不需要自建存储、自建服务或自建界面。
+| 想知道 | 只用 Azure 自带功能（VM 指标、账单） | 用本方案 |
+|---|---|---|
+| 每张 GPU 卡有没有在算 | 看不到：VM 平台指标只有 CPU、内存、磁盘、网络（[官方指标列表](https://learn.microsoft.com/azure/azure-monitor/reference/supported-metrics/microsoft-compute-virtualmachines-metrics)） | 每张卡每分钟的 GPU Util、SM Active、显存、功耗 |
+| 付了钱的卡时有多少在算 | 只能看到 VM 开了多久 | 分配、占用、有效计算卡时，按 VM、小时、天汇总 |
+| 算的是谁的任务 | 看不到：没有 GPU 指标，也就没法按人、按作业拆分 | 按 Linux 用户、AML 作业、提交人拆分 |
+
+本仓库在每台 GPU VM 上用 NVIDIA DCGM 采集指标，其余全部交给 Azure Monitor：结果在 Azure 门户的报表里查看，客户平台也可以通过 Log Analytics 查询 API 读取。不需要自建存储、自建服务或自建界面。
 
 <img src="images/architecture-cn.png" width="900" alt="数据链路：GPU VM 上的 DCGM、gpumon 采集器和 Azure Monitor Agent；Azure Monitor 中的数据收集终结点、规则和 Log Analytics 工作区；客户平台经查询 API 读取">
 
@@ -109,6 +112,8 @@ EOF
 az vm run-command invoke -g "$VM_RG" -n "$VM_NAME" --command-id RunShellScript --scripts @check-runid.sh --query "value[0].message" -o tsv
 ```
 
+每个 GPU 进程打印一行：`pid <PID>: AZUREML_RUN_ID=<作业 ID>` 表示这个进程的卡时会计入该作业；`pid <PID>: no AZUREML_RUN_ID` 表示不会计入任何作业，下次启动时按上面的方式传入；没有输出表示这台 VM 上现在没有 GPU 进程。
+
 **6. 部署报表。**
 
 ```bash
@@ -123,7 +128,7 @@ source gpu-hours.outputs.env
 ./scripts/query-gpu-hours.sh -c gpu-hours.query.env -q kql/summary.kql -t P1D   # 验证登录和查询
 ```
 
-`create-query-identity.sh` 只授予工作区上的 Log Analytics Reader，把租户 ID、客户端 ID、密钥和工作区 GUID 写进 `gpu-hours.query.env`。这个文件权限为 600，不进 git，密钥不会打印到屏幕。`query-gpu-hours.sh` 只依赖 `curl` 和 `jq`；退出码 4 表示登录被拒，5 表示没有查询权限。
+`create-query-identity.sh` 只授予工作区上的 Log Analytics Reader，把租户 ID、客户端 ID、密钥和工作区 GUID 写进 `gpu-hours.query.env`。这个文件权限为 600，不进 git，密钥不会打印到屏幕。`query-gpu-hours.sh` 只依赖 `curl` 和 `jq`。成功时退出码为 0，先打印 `signed in as client <客户端 ID> …` 和 `query summary.kql over P1D: HTTP 200`，再打印 JSON 结果（`summary` 只有一行，含 `AllocatedGpuHours`、`BusyGpuHours`、`EffectiveGpuHours` 等字段）；退出码 4 表示登录被拒，5 表示没有查询权限。
 
 **8. 客户平台调用查询 API。** 先用客户端凭据换令牌，再带令牌查询；查询内容是 [`kql/`](kql/) 下某个文件的全文：
 
@@ -135,6 +140,8 @@ POST https://api.loganalytics.azure.com/v1/workspaces/<WORKSPACE_GUID>/query
 Authorization: Bearer <access_token>
 {"query": "<kql/per_job.kql 的全文>", "timespan": "<开始>/<结束>"}
 ```
+
+成功时返回 HTTP 200，正文是 `{"tables":[{"columns":[…],"rows":[[…]]}]}`：`columns` 是列名和类型，`rows` 里的每一项对应下表"每行是"那一列说的对象。
 
 Python 可以直接用参考客户端：`python examples/gpu_hours_client.py --credentials gpu-hours.query.env --view per_job --start <开始> --end <结束>`。
 

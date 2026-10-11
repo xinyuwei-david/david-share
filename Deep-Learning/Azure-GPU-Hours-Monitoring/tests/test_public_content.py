@@ -122,8 +122,22 @@ class ReadmeTests(unittest.TestCase):
         shown = set()
         for path in (*build_readme.READMES.values(), *VALIDATION.values()):
             shown |= set(re.findall(r'src="images/([^"]+)"', path.read_text(encoding="utf-8")))
-        stored = {p.name for p in (ROOT / "images").glob("*.png")}
+        stored = {p.name for p in (ROOT / "images").glob("*.png")}  # icons/ is drawn into figures, not shown
         self.assertEqual(stored, shown, "an image is not shown in README or VALIDATION, or a page shows a missing image")
+
+    def test_icons_are_official_and_recorded(self):
+        import hashlib
+        ledger = json.loads((ROOT / "images" / "icons" / "SOURCES.json").read_text(encoding="utf-8"))
+        self.assertIn("learn.microsoft.com/azure/architecture/icons", ledger["source"])
+        files = {p.name for p in (ROOT / "images" / "icons").glob("*.png")}
+        self.assertEqual(files, {i["file"] for i in ledger["icons"]})
+        for item in ledger["icons"]:
+            with self.subTest(icon=item["file"]):
+                data = (ROOT / "images" / "icons" / item["file"]).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), item["png_sha256"])
+        used = set(re.findall(r'ic="([a-z]+)"|icon\("([a-z]+)"', (ROOT / "tools" / "draw_diagrams.py").read_text(encoding="utf-8")))
+        names = {a or b for a, b in used} | set(re.findall(r'lane_icon = \(([^)]*)\)', (ROOT / "tools" / "draw_diagrams.py").read_text(encoding="utf-8"))[0].replace('"', "").replace(" ", "").split(","))
+        self.assertEqual({f[:-4] for f in files}, {n for n in names if n}, "every vendored icon is drawn and every drawn icon is vendored")
 
     def test_images_match_ledger(self):
         self.assertEqual(draw_diagrams.main(["--check"]), 0)

@@ -175,109 +175,127 @@ class Board:
         self.fig.savefig(out, bbox_inches="tight", facecolor="white", metadata={"Software": None})
 
 
+ICONS = IMAGES / "icons"  # official Azure architecture icons, rasterized; see images/icons/SOURCES.json
+
 ARCH = {
     "en": {
-        "title": "How GPU hours flow from each VM to where you read them",
-        "lanes": ("On each GPU VM", "Azure Monitor (managed)", "Where you read them"),
-        "dcgm": ("NVIDIA DCGM", "per-GPU SM, memory and power counters"),
-        "gpumon": ("gpumon collector", "one row per GPU per minute,", "with process owner and AML job ID"),
-        "ama": ("Azure Monitor Agent", "reads the local file and uploads it,", "sends a Heartbeat every minute"),
+        "title": "Azure GPU hours: from DCGM on each VM to your platform",
+        "lanes": ("GPU VM (each VM)", "Azure Monitor", "Consumers"),
+        "dcgm": ("NVIDIA DCGM", "SM, memory and power", "counters per GPU"),
+        "gpumon": ("gpumon collector", "1 row per GPU per minute", "+ process owner, AML job ID"),
+        "ama": ("Azure Monitor Agent", "uploads the rows,", "Heartbeat every minute"),
         "dce": ("Data collection endpoint", "receives the upload"),
-        "dcr": ("Data collection rule", "writes the GpuMetrics_CL table"),
-        "law": ("Log Analytics workspace", "GPU rows and Heartbeat,", "AML submitter and job status"),
-        "wb": ("Workbook in the Azure portal", "GPU-hour tables and trends"),
-        "api": ("Your platform", "Log Analytics query API", "with the eight views in kql/"),
-        "cli": ("Operators", "az monitor log-analytics query"),
-        "a1": "every 10 s", "a2": "local JSON file", "a3": "HTTPS", "a4": "ingest", "a5": "read-only query",
-        "note": "Nothing custom runs outside the VMs: no database, no service and no UI to host.",
+        "dcr": ("Data collection rule", "writes GpuMetrics_CL"),
+        "law": ("Log Analytics workspace", "GPU rows, Heartbeat,", "AML submitter and status"),
+        "wb": ("Azure Workbook", "GPU-hour tables, trends"),
+        "api": ("Your platform", "Log Analytics query API", "8 views in kql/"),
+        "cli": ("Operators", "Azure CLI / Cloud Shell"),
+        "a1": "every 10 s", "a2": "local JSON", "a3": "HTTPS", "a4": "ingest", "a5": "read-only query",
+        "note": "Only DCGM and one collector run on the VM; everything else is a managed Azure service.",
     },
     "cn": {
-        "title": "GPU 卡时从每台 VM 到查看端的路径",
-        "lanes": ("每台 GPU VM 上", "Azure Monitor（托管服务）", "在哪里看"),
-        "dcgm": ("NVIDIA DCGM", "每张卡的 SM、显存、功耗计数器"),
-        "gpumon": ("gpumon 采集器", "每张卡每分钟一行，", "带进程属主和 AML 作业 ID"),
-        "ama": ("Azure Monitor Agent", "读取本地文件并上传，", "每分钟发送 Heartbeat"),
-        "dce": ("数据收集终结点（DCE）", "接收上传的数据"),
-        "dcr": ("数据收集规则（DCR）", "写入 GpuMetrics_CL 表"),
-        "law": ("Log Analytics 工作区", "GPU 数据和 Heartbeat，", "AML 提交人和作业状态"),
-        "wb": ("Azure 门户中的 Workbook", "卡时表格和趋势"),
-        "api": ("客户平台", "Log Analytics 查询 API", "调用 kql/ 下的八个查询"),
-        "cli": ("运维人员", "az monitor log-analytics query"),
-        "a1": "每 10 秒采样", "a2": "本地 JSON 文件", "a3": "HTTPS", "a4": "入库", "a5": "只读查询",
-        "note": "VM 之外不需要自建任何东西：没有数据库、没有服务、没有要托管的界面。",
+        "title": "Azure GPU 卡时：从每台 VM 的 DCGM 到客户平台",
+        "lanes": ("GPU VM（每台）", "Azure Monitor", "使用方"),
+        "dcgm": ("NVIDIA DCGM", "每张卡的 SM、显存、功耗", "计数器"),
+        "gpumon": ("gpumon 采集器", "每张卡每分钟一行", "带进程属主、AML 作业 ID"),
+        "ama": ("Azure Monitor Agent", "上传数据行，", "每分钟发送 Heartbeat"),
+        "dce": ("数据收集终结点", "接收上传"),
+        "dcr": ("数据收集规则", "写入 GpuMetrics_CL"),
+        "law": ("Log Analytics 工作区", "GPU 数据、Heartbeat、", "AML 提交人和作业状态"),
+        "wb": ("Azure Workbook", "卡时表格和趋势"),
+        "api": ("客户平台", "Log Analytics 查询 API", "kql/ 下的 8 个查询"),
+        "cli": ("运维人员", "Azure CLI / Cloud Shell"),
+        "a1": "每 10 秒", "a2": "本地 JSON", "a3": "HTTPS", "a4": "入库", "a5": "只读查询",
+        "note": "VM 上只运行 DCGM 和一个采集器，其余全部是 Azure 托管服务。",
     },
 }
+AZ_BLUE, AZ_INK, AZ_LINE, AZ_SUB = "#0078D4", "#242424", "#D1D1D1", "#605E5C"
 
 
 def architecture(lang: str, out: Path) -> None:
-    """Data path as a U: down the VM, across to Azure Monitor, up to the workspace, across to the readers."""
+    """Azure-architecture-center style: grey lanes, white cards, official product icons, one U-shaped data path."""
+    import matplotlib.image as mpimg
     from matplotlib.lines import Line2D
-    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+    from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
     plt = _setup(lang)
     a = ARCH[lang]
-    W, H = 15.6, 6.5
+    W, H = 15.6, 6.6
     b = Board(plt, W, H)
     ax = b.ax
-    ax.text(W / 2, H - 0.28, a["title"], ha="center", va="center", fontsize=15, fontweight="bold", color=DARK)
-    lane_x, lane_w, lane_y, lane_h = (0.2, 5.4, 10.6), 4.8, 0.8, 4.95
-    styles = (("#EEF5FC", BLUE), ("#F3F1FC", PURPLE), ("#EEF8F1", TEAL))
-    for x, (fc, ec), title in zip(lane_x, styles, a["lanes"]):
-        ax.add_patch(FancyBboxPatch((x, lane_y), lane_w, lane_h, boxstyle="round,pad=0.02,rounding_size=0.2",
-                                    fc=fc, ec="none"))
-        tt = ax.text(x + lane_w / 2, lane_y + lane_h - 0.28, title, ha="center", va="center", fontsize=12,
-                     fontweight="bold", color=ec)
+    ax.add_patch(Rectangle((0, H - 0.62), W, 0.62, fc=AZ_BLUE, ec="none"))
+    ax.text(0.3, H - 0.31, a["title"], ha="left", va="center", fontsize=14, fontweight="bold", color="white")
+
+    def icon(name, x, y, zoom):
+        img = mpimg.imread(str(ICONS / f"{name}.png"))
+        ax.add_artist(AnnotationBbox(OffsetImage(img, zoom=zoom), (x, y), frameon=False, box_alignment=(0.5, 0.5)))
+
+    lane_x, lane_w, lane_y, lane_h = (0.2, 5.4, 10.6), 4.8, 0.85, 4.9
+    lane_icon = ("vm", "monitor", "users")
+    for x, title, ic in zip(lane_x, a["lanes"], lane_icon):
+        ax.add_patch(FancyBboxPatch((x, lane_y), lane_w, lane_h, boxstyle="round,pad=0.0,rounding_size=0.06",
+                                    fc="#F5F5F5", ec=AZ_LINE, lw=1.0))
+        icon(ic, x + 0.38, lane_y + lane_h - 0.3, 0.085)
+        tt = ax.text(x + 0.68, lane_y + lane_h - 0.3, title, ha="left", va="center", fontsize=11.5, fontweight="bold",
+                     color=AZ_INK)
         b.pairs.append(((x, lane_y, lane_w, lane_h), tt))
 
-    cw, ch = 4.0, 1.12
-    rows = (4.05, 2.55, 1.05)  # bottom of row 1 (top), 2, 3
+    cw, ch = 4.1, 1.08
+    rows = (3.95, 2.48, 1.0)
 
-    def card(lane, row, lines, ec):
+    def card(lane, row, lines, ic=None, badge=None):
         x, y = lane_x[lane] + (lane_w - cw) / 2, rows[row]
-        ax.add_patch(FancyBboxPatch((x, y), cw, ch, boxstyle="round,pad=0.02,rounding_size=0.12", fc="white", ec=ec,
-                                    lw=1.7))
+        ax.add_patch(FancyBboxPatch((x, y), cw, ch, boxstyle="round,pad=0.0,rounding_size=0.05", fc="white",
+                                    ec=AZ_LINE, lw=1.0))
+        ax.add_patch(Rectangle((x, y), 0.06, ch, fc=AZ_BLUE, ec="none"))
+        if ic:
+            icon(ic, x + 0.5, y + ch / 2, 0.15)
+        else:
+            ax.add_patch(FancyBboxPatch((x + 0.2, y + ch / 2 - 0.3), 0.6, 0.6, boxstyle="round,pad=0.0,rounding_size=0.08",
+                                        fc=badge[1], ec="none"))
+            ax.text(x + 0.5, y + ch / 2, badge[0], ha="center", va="center", fontsize=8.5, fontweight="bold", color="white")
         title, *rest = lines
-        mid = y + ch / 2
-        top = mid + 0.16 * len(rest)
-        tt = ax.text(x + cw / 2, top, title, ha="center", va="center", fontsize=11, fontweight="bold", color=ec)
+        tx = x + 1.0
+        top = y + ch / 2 + 0.15 * len(rest)
+        tt = ax.text(tx, top, title, ha="left", va="center", fontsize=10.5, fontweight="bold", color=AZ_INK)
         b.pairs.append(((x, y, cw, ch), tt))
         for k, line in enumerate(rest):
-            tt = ax.text(x + cw / 2, top - 0.31 * (k + 1), line, ha="center", va="center", fontsize=9, color="#374151")
+            tt = ax.text(tx, top - 0.29 * (k + 1), line, ha="left", va="center", fontsize=8.8, color=AZ_SUB)
             b.pairs.append(((x, y, cw, ch), tt))
         return x, y
 
-    def arrow(p, q, color, label="", dx=0.0, dy=0.0):
-        ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=15, color=color, lw=1.8, shrinkA=1, shrinkB=1))
+    def arrow(p, q, label="", dx=0.0, dy=0.0):
+        ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=14, color=AZ_BLUE, lw=1.6, shrinkA=1, shrinkB=1))
         if label:
             ax.text((p[0] + q[0]) / 2 + dx, (p[1] + q[1]) / 2 + dy, label, ha="left" if dx else "center", va="center",
-                    fontsize=8.6, color=color, bbox=dict(fc="white", ec="none", pad=1.0))
+                    fontsize=8.4, color=AZ_BLUE, bbox=dict(fc="white" if not dx else "#F5F5F5", ec="none", pad=0.8))
 
-    dcgm = card(0, 0, a["dcgm"], GREEN)
-    gpumon = card(0, 1, a["gpumon"], DARK)
-    ama = card(0, 2, a["ama"], BLUE)
-    dce = card(1, 2, a["dce"], PURPLE)
-    dcr = card(1, 1, a["dcr"], PURPLE)
-    law = card(1, 0, a["law"], BLUE)
-    wb = card(2, 0, a["wb"], TEAL)
-    api = card(2, 1, a["api"], GREEN)
-    cli = card(2, 2, a["cli"], GREY)
+    dcgm = card(0, 0, a["dcgm"], badge=("GPU", "#76B900"))
+    card(0, 1, a["gpumon"], badge=("py", "#1F3B5C"))
+    ama = card(0, 2, a["ama"], ic="extensions")
+    dce = card(1, 2, a["dce"], ic="endpoint")
+    card(1, 1, a["dcr"], ic="dcr")
+    law = card(1, 0, a["law"], ic="law")
+    wb = card(2, 0, a["wb"], ic="workbook")
+    card(2, 1, a["api"], ic="appreg")
+    card(2, 2, a["cli"], ic="users")
     lx, mx = dcgm[0] + cw / 2, dce[0] + cw / 2
-    arrow((lx, rows[0]), (lx, rows[1] + ch), DARK, a["a1"], dx=0.14)
-    arrow((lx, rows[1]), (lx, rows[2] + ch), DARK, a["a2"], dx=0.14)
-    arrow((ama[0] + cw, rows[2] + ch / 2), (dce[0], rows[2] + ch / 2), BLUE, a["a3"], dy=0.2)
-    arrow((mx, rows[2] + ch), (mx, rows[1]), PURPLE)
-    arrow((mx, rows[1] + ch), (mx, rows[0]), PURPLE, a["a4"], dx=0.14)
-    # one read path from the workspace, fanned out to the three readers
-    bus = wb[0] - 0.3
+    arrow((lx, rows[0]), (lx, rows[1] + ch), a["a1"], dx=0.12)
+    arrow((lx, rows[1]), (lx, rows[2] + ch), a["a2"], dx=0.12)
+    arrow((ama[0] + cw, rows[2] + ch / 2), (dce[0], rows[2] + ch / 2), a["a3"], dy=0.2)
+    arrow((mx, rows[2] + ch), (mx, rows[1]))
+    arrow((mx, rows[1] + ch), (mx, rows[0]), a["a4"], dx=0.12)
+    bus = wb[0] - 0.28
     y0, y2 = rows[0] + ch / 2, rows[2] + ch / 2
-    ax.add_line(Line2D([law[0] + cw, bus], [y0, y0], color=TEAL, lw=1.8))
-    ax.add_line(Line2D([bus, bus], [y0, y2], color=TEAL, lw=1.8))
+    ax.add_line(Line2D([law[0] + cw, bus], [y0, y0], color=AZ_BLUE, lw=1.6))
+    ax.add_line(Line2D([bus, bus], [y0, y2], color=AZ_BLUE, lw=1.6))
     for r in range(3):
         y = rows[r] + ch / 2
-        ax.add_patch(FancyArrowPatch((bus, y), (wb[0], y), arrowstyle="-|>", mutation_scale=15, color=TEAL, lw=1.8,
+        ax.add_patch(FancyArrowPatch((bus, y), (wb[0], y), arrowstyle="-|>", mutation_scale=14, color=AZ_BLUE, lw=1.6,
                                      shrinkA=0, shrinkB=1))
-    ax.text((law[0] + cw + bus) / 2, y0 + 0.22, a["a5"], ha="center", va="center", fontsize=8.6, color=TEAL,
-            bbox=dict(fc="white", ec="none", pad=1.0))
-    tt = ax.text(W / 2, 0.38, a["note"], ha="center", va="center", fontsize=9.6, color="#4B5563")
+    ax.text((law[0] + cw + bus) / 2, y0 + 0.21, a["a5"], ha="center", va="center", fontsize=8.4, color=AZ_BLUE,
+            bbox=dict(fc="white", ec="none", pad=0.8))
+    tt = ax.text(W / 2, 0.42, a["note"], ha="center", va="center", fontsize=9.4, color=AZ_SUB)
     b.pairs.append(((0, 0, W, H), tt))
     b.verify(out.name)
     b.save(out)

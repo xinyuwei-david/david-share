@@ -6,7 +6,7 @@
    "language": "en",
    "generator": "tools/draw_diagrams.py",
    "shows": "components and data path of the monitoring pipeline",
-   "sha256": "97643e0a4a5cf4e8490abaff3e7c676da81c376e8b10e309e6a5129be8991b18",
+   "sha256": "ab0f218311621d53b5454b7b43dd40f6b171ec1edb151207481dd8c705750af7",
    "does_not_show": "measured traffic, latency or production readiness"
   },
   {
@@ -14,7 +14,7 @@
    "language": "cn",
    "generator": "tools/draw_diagrams.py",
    "shows": "components and data path of the monitoring pipeline",
-   "sha256": "6252b5be2ed6230ebcfda4f806f28a91074f4f1435674c716d1eec651af172da",
+   "sha256": "c7d8187465ed3f756e48bc25b568a757a975c2997467dc7c7d7dd603089f918b",
    "does_not_show": "measured traffic, latency or production readiness"
   },
   {

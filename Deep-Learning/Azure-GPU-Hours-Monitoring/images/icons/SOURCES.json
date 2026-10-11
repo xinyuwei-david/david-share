@@ -1,0 +1,62 @@
+{
+ "schema": 1,
+ "source": "Microsoft Azure architecture icons, Azure_Public_Service_Icons_V24.zip, https://learn.microsoft.com/azure/architecture/icons/",
+ "terms": "Microsoft permits use in architectural diagrams, training materials or documentation; icons are not cropped, flipped, rotated or distorted and do not represent this repository as a Microsoft product.",
+ "rasterized": "SVG rendered at 256 x 256 px by headless Microsoft Edge, transparent background",
+ "icons": [
+  {
+   "file": "appreg.png",
+   "svg": "identity/10232-icon-service-App-Registrations.svg",
+   "svg_sha256": "bad6673e76100221dfeb7adaebb4a6778c255c07afbdef742bf18527fe5115ab",
+   "png_sha256": "192bb3aaa02aa86871a4917e5e964b3738f6373990fa95dbea0223d27750c474"
+  },
+  {
+   "file": "dcr.png",
+   "svg": "other/01857-icon-service-Data-Collection-Rules.svg",
+   "svg_sha256": "aaa1540f3c07bf54b633303e54c9ce6583d5be2be98d0f89123edf9e4c8e2c85",
+   "png_sha256": "f1eb86accf1d7b41f985761203650a78f394bae8bd3aa331b87c48c5a6ab8264"
+  },
+  {
+   "file": "endpoint.png",
+   "svg": "other/02579-icon-service-Private-Endpoints.svg",
+   "svg_sha256": "96de0bb7f0aeb1220d0fd6d337578d5e93dca017d6ea7d42d887aa329b2fd90d",
+   "png_sha256": "c1e05a60b1887ad01849cc4410ab11769472a5e48a6e0c355f1fca1d6ff62cf6"
+  },
+  {
+   "file": "extensions.png",
+   "svg": "general/10799-icon-service-Extensions.svg",
+   "svg_sha256": "6b4f8e96555d1cf95efcb740c9c78e7849e9910e28ddc7947a221351de77c847",
+   "png_sha256": "bbf87edbca140788d22bee3b62bab3bc74c105517307dc871e569a5c7ef741d6"
+  },
+  {
+   "file": "law.png",
+   "svg": "monitor/00009-icon-service-Log-Analytics-Workspaces.svg",
+   "svg_sha256": "7a244a8d7260e84be5c904185db7b04994fe6ed345e2b224163bc5f7e3d97ce0",
+   "png_sha256": "eea04bfa6659d002da0f5aa00abe7dc0ada1002a4e7192772621dcaf27ccd73a"
+  },
+  {
+   "file": "monitor.png",
+   "svg": "monitor/00001-icon-service-Monitor.svg",
+   "svg_sha256": "1396f59a7d8fd7505a423842b987c9b343a092263d1ab5c7b0d94d58d8b17448",
+   "png_sha256": "0e2cba4ade97eb2e5e1f3e5216c974d8a78a2fbcde9a8e6712ea1cacade408f3"
+  },
+  {
+   "file": "users.png",
+   "svg": "identity/10230-icon-service-Users.svg",
+   "svg_sha256": "7c08aa6365b41e7f0b74833bfd420f174081f6e90ba278e0c01cd988027eb3ca",
+   "png_sha256": "bf8a3e44c80a604e93d5b22773fbcdf660a89fa9c5892702159641fb50590d0c"
+  },
+  {
+   "file": "vm.png",
+   "svg": "compute/10021-icon-service-Virtual-Machine.svg",
+   "svg_sha256": "092d18ffadec9ec0e5af129186dc7bc2a80544011e55f965604ed4b13873e0fc",
+   "png_sha256": "ab1c8a66cfafe93e5d9d368e2f88a0b9d62bc1af095caf2405790c0cb407e0d9"
+  },
+  {
+   "file": "workbook.png",
+   "svg": "monitor/02189-icon-service-Azure-Workbooks.svg",
+   "svg_sha256": "20b3064d62ff3c7944d71f852d34f0ecba8b3bcd2f3ff3e8d14634a116e57da4",
+   "png_sha256": "19e74c895b183e9358eedec123c2aed439c38a8802a087bbff1698f54fdd29b2"
+  }
+ ]
+}

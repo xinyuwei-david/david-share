@@ -1,0 +1,6 @@
+*.md text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.txt text eol=lf
+*.json !filter !diff !merge text eol=lf
+*.csv !filter !diff !merge text eol=lf

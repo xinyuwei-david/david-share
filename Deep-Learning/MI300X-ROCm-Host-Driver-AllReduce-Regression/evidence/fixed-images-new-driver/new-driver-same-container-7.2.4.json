@@ -1,0 +1,102 @@
+{
+  "version": 3,
+  "start_time": "2026-10-12 14:47:57",
+  "args": [
+    "/opt/rccl-tests/build/all_reduce_perf",
+    "-b",
+    "1G",
+    "-e",
+    "1G",
+    "-t",
+    "1",
+    "-g",
+    "8",
+    "-n",
+    "100",
+    "-w",
+    "20",
+    "-c",
+    "1",
+    "-d",
+    "float",
+    "-o",
+    "sum",
+    "-J",
+    "/results/new-driver-same-container-7.2.4.json"
+  ],
+  "env": [
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "HOSTNAME=redacted-mi300x-node",
+    "NCCL_DEBUG=WARN",
+    "HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7",
+    "HOME=/root",
+    "GLOG_minloglevel=1",
+    "GLOG_logtostderr=1",
+    "GLOG_alsologtostderr=0",
+    "GLOG_stderrthreshold=1"
+  ],
+  "nccl_version": 22707,
+  "rccl_version": 22707,
+  "config": {
+    "nthreads": 1,
+    "ngpus": 8,
+    "minimum_bytes": 1073741824,
+    "maximum_bytes": 1073741824,
+    "step_bytes": 1048576,
+    "warmup_iters": 20,
+    "iterations": 100,
+    "aggregated_iterations": 1,
+    "validation": 1,
+    "graph": 0,
+    "blocking_collectives": "false",
+    "per_iter_timing": "false",
+    "per_iter_skip": 0,
+    "parallel_init": "false",
+    "devices": [
+      {
+        "rank": 0,
+        "group": 0,
+        "pid": 1,
+        "hostname": "redacted-mi300x-node",
+        "device": 0,
+        "device_hex": "0002:00:00",
+        "device_info": "AMD Instinct MI300X VF"
+      }
+    ]
+  },
+  "results": [
+    {
+      "size": 1073741824,
+      "count": 268435456,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 45057.69527,
+        "alg_bw": 23.830376,
+        "bus_bw": 41.703158,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 45046.52916,
+        "alg_bw": 23.836283,
+        "bus_bw": 41.713496,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    }
+  ],
+  "out_of_bounds": {
+    "count": 0,
+    "okay": "true"
+  },
+  "average_bus_bandwidth": {
+    "bandwidth": 41.708327,
+    "okay": "unchecked"
+  },
+  "errors": [
+    ""
+  ],
+  "end_time": "2026-10-12 14:48:37"
+}

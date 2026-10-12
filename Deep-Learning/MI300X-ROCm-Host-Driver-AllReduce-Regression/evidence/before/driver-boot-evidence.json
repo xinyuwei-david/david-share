@@ -1,0 +1,7 @@
+{
+  "boot_id": "REDACTED_BEFORE_BOOT_ID",
+  "loaded_version": "6.12.12",
+  "loaded_srcversion": "AC5C22E22EEDC97831DD74B",
+  "module_file": "/lib/modules/6.8.0-1067-azure/updates/dkms/amdgpu.ko.zst",
+  "file_srcversion": "AC5C22E22EEDC97831DD74B"
+}

@@ -1,0 +1,362 @@
+{
+  "version": 3,
+  "start_time": "2026-10-12 14:42:52",
+  "args": [
+    "CASE_RESULTS_ROOT/source-after/build/all_reduce_perf",
+    "-g",
+    "8",
+    "-b",
+    "1M",
+    "-e",
+    "1G",
+    "-f",
+    "2",
+    "-t",
+    "1",
+    "-n",
+    "100",
+    "-w",
+    "20",
+    "-c",
+    "1",
+    "-d",
+    "float",
+    "-o",
+    "sum",
+    "-J",
+    "CASE_RESULTS_ROOT/after/single-run-2.json"
+  ],
+  "env": [
+    "SHELL=/bin/bash",
+    "EXPECTED_RCCL=22707",
+    "NATIVE_BINARY=CASE_RESULTS_ROOT/source-after/build/all_reduce_perf",
+    "NATIVE_ROOT=CASE_RESULTS_ROOT",
+    "PWD=/root",
+    "LOGNAME=root",
+    "XDG_SESSION_TYPE=tty",
+    "NCCL_DEBUG=WARN",
+    "HOME=/root",
+    "LANG=C.UTF-8",
+    "HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7",
+    "SSH_CONNECTION=REDACTED_IPV4 29944 REDACTED_PRIVATE_IP 33901",
+    "NATIVE_PHASE=after",
+    "XDG_SESSION_CLASS=user",
+    "USER=root",
+    "SHLVL=1",
+    "XDG_SESSION_ID=13",
+    "LD_LIBRARY_PATH=/opt/rocm-7.2.4/lib:/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hpcx-rebuild/lib",
+    "XDG_RUNTIME_DIR=/run/user/0",
+    "SSH_CLIENT=REDACTED_IPV4 29944 33901",
+    "PATH=/opt/rocm-7.2.4/bin:/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hpcx-rebuild/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+    "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus",
+    "_=/usr/bin/timeout",
+    "GLOG_minloglevel=1",
+    "GLOG_logtostderr=1",
+    "GLOG_alsologtostderr=0",
+    "GLOG_stderrthreshold=1",
+    "IPATH_NO_BACKTRACE=1",
+    "HFI_NO_BACKTRACE=1",
+    "OMPI_COMMAND=CASE_RESULTS_ROOT/source-after/build/all_reduce_perf",
+    "OMPI_ARGV=-g 8 -b 1M -e 1G -f 2 -t 1 -n 100 -w 20 -c 1 -d float -o sum -J CASE_RESULTS_ROOT/after/single-run-2.json",
+    "OMPI_MCA_ess=singleton",
+    "ORTE_SCHIZO_DETECTION=ORTE",
+    "OMPI_MCA_orte_launch=1",
+    "PMIX_NAMESPACE=67960833",
+    "PMIX_RANK=0",
+    "PMIX_SERVER_URI41=67960832.0;tcp4://REDACTED_IPV4:46267",
+    "PMIX_SERVER_URI4=67960832.0;tcp4://REDACTED_IPV4:46267",
+    "PMIX_SERVER_URI3=67960832.0;tcp4://REDACTED_IPV4:46267",
+    "PMIX_SERVER_URI2=67960832.0;tcp4://REDACTED_IPV4:46267",
+    "PMIX_SERVER_URI21=67960832.0;tcp4://REDACTED_IPV4:46267",
+    "PMIX_SECURITY_MODE=native",
+    "PMIX_BFROP_BUFFER_TYPE=PMIX_BFROP_BUFFER_NON_DESC",
+    "PMIX_GDS_MODULE=ds21,ds12,hash",
+    "PMIX_SERVER_TMPDIR=/tmp/ompi.redacted-mi300x-node.0/pid.11061",
+    "PMIX_SYSTEM_TMPDIR=/tmp",
+    "PMIX_DSTORE_21_BASE_PATH=/tmp/ompi.redacted-mi300x-node.0/pid.11061/pmix_dstor_ds21_11061",
+    "PMIX_DSTORE_ESH_BASE_PATH=/tmp/ompi.redacted-mi300x-node.0/pid.11061/pmix_dstor_ds12_11061",
+    "PMIX_HOSTNAME=redacted-mi300x-node",
+    "PMIX_VERSION=4.2.9",
+    "OMPI_MCA_orte_precondition_transports=d5c4478a65c71e23-f69e6ea4ae985cff",
+    "OMPI_MCA_pmix=^s1,s2,cray,isolated",
+    "PMIX_MCA_mca_base_component_show_load_errors=0",
+    "PMIX_MCA_psec=native",
+    "OMPI_MCA_orte_ess_num_procs=1",
+    "OMPI_APP_CTX_NUM_PROCS=1",
+    "HCOLL_HOME_DIR=/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hcoll/lib/.."
+  ],
+  "nccl_version": 22707,
+  "rccl_version": 22707,
+  "config": {
+    "nthreads": 1,
+    "ngpus": 8,
+    "minimum_bytes": 1048576,
+    "maximum_bytes": 1073741824,
+    "step_factor": 2,
+    "warmup_iters": 20,
+    "iterations": 100,
+    "aggregated_iterations": 1,
+    "validation": 1,
+    "graph": 0,
+    "blocking_collectives": "false",
+    "per_iter_timing": "false",
+    "per_iter_skip": 0,
+    "parallel_init": "false",
+    "devices": [
+      {
+        "rank": 0,
+        "group": 0,
+        "pid": 10971,
+        "hostname": "redacted-mi300x-node",
+        "device": 0,
+        "device_hex": "0002:00:00",
+        "device_info": "AMD Instinct MI300X VF"
+      }
+    ]
+  },
+  "results": [
+    {
+      "size": 1048576,
+      "count": 262144,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 103.33984,
+        "alg_bw": 10.146871,
+        "bus_bw": 17.757024,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 83.63091,
+        "alg_bw": 12.538139,
+        "bus_bw": 21.941744,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 2097152,
+      "count": 524288,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 127.66714,
+        "alg_bw": 16.426717,
+        "bus_bw": 28.746755,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 129.0406,
+        "alg_bw": 16.251877,
+        "bus_bw": 28.440785,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 4194304,
+      "count": 1048576,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 217.93613,
+        "alg_bw": 19.245565,
+        "bus_bw": 33.679739,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 223.60379,
+        "alg_bw": 18.75775,
+        "bus_bw": 32.826063,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 8388608,
+      "count": 2097152,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 397.13277,
+        "alg_bw": 21.122931,
+        "bus_bw": 36.965129,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 404.3344,
+        "alg_bw": 20.746709,
+        "bus_bw": 36.30674,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 16777216,
+      "count": 4194304,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 757.61456,
+        "alg_bw": 22.144791,
+        "bus_bw": 38.753384,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 763.28528,
+        "alg_bw": 21.980269,
+        "bus_bw": 38.465471,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 33554432,
+      "count": 8388608,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 1469.66681,
+        "alg_bw": 22.831319,
+        "bus_bw": 39.954809,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 1478.21377,
+        "alg_bw": 22.69931,
+        "bus_bw": 39.723792,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 67108864,
+      "count": 16777216,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 2831.28384,
+        "alg_bw": 23.702627,
+        "bus_bw": 41.479597,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 2840.7681,
+        "alg_bw": 23.623493,
+        "bus_bw": 41.341112,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 134217728,
+      "count": 33554432,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 5628.54655,
+        "alg_bw": 23.845895,
+        "bus_bw": 41.730316,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 5641.36416,
+        "alg_bw": 23.791715,
+        "bus_bw": 41.635501,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 268435456,
+      "count": 67108864,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 11245.43021,
+        "alg_bw": 23.870626,
+        "bus_bw": 41.773595,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 11252.74896,
+        "alg_bw": 23.8551,
+        "bus_bw": 41.746426,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 536870912,
+      "count": 134217728,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 22463.27255,
+        "alg_bw": 23.899942,
+        "bus_bw": 41.824899,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 22446.48831,
+        "alg_bw": 23.917813,
+        "bus_bw": 41.856173,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 1073741824,
+      "count": 268435456,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 44976.41864,
+        "alg_bw": 23.87344,
+        "bus_bw": 41.77852,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 44973.51257,
+        "alg_bw": 23.874982,
+        "bus_bw": 41.781219,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    }
+  ],
+  "out_of_bounds": {
+    "count": 0,
+    "okay": "true"
+  },
+  "average_bus_bandwidth": {
+    "bandwidth": 36.841309,
+    "okay": "unchecked"
+  },
+  "errors": [
+    ""
+  ],
+  "end_time": "2026-10-12 14:43:46"
+}

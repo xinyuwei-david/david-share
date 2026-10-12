@@ -1,0 +1,74 @@
+
+
+============================ ROCm System Management Interface ============================
+================================ Weight between two GPUs =================================
+       GPU0         GPU1         GPU2         GPU3         GPU4         GPU5         GPU6         GPU7
+GPU0   0            15           15           15           15           15           15           15
+GPU1   15           0            15           15           15           15           15           15
+GPU2   15           15           0            15           15           15           15           15
+GPU3   15           15           15           0            15           15           15           15
+GPU4   15           15           15           15           0            15           15           15
+GPU5   15           15           15           15           15           0            15           15
+GPU6   15           15           15           15           15           15           0            15
+GPU7   15           15           15           15           15           15           15           0
+
+================================= Hops between two GPUs ==================================
+       GPU0         GPU1         GPU2         GPU3         GPU4         GPU5         GPU6         GPU7
+GPU0   0            1            1            1            1            1            1            1
+GPU1   1            0            1            1            1            1            1            1
+GPU2   1            1            0            1            1            1            1            1
+GPU3   1            1            1            0            1            1            1            1
+GPU4   1            1            1            1            0            1            1            1
+GPU5   1            1            1            1            1            0            1            1
+GPU6   1            1            1            1            1            1            0            1
+GPU7   1            1            1            1            1            1            1            0
+
+=============================== Link Type between two GPUs ===============================
+       GPU0         GPU1         GPU2         GPU3         GPU4         GPU5         GPU6         GPU7
+GPU0   0            XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
+GPU1   XGMI         0            XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
+GPU2   XGMI         XGMI         0            XGMI         XGMI         XGMI         XGMI         XGMI
+GPU3   XGMI         XGMI         XGMI         0            XGMI         XGMI         XGMI         XGMI
+GPU4   XGMI         XGMI         XGMI         XGMI         0            XGMI         XGMI         XGMI
+GPU5   XGMI         XGMI         XGMI         XGMI         XGMI         0            XGMI         XGMI
+GPU6   XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         0            XGMI
+GPU7   XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         0
+
+======================================= Numa Nodes =======================================
+GPU[0]		: (Topology) Numa Node: 0
+GPU[0]		: (Topology) Numa Affinity: 0
+GPU[1]		: (Topology) Numa Node: 0
+GPU[1]		: (Topology) Numa Affinity: 0
+GPU[2]		: (Topology) Numa Node: 0
+GPU[2]		: (Topology) Numa Affinity: 0
+GPU[3]		: (Topology) Numa Node: 0
+GPU[3]		: (Topology) Numa Affinity: 0
+GPU[4]		: (Topology) Numa Node: 1
+GPU[4]		: (Topology) Numa Affinity: 1
+GPU[5]		: (Topology) Numa Node: 1
+GPU[5]		: (Topology) Numa Affinity: 1
+GPU[6]		: (Topology) Numa Node: 1
+GPU[6]		: (Topology) Numa Affinity: 1
+GPU[7]		: (Topology) Numa Node: 1
+GPU[7]		: (Topology) Numa Affinity: 1
+=============================== Current Compute Partition ================================
+GPU[0]		: Compute Partition: SPX
+GPU[1]		: Compute Partition: SPX
+GPU[2]		: Compute Partition: SPX
+GPU[3]		: Compute Partition: SPX
+GPU[4]		: Compute Partition: SPX
+GPU[5]		: Compute Partition: SPX
+GPU[6]		: Compute Partition: SPX
+GPU[7]		: Compute Partition: SPX
+==========================================================================================
+================================ Current Memory Partition ================================
+GPU[0]		: Memory Partition: NPS1
+GPU[1]		: Memory Partition: NPS1
+GPU[2]		: Memory Partition: NPS1
+GPU[3]		: Memory Partition: NPS1
+GPU[4]		: Memory Partition: NPS1
+GPU[5]		: Memory Partition: NPS1
+GPU[6]		: Memory Partition: NPS1
+GPU[7]		: Memory Partition: NPS1
+==========================================================================================
+================================== End of ROCm SMI Log ===================================

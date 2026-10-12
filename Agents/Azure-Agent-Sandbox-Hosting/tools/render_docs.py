@@ -91,7 +91,7 @@ def b_comparison(c: Ctx) -> str:
     m = c.m
     head = [c.t("Observed or documented", "实测或文档项"), "A · ACA Sandboxes",
             c.t("B · Foundry hosted agent", "B · Foundry hosted agent"),
-            "C · AKS + agent-sandbox"]
+            "C · AKS + agent-sandbox", "D · BYO-AKS"]
     rows = [
         [c.t("**New session → first answer**", "**新会话 → 第一个回答**"),
          c.t(c.med("a.cold") + "; SDK create + answer inside sandbox",
@@ -101,16 +101,21 @@ def b_comparison(c: Ctx) -> str:
          c.t(f"{num(m['c.cold']['value'])} s (n=1; apply → Ready {num(m['c.apply_ready']['value'])} s + answer "
              f"{num(m['c.first']['value'])} s)",
              f"{num(m['c.cold']['value'])} s（n=1；apply → Ready {num(m['c.apply_ready']['value'])} s + 回答 "
-             f"{num(m['c.first']['value'])} s）")],
+             f"{num(m['c.first']['value'])} s）"),
+         c.t(c.med("d.cold") + ", via the Foundry endpoint", c.med("d.cold") + "，经 Foundry 端点")],
         [c.t("**Follow-up turn, same session**", "**同一会话的后续回答**"),
          c.med("a.warm"), c.t(c.vals("b.warm_gateway") + "; model route: gateway (APIM)",
                              c.vals("b.warm_gateway") + "；模型路由：gateway（APIM）"),
-         c.one("c.warm")],
+         c.one("c.warm"), c.med("d.warm")],
         [c.t("**Sandbox or pod until ready**", "**沙箱或 pod 就绪**"),
          c.t(c.med("a.create") + ", create → Running", c.med("a.create") + "，create → Running"),
          c.t("not visible (managed)", "不可见（平台托管）"),
          c.t(f"{num(m['c.apply_ready']['value'])} s (n=1), apply → Ready",
-             f"{num(m['c.apply_ready']['value'])} s（n=1），apply → Ready")],
+             f"{num(m['c.apply_ready']['value'])} s（n=1），apply → Ready"),
+         c.t(f"{rng(m['d.pod_ready'])} s (n={m['d.pod_ready']['n']}) with the image cached; "
+             f"{num(m['d.pod_ready_fresh']['min'])} s on a fresh node (n={m['d.pod_ready_fresh']['n']})",
+             f"镜像已缓存 {rng(m['d.pod_ready'])} s（n={m['d.pod_ready']['n']}）；新节点 "
+             f"{num(m['d.pod_ready_fresh']['min'])} s（n={m['d.pod_ready_fresh']['n']}）")],
         [c.t("**Resume request → first answer (stop excluded)**", "**发起恢复 → 第一个回答（不含停止）**"),
          c.t(c.med("a.recover") + f"; separately reported resume-only median {num(m['a.resume']['median'])} s",
              c.med("a.recover") + f"；恢复本身另行统计的中位数 {num(m['a.resume']['median'])} s"),
@@ -118,29 +123,42 @@ def b_comparison(c: Ctx) -> str:
          c.t(f"{num(m['c.resume_answer']['value'])} s (n=1; Ready {num(m['c.resume_ready']['value'])} s, "
              f"LoadBalancer healthy {num(m['c.resume_lb']['value'])} s)",
              f"{num(m['c.resume_answer']['value'])} s（n=1；Ready {num(m['c.resume_ready']['value'])} s，"
-             f"LoadBalancer 健康 {num(m['c.resume_lb']['value'])} s）")],
+             f"LoadBalancer 健康 {num(m['c.resume_lb']['value'])} s）"),
+         c.t("no suspend in the preview", "预览版没有挂起")],
         [c.t("**Pod lost → ready again**", "**pod 丢失 → 重新就绪**"),
          c.t("not exercised (service-managed)", "未测（服务托管）"),
          c.t("not exercised (managed)", "未测（平台托管）"),
          c.t(c.one("c.pod_lost") + "; same Sandbox state restored",
-             c.one("c.pod_lost") + "；同一 Sandbox 的状态已恢复")],
+             c.one("c.pod_lost") + "；同一 Sandbox 的状态已恢复"),
+         c.t(c.one("d.pod_lost") + "; deleted session continuity not tested",
+             c.one("d.pod_lost") + "；未测试被删会话的连续性")],
         [c.t("**Idle behaviour**", "**空闲时的行为**"),
          c.t("suspends after the idle time you set (900 s here) with a memory snapshot",
              "到你设置的空闲时间（本次 900 s）自动挂起，保存内存快照"),
          c.t("docs: compute released after 2–60 min idle (default 15), $HOME and /files restored",
              "文档：空闲 2–60 min（默认 15）后释放算力，恢复时还原 $HOME 和 /files"),
-         c.t("none built in; you patch operatingMode", "无内置机制；需要你修改 operatingMode")],
+         c.t("none built in; you patch operatingMode", "无内置机制；需要你修改 operatingMode"),
+         c.t(f"oldest pod still Running at least {m['d.idle']['value']} min after creation; idle duration not measured",
+             f"最早的 pod 创建至少 {m['d.idle']['value']} min 后仍是 Running；未测空闲时长")],
         [c.t("**Capacity**", "**容量**"),
          c.t("serverless; quota is concurrent cores (docs)", "无服务器；配额按并发核数计（文档）"),
          c.t("managed, per session", "平台托管，按会话"),
-         c.t("your Kata node pool", "你的 Kata 节点池")],
+         c.t("your Kata node pool", "你的 Kata 节点池"),
+         c.t(f"observed at most {m['d.capacity']['per_node']} per {m['d.capacity']['node_sku']} node; "
+             f"{m['d.capacity']['max_sessions']} on {m['d.capacity']['n']} nodes; "
+             + ", ".join(f"`{code}`" for n in (4, 8) for code in m[f'd.c{n}']['refused_codes']),
+             f"单个 {m['d.capacity']['node_sku']} 节点观察到最多 {m['d.capacity']['per_node']} 个会话；"
+             f"{m['d.capacity']['n']} 个节点共 {m['d.capacity']['max_sessions']} 个；"
+             + "、".join(f"`{code}`" for n in (4, 8) for code in m[f'd.c{n}']['refused_codes']))],
         [c.t("**Path setup in our run**", "**本次路径部署耗时**"),
          c.t(f"{num(m['a.setup']['value'])} s (sandbox group, VNet connection, disk image, volume, sandbox)",
              f"{num(m['a.setup']['value'])} s（sandbox group、VNet 连接、磁盘镜像、卷、沙箱）"),
          c.t(f"{num(m['b.deploy']['value'])} s (`azd deploy`; model route: gateway (APIM))",
              f"{num(m['b.deploy']['value'])} s（`azd deploy`；模型路由：gateway（APIM））"),
          c.t(f"{num(m['c.setup']['value'])} s (prepare script, private link, apply)",
-             f"{num(m['c.setup']['value'])} s（准备脚本、私有链接、apply）")],
+             f"{num(m['c.setup']['value'])} s（准备脚本、私有链接、apply）"),
+         c.t(f"{num(m['d.onboarding']['value'])} s (roles, `azd provision`, `azd deploy`; author's console, not kept)",
+             f"{num(m['d.onboarding']['value'])} s（角色、`azd provision`、`azd deploy`；作者控制台记录，原始输出未保留）")],
     ]
     return table(head, rows)
 
@@ -182,6 +200,22 @@ def b_runs(c: Ctx) -> str:
              f"pod 内核 `{m['c.isolation']['guest_kernel']}`，Ubuntu 系统节点池的 runc pod 内核 "
              f"`{m['c.isolation']['system_node_kernel']}`；"
              f"pod 丢失后 {num(m['c.pod_lost']['value'])} s 就绪；恢复到回答 {num(m['c.resume_answer']['value'])} s")],
+        ["`d-2026-09-29-placement`", "D", c.t("where a session runs", "会话跑在哪里"),
+         c.t(f"every session pod `{m['d.placement']['runtime_class']}` on your node pool after NSG rule "
+             f"`{m['d.placement']['nsg_rule']}`",
+             f"加 NSG 规则 `{m['d.placement']['nsg_rule']}` 后，每个会话 pod 都是 `{m['d.placement']['runtime_class']}`，"
+             "跑在你的节点池上")],
+        ["`d-2026-09-29-perf`", "D", c.t("cold, warm, 4 and 8 at once", "冷启动、后续、4 和 8 并发"),
+         c.t(f"cold {num(m['d.cold']['median'])} s, warm {num(m['d.warm']['median'])} s (medians); "
+             f"4 at once {m['d.c4']['answered']}/{m['d.c4']['n']}, 8 at once {m['d.c8']['answered']}/{m['d.c8']['n']} "
+             "answered (pool full)",
+             f"冷启动 {num(m['d.cold']['median'])} s、后续 {num(m['d.warm']['median'])} s（中位数）；"
+             f"4 并发 {m['d.c4']['answered']}/{m['d.c4']['n']}、8 并发 {m['d.c8']['answered']}/{m['d.c8']['n']} 回答（节点池已满）")],
+        ["`d-2026-09-29-recovery`", "D", c.t("delete a session pod", "删除一个会话 pod"),
+         c.t(f"replacement Ready in {num(m['d.pod_lost']['value'])} s; a different live session answered in "
+             f"{num(m['d.other_session_followup']['value'])} s; deleted session continuity not tested",
+             f"{num(m['d.pod_lost']['value'])} s 后替代 pod 就绪；另一个存活会话在 "
+             f"{num(m['d.other_session_followup']['value'])} s 内回答；未测试被删会话的连续性")],
     ]
     order = json.loads((ROOT / "evidence" / "claims.json").read_text(encoding="utf-8")).get("run_order")
     if not isinstance(order, list) or not all(isinstance(rid, str) for rid in order):
@@ -321,22 +355,126 @@ def v_c(c: Ctx) -> str:
     return table(head, rows)
 
 
+def v_d_input(c: Ctx) -> str:
+    b = c.runs["d-byoaks-2026-09-29/bench.json"]
+    i = b["inputs"]
+    rtt = c.m["d.client_rtt"]
+    lines = [c.t(f"Request: {b['request']}.", f"请求：{b['request']}。"),
+             c.t(f"New sessions: \"{i['cold']}\" (n = 1, 2, 3)", f"新会话：\"{i['cold']}\"（n = 1、2、3）"),
+             c.t(f"One session: \"{i['warm_first']}\", then \"{i['warm_followup_1']}\", then \"{i['warm_followup_n']}\" "
+                 "(n = 1, 2)",
+                 f"同一会话：\"{i['warm_first']}\"，然后 \"{i['warm_followup_1']}\"，再 \"{i['warm_followup_n']}\"（n = 1、2）"),
+             c.t(f"At once, per session: \"{i['scale_turn1']}\", then \"{i['scale_turn2']}\"",
+                 f"并发时每个会话：\"{i['scale_turn1']}\"，然后 \"{i['scale_turn2']}\""),
+             c.t(f"Client: {b['client']}; recorded round trip {rng(rtt)} ms.",
+                 f"客户端：{b['client']}；记录到的往返时延 {rng(rtt)} ms。")]
+    return quote(lines)
 
 
+def v_d_cold(c: Ctx) -> str:
+    b = c.runs["d-byoaks-2026-09-29/bench.json"]
+    e = c.runs["d-byoaks-2026-09-29/cold-early.json"]
+    fresh = set(e["first_pod_on_fresh_node_s"])
+    head = [c.t("Start (UTC)", "开始（UTC）"), c.t("Node", "节点"), c.t("Answer", "回答"), c.t("New session → answer, s", "新会话 → 回答，s"),
+            c.t("Pod created → Ready, s", "pod 创建 → Ready，s")]
+    rows = []
+    for r in e["runs"]:
+        rows.append([r["start_utc"], c.t("no image yet", "尚无镜像") if r["wall_s"] in fresh else c.t("image cached", "镜像已缓存"),
+                     r["answer"], num(r["wall_s"]), c.t("not paired", "未配对")])
+    for t in b["cold_turns"]:
+        rows.append([t["started_utc"][:8], c.t("image cached", "镜像已缓存"), t["answer"], num(t["wall_s"]),
+                     num(t["pod"]["create_to_ready_s"])])
+    w = b["warm_turns"][0]
+    rows.append([w["started_utc"][:8], c.t("image cached", "镜像已缓存"), w["answer"], num(w["wall_s"]),
+                 c.t("not paired", "未配对")])
+    m = c.m
+    tail = c.t(f"\nWith the image cached: {c.med('d.cold')}. First pod on a node without the image: "
+               f"{c.vals('d.cold_fresh')}. Session pods created → Ready across the run: "
+               f"{', '.join(num(v) for v in m['d.pod_ready']['values'])} s with the image cached, "
+               f"{', '.join(num(v) for v in m['d.pod_ready_fresh']['values'])} s on a fresh node.\n",
+               f"\n镜像已缓存：{c.med('d.cold')}。节点上还没有镜像时的第一个 pod：{c.vals('d.cold_fresh')}。"
+               f"本次所有会话 pod 从创建到 Ready：镜像已缓存 {', '.join(num(v) for v in m['d.pod_ready']['values'])} s，"
+               f"新节点 {', '.join(num(v) for v in m['d.pod_ready_fresh']['values'])} s。\n")
+    return table(head, rows, ["---", "---", "---", "---:", "---:"]) + tail
 
 
+def v_d_warm(c: Ctx) -> str:
+    b = c.runs["d-byoaks-2026-09-29/bench.json"]
+    head = [c.t("Turn", "轮次"), c.t("Answer", "回答"), c.t("Client wall, s", "客户端耗时，s")]
+    rows = []
+    for k, t in enumerate(b["warm_turns"]):
+        label = c.t("1 (new session)", "1（新会话）") if k == 0 else str(k + 1)
+        rows.append([label, t["answer"], num(t["wall_s"])])
+    d = c.m["d.model_direct"]
+    tail = c.t(f"\nThe same model called directly from the same client, without an agent: {c.med('d.model_direct')}. "
+               "This baseline used low reasoning effort; it is not a matched agent-configuration benchmark.\n",
+               f"\n同一客户端不经 agent 直接调用同一个模型：{c.med('d.model_direct')}。"
+               "该基线使用 low reasoning effort，不是与 agent 配置完全匹配的基准测试。\n")
+    return table(head, rows, ["---", "---", "---:"]) + tail
 
 
+def v_d_scale(c: Ctx) -> str:
+    head = [c.t("At once", "并发"), c.t("Answered", "回答"), c.t("Refused", "拒绝"), c.t("Refusal", "拒绝原因"),
+            c.t("Refused after, s", "拒绝耗时，s")]
+    rows = []
+    for n in (4, 8):
+        r = c.m[f"d.c{n}"]
+        rows.append([str(n), f"{r['answered']}/{r['n']}" + (f" ({', '.join(num(v) for v in r['answered_s'])} s)" if r["answered_s"] else ""),
+                     f"{r['refused']}/{r['n']}", ", ".join(f"`{x}`" for x in r["refused_codes"]),
+                     f"{num(r['refused_after_s'][0])}–{num(r['refused_after_s'][1])}"])
+    cap = c.m["d.capacity"]
+    tail = c.t(f"\nWhen the refusals began, {cap['max_sessions']} session pods were alive on {cap['n']} "
+               f"`{cap['node_sku']}` nodes, at most {cap['per_node']} per node, and no node had 500m CPU left.\n",
+               f"\n开始拒绝时，{cap['n']} 个 `{cap['node_sku']}` 节点上共有 {cap['max_sessions']} 个会话 pod，"
+               f"单节点最多 {cap['per_node']} 个，没有节点还剩 500m CPU。\n")
+    return table(head, rows, ["---:", "---", "---", "---", "---:"]) + tail
 
 
+def v_d_recovery(c: Ctx) -> str:
+    r = c.runs["d-byoaks-2026-09-29/recovery.json"]
+    f = r["followup_after_kill"]
+    rows = [[c.t("session pod deleted (UTC)", "删除会话 pod（UTC）"), r["pod_deleted_utc"]],
+            [c.t("replacement pod Ready after", "替代 pod 就绪耗时"), f"{num(r['replacement_ready_s'])} s"],
+            [c.t("follow-up on a different live session", "另一个存活会话的后续回答"),
+             f"HTTP {f['http']}, {num(f['wall_s'])} s, \"{f['answer']}\"" +
+             c.t(f", that session kept its state: {str(f['state_preserved']).lower()}",
+                 f"，该会话保留了自身状态：{str(f['state_preserved']).lower()}")]]
+    return table([c.t("Step", "步骤"), c.t("Observed", "观察结果")], rows)
 
 
+def v_d_placement(c: Ctx) -> str:
+    p = c.runs["d-byoaks-2026-09-29/placement.json"]
+    pod, rule = p["session_pod"], p["nsg_rule_added"]
+    flows = "; ".join(f"{f['source']} → :443 {f['access']}" for f in p["ip_flow_verify_before_fix"])
+    req = pod["containers"][0]["resources"]["requests"]
+    rows = [[c.t("IP flow verify before the fix", "修复前 IP flow verify"), flows],
+            [c.t("rule added to the subnet NSG", "在子网 NSG 上新增的规则"),
+             f"`{rule['name']}`, {c.t('priority', '优先级')} {rule['priority']}, {rule['direction']} {rule['access']} "
+             f"{rule['protocol']} {rule['source']} → {rule['destination']}:{rule['destination_port']}"],
+            [c.t("first session after the fix", "修复后的第一个会话"),
+             f"HTTP {p['first_session_after_fix']['http']}, \"{p['first_session_after_fix']['answer']}\", "
+             f"{p['first_session_after_fix']['client_wall_seconds']} s {c.t('on the client', '客户端耗时')}"],
+            [c.t("its session pod", "它的会话 pod"),
+             f"runtimeClassName `{pod['runtimeClassName']}`, {c.t('owner', '属主')} {pod['owner_kind']}, "
+             f"{c.t('requests', 'requests')} {req['cpu']} / {req['memory']}, overhead {pod['overhead']['memory']}, "
+             f"{c.t('init containers', 'init 容器')} {', '.join(pod['init_containers'])}"],
+            [c.t("scheduled → Ready", "调度 → Ready"), f"{c.m['d.placement']['scheduled_to_ready_s']} s"],
+            [c.t("session pods at the 18:15 recheck", "18:15 复查时的会话 pod"),
+             c.t(f"{c.m['d.placement']['kata_pods_at_recheck']} of {len(p['session_pods_at_recheck'])} Running with "
+                 "`kata-vm-isolation`",
+                 f"{len(p['session_pods_at_recheck'])} 个中 {c.m['d.placement']['kata_pods_at_recheck']} 个为 Running 且是 "
+                 "`kata-vm-isolation`")],
+            [c.t("two turns at the recheck", "复查时的两轮对话"),
+             " → ".join(f"\"{t['answer']}\"" for t in p["recheck_two_turns"])],
+            [c.t("kernel of the Kata pool nodes", "Kata 节点池的节点内核"), f"`{c.m['d.node_kernel']['value']}`"]]
+    return table([c.t("Check", "检查项"), c.t("Observed", "观察结果")], rows)
 
 
 BLOCKS = {
     "comparison": b_comparison, "runs": b_runs,
     "a-agent-input": v_a_agent_input, "a-agent": v_a_agent, "a-attr": v_a_attr, "a-late": v_a_late,
-    "a-setup": v_a_setup, "b-run": v_b, "c-run": v_c,
+    "a-setup": v_a_setup, "b-run": v_b, "c-run": v_c, "d-input": v_d_input, "d-cold": v_d_cold,
+    "d-warm": v_d_warm, "d-scale": v_d_scale, "d-recovery": v_d_recovery, "d-placement": v_d_placement,
 }
 
 

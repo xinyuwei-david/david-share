@@ -1,0 +1,44 @@
+{
+  "run_id": "d-2026-09-22-field",
+  "path": "D",
+  "what": "Day-2 operations on the same cluster before the placement fix (earlier field record)",
+  "aks_start_seconds": [
+    283,
+    281
+  ],
+  "aks_start_dates": [
+    "2026-09-22",
+    "2026-09-24"
+  ],
+  "aks_stop_seconds": 160,
+  "foundry_system_pods": 13,
+  "onboarding_recorded": {
+    "role_assignments_seconds_approx": 120,
+    "azd_provision_seconds": 522,
+    "azd_deploy_seconds": 212,
+    "total_seconds_approx": 854,
+    "provenance": "author's console, recorded in the earlier field record's README (private repository foundry-byo-aks-private-preview at 89fe792); the console itself was not kept"
+  },
+  "cost_floor_usd_per_hour": {
+    "system_pool": 0.192,
+    "kata_pool": 0.192,
+    "standard_tier": 0.1,
+    "region": "eastus2",
+    "source": "Azure retail prices queried 2026-09-21",
+    "shape": "1 x Standard_D4s_v5 system + 1 x Standard_D4s_v5 Kata + Standard tier"
+  },
+  "_sources": [
+    {
+      "file": "day2-operations-2026-09-22.json",
+      "sha256": "db0a037182fa4e69df6440755438c446c8cb7e28bbae786d4f47d1992f1fadce",
+      "bytes": 8828,
+      "role": "run record"
+    },
+    {
+      "file": "placement-live-2026-09-24.json",
+      "sha256": "8d1b09757c7d04a3f970b63e4cc022556efb7bf307738a9302592dc6b212f2e2",
+      "bytes": 5850,
+      "role": "run record"
+    }
+  ]
+}

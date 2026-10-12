@@ -1,0 +1,387 @@
+{
+  "run_id": "d-2026-09-29-perf",
+  "path": "D",
+  "what": "BYO-AKS cold start, follow-up turns, concurrency and pod loss on a three-node Kata pool",
+  "date_utc": "2026-09-29",
+  "region": "eastus2",
+  "node_sku": "Standard_D4s_v5",
+  "agent_pool_nodes": 3,
+  "session_pods_before": 5,
+  "session_pods_after": 12,
+  "session_pod_shape": "500m CPU / 1Gi request per session, plus 600Mi Kata overhead",
+  "client": "Windows laptop in China; direct REST POST to the agent's Responses endpoint with an Azure CLI token",
+  "inputs": {
+    "cold": "Reply with exactly COLD-{i}",
+    "warm_first": "Remember the code word LANTERN-7. Reply only OK.",
+    "warm_followup_1": "What is the code word? Reply with the word only.",
+    "warm_followup_n": "Reply with exactly WARM-{i}",
+    "scale_turn1": "Remember SCALE-{i}. Reply only OK.",
+    "scale_turn2": "What did I ask you to remember? Word only."
+  },
+  "request": "POST <agent responses endpoint> {\"input\": <input>} with previous_response_id for follow-ups",
+  "clocks": {
+    "wall_s": "client POST until the full response body is read",
+    "create_to_ready_s": "pod creationTimestamp to its Ready condition (Kubernetes timestamps)"
+  },
+  "setup_recorded": "agentpool scaled 1->3 x Standard_D4s_v5 (scale op 2m23s, all Ready in <3 min incl. 4 DaemonSets); sample cpu 500m / 1Gi per session; Kata overhead 600Mi",
+  "scale_one_to_three_seconds": 143,
+  "cold_turns": [
+    {
+      "started_utc": "15:47:43.117",
+      "http": 200,
+      "wall_s": 24.014,
+      "first_byte_s": 24.014,
+      "status": "completed",
+      "answer": "COLD-1",
+      "error_code": null,
+      "pod": {
+        "name": "session-pod-2",
+        "node": "agent-node-2",
+        "phase": "Running",
+        "created": "2026-09-29T15:47:45Z",
+        "ready_at": "2026-09-29T15:47:55Z",
+        "runtime": "kata-vm-isolation",
+        "create_to_ready_s": 10.0
+      }
+    },
+    {
+      "started_utc": "15:48:15.931",
+      "http": 200,
+      "wall_s": 25.494,
+      "first_byte_s": 25.492,
+      "status": "completed",
+      "answer": "COLD-2",
+      "error_code": null,
+      "pod": {
+        "name": "session-pod-3",
+        "node": "agent-node-2",
+        "phase": "Running",
+        "created": "2026-09-29T15:48:18Z",
+        "ready_at": "2026-09-29T15:48:28Z",
+        "runtime": "kata-vm-isolation",
+        "create_to_ready_s": 10.0
+      }
+    },
+    {
+      "started_utc": "15:48:50.270",
+      "http": 200,
+      "wall_s": 26.16,
+      "first_byte_s": 26.16,
+      "status": "completed",
+      "answer": "COLD-3",
+      "error_code": null,
+      "pod": {
+        "name": "session-pod-4",
+        "node": "agent-node-3",
+        "phase": "Running",
+        "created": "2026-09-29T15:48:53Z",
+        "ready_at": "2026-09-29T15:49:03Z",
+        "runtime": "kata-vm-isolation",
+        "create_to_ready_s": 10.0
+      }
+    }
+  ],
+  "warm_turns": [
+    {
+      "started_utc": "15:49:37.271",
+      "http": 200,
+      "wall_s": 23.532,
+      "first_byte_s": 23.531,
+      "status": "completed",
+      "answer": "OK",
+      "error_code": null
+    },
+    {
+      "started_utc": "15:50:00.803",
+      "http": 200,
+      "wall_s": 16.421,
+      "first_byte_s": 16.421,
+      "status": "completed",
+      "answer": "LANTERN-7",
+      "error_code": null
+    },
+    {
+      "started_utc": "15:50:17.224",
+      "http": 200,
+      "wall_s": 11.169,
+      "first_byte_s": 11.168,
+      "status": "completed",
+      "answer": "WARM-1",
+      "error_code": null
+    },
+    {
+      "started_utc": "15:50:28.393",
+      "http": 200,
+      "wall_s": 12.899,
+      "first_byte_s": 12.899,
+      "status": "completed",
+      "answer": "WARM-2",
+      "error_code": null
+    }
+  ],
+  "warm_note": "warm_turns[0] opens a new session (it is a cold start); warm_turns[1:] are the follow-ups",
+  "scalability": [
+    {
+      "concurrency": 4,
+      "started_utc": "15:51:01.568",
+      "ended_utc": "15:51:20.478",
+      "sessions": [
+        {
+          "i": 0,
+          "turn1": {
+            "started_utc": "15:51:01.578",
+            "http": 500,
+            "wall_s": 18.584,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "session_creation_failed"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 1,
+          "turn1": {
+            "started_utc": "15:51:01.579",
+            "http": 500,
+            "wall_s": 18.804,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "session_creation_failed"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 2,
+          "turn1": {
+            "started_utc": "15:51:01.579",
+            "http": 500,
+            "wall_s": 18.397,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "session_creation_failed"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 3,
+          "turn1": {
+            "started_utc": "15:51:01.580",
+            "http": 500,
+            "wall_s": 18.897,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "session_creation_failed"
+          },
+          "turn2": null,
+          "remembered": false
+        }
+      ],
+      "new_pods": 0,
+      "pods_per_node": {}
+    },
+    {
+      "concurrency": 8,
+      "started_utc": "15:51:50.172",
+      "ended_utc": "15:53:10.688",
+      "sessions": [
+        {
+          "i": 0,
+          "turn1": {
+            "started_utc": "15:51:50.173",
+            "http": 429,
+            "wall_s": 68.228,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 1,
+          "turn1": {
+            "started_utc": "15:51:50.174",
+            "http": 200,
+            "wall_s": 24.14,
+            "first_byte_s": 24.139,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "15:52:14.314",
+            "http": 200,
+            "wall_s": 12.78,
+            "first_byte_s": 12.779,
+            "status": "completed",
+            "answer": "SCALE-1",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 2,
+          "turn1": {
+            "started_utc": "15:51:50.174",
+            "http": 429,
+            "wall_s": 68.464,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 3,
+          "turn1": {
+            "started_utc": "15:51:50.175",
+            "http": 200,
+            "wall_s": 24.965,
+            "first_byte_s": 24.963,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "15:52:15.139",
+            "http": 200,
+            "wall_s": 11.353,
+            "first_byte_s": 11.353,
+            "status": "completed",
+            "answer": "SCALE-3",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 4,
+          "turn1": {
+            "started_utc": "15:51:50.175",
+            "http": 429,
+            "wall_s": 80.513,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 5,
+          "turn1": {
+            "started_utc": "15:51:50.175",
+            "http": 429,
+            "wall_s": 70.546,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 6,
+          "turn1": {
+            "started_utc": "15:51:50.176",
+            "http": 429,
+            "wall_s": 68.029,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        },
+        {
+          "i": 7,
+          "turn1": {
+            "started_utc": "15:51:50.176",
+            "http": 429,
+            "wall_s": 68.269,
+            "first_byte_s": null,
+            "status": null,
+            "answer": null,
+            "error_code": "aks_quota_exceeded"
+          },
+          "turn2": null,
+          "remembered": false
+        }
+      ],
+      "new_pods": 3,
+      "pods_per_node": {
+        "agent-node-3": 1,
+        "agent-node-2": 2
+      }
+    }
+  ],
+  "node_state_at_failure": "a: cpu req 3475m/3860m (90%, 2 sbx); b: 3545m (91%, 5 sbx, mem 84%); c: 3545m (91%, 5 sbx, mem 84%) -> no node can fit another 500m",
+  "max_concurrent_sessions_observed": 12,
+  "pod_create_to_ready_cached_image_s": [
+    8,
+    9,
+    10,
+    10,
+    10,
+    10
+  ],
+  "pod_create_to_ready_fresh_node_s": [
+    25,
+    25
+  ],
+  "latency_observation": {
+    "agent_created_to_completed_s": [
+      2,
+      5
+    ],
+    "direct_model_internal_s": 1,
+    "direct_model_wall_s": [
+      1.8,
+      5.1
+    ],
+    "client_rtt_ms": [
+      320,
+      800
+    ],
+    "boundary": "Internal endpoint, routing and agent components were not instrumented; subtracting these clocks does not produce a measured component time"
+  },
+  "token": "Azure CLI token acquired before cold and warm, then refreshed before each concurrency level and recovery; token acquisition occurs outside each invoke wall_s",
+  "_sources": [
+    {
+      "file": "byoaks-bench.json",
+      "sha256": "967a039d7b9d8463b57c3fb76a48f680d171fa8f99c928b0345452ecd3bee3f2",
+      "bytes": 19916,
+      "role": "run record"
+    },
+    {
+      "file": "bench-console.txt",
+      "sha256": "26cffdcaec245a0e54d72351b639b35a83026e792cb3b43a938c71484bafa404",
+      "bytes": 949,
+      "role": "run record"
+    },
+    {
+      "file": "byoaks_bench.py",
+      "sha256": "56fbb3ff0c370ae5e748351fd1c9ef9f2c4a33f6559c597a1088767f943081a7",
+      "bytes": 12111,
+      "role": "run record"
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "79e4c95e869f81972a5cf70a2f795bdac8b720cbbbc63e5ee9664c6125d540b1",
+      "bytes": 7106,
+      "role": "run manifest"
+    }
+  ]
+}

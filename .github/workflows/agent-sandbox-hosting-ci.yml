@@ -46,7 +46,7 @@ jobs:
         run: python tools/render_docs.py --check
       - name: Check figures and icons against the ledger
         run: python tools/build_diagrams.py --check
-      - name: Validate the pages and publication scope
+      - name: Validate the four-path pages
         run: python tools/validate_docs.py
       - name: Offline tests
         run: python -m pytest -q

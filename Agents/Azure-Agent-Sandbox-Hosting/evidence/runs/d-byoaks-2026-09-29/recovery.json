@@ -1,0 +1,22 @@
+{
+  "run_id": "d-2026-09-29-recovery",
+  "path": "D",
+  "date_utc": "2026-09-29",
+  "what": "Delete one live session pod; time its replacement and ask a live session again",
+  "pod_deleted_utc": "16:04:16",
+  "replacement_ready_s": 23.9,
+  "followup_after_kill": {
+    "http": 200,
+    "wall_s": 14.8,
+    "answer": "LANTERN-7",
+    "state_preserved": true
+  },
+  "_sources": [
+    {
+      "file": "recovery.json",
+      "sha256": "afcfb2827394846b44770a161627e4bac896be4beac948873de31597f794a39c",
+      "bytes": 290,
+      "role": "run record"
+    }
+  ]
+}

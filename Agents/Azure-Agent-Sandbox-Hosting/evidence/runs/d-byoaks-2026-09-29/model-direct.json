@@ -1,0 +1,52 @@
+{
+  "run_id": "d-2026-09-29-model-direct",
+  "path": "D",
+  "date_utc": "2026-09-29",
+  "what": "The same model called directly from the same client, without an agent, as a baseline",
+  "model": "gpt-5.4-mini, low reasoning effort",
+  "runs": [
+    {
+      "n": 1,
+      "wall_s": 5.07,
+      "model_s": 1,
+      "out_tok": 16,
+      "reasoning_tok": 9
+    },
+    {
+      "n": 2,
+      "wall_s": 2.69,
+      "model_s": 1,
+      "out_tok": 16,
+      "reasoning_tok": 9
+    },
+    {
+      "n": 3,
+      "wall_s": 2.15,
+      "model_s": 1,
+      "out_tok": 16,
+      "reasoning_tok": 9
+    },
+    {
+      "n": 4,
+      "wall_s": 3.32,
+      "model_s": 1,
+      "out_tok": 16,
+      "reasoning_tok": 9
+    },
+    {
+      "n": 5,
+      "wall_s": 1.82,
+      "model_s": 1,
+      "out_tok": 16,
+      "reasoning_tok": 9
+    }
+  ],
+  "_sources": [
+    {
+      "file": "model-direct-baseline.json",
+      "sha256": "5ebffefc71736745109f30f29e306b5dcb117551d787690e14381f0a357b8bdb",
+      "bytes": 545,
+      "role": "run record"
+    }
+  ]
+}

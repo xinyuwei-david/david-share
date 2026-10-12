@@ -196,6 +196,118 @@ def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
          "runtime_class": c["kata_isolation"]["runtime_class"]},
         "uname -r in the Sandbox pod and a runc pod on a different system pool; system_node_kernel is a legacy field name")
 
+    # D · BYO-AKS · 2026-09-29
+    bench = runs["d-byoaks-2026-09-29/bench.json"]
+    early = runs["d-byoaks-2026-09-29/cold-early.json"]
+    rid = bench["run_id"]
+    for t in bench["cold_turns"] + bench["warm_turns"]:
+        if t["http"] != 200:
+            raise BuildError(f"D bench turn {t['started_utc']} was not answered")
+    fresh = set(early["first_pod_on_fresh_node_s"])
+    cached_early = [r["wall_s"] for r in early["runs"] if r["wall_s"] not in fresh and r["http"] == 200]
+    if len(cached_early) != 1 or len(fresh) != 2:
+        raise BuildError("D early cold runs: expected two fresh-node runs and one cached run")
+    cold = cached_early + [t["wall_s"] for t in bench["cold_turns"]] + [bench["warm_turns"][0]["wall_s"]]
+    put("d.cold", rid, "LOCAL_MEASUREMENT", stat(cold),
+        "new session until the answer, node already holds the image")
+    put("d.cold_fresh", early["run_id"], "LOCAL_MEASUREMENT", stat(sorted(fresh, reverse=True)),
+        "new session until the answer, first pod on a node without the image")
+    ready = bench["pod_create_to_ready_cached_image_s"]
+    bench_pods = [t["pod"]["create_to_ready_s"] for t in bench["cold_turns"] if t.get("pod")]
+    for v in bench_pods:
+        if v not in ready:
+            raise BuildError(f"bench pod create-to-Ready {v} s is not in the run manifest's list {ready}")
+    for t in bench["cold_turns"]:
+        pod = t["pod"]
+        if pod["runtime"] != "kata-vm-isolation":
+            raise BuildError("D cold pod without kata-vm-isolation")
+        if round((utc(pod["ready_at"]) - utc(pod["created"])).total_seconds(), 1) != pod["create_to_ready_s"]:
+            raise BuildError("D cold pod create-to-Ready does not match its timestamps")
+    put("d.pod_ready", rid, "LOCAL_MEASUREMENT", stat(ready), "session pod created until Ready, image cached")
+    put("d.pod_ready_fresh", rid, "LOCAL_MEASUREMENT", stat(bench["pod_create_to_ready_fresh_node_s"]),
+        "session pod created until Ready, fresh node")
+    follow = bench["warm_turns"][1:]
+    put("d.warm", rid, "LOCAL_MEASUREMENT", stat([t["wall_s"] for t in follow]), "follow-up turns, same session")
+    if "LANTERN-7" not in (follow[0]["answer"] or ""):
+        raise BuildError("D warm session did not remember LANTERN-7")
+    levels = {lv["concurrency"]: lv for lv in bench["scalability"]}
+    for n in (4, 8):
+        lv = levels[n]
+        t1 = [s["turn1"] for s in lv["sessions"]]
+        ok = [t["wall_s"] for t in t1 if t["http"] == 200]
+        refused = [t for t in t1 if t["http"] != 200]
+        codes = sorted({f"{t['http']} {t['error_code']}" for t in refused})
+        put(f"d.c{n}", rid, "LOCAL_MEASUREMENT",
+            {"n": n, "unit": "sessions", "answered": len(ok), "answered_s": ok, "refused": len(refused),
+             "refused_codes": codes, "refused_after_s": [min(t["wall_s"] for t in refused),
+                                                          max(t["wall_s"] for t in refused)] if refused else []},
+            f"{n} new sessions at once")
+    per_node = max(int(x) for x in re.findall(r"(\d+) sbx", bench["node_state_at_failure"]))
+    put("d.capacity", rid, "LOCAL_MEASUREMENT",
+        {"n": bench["agent_pool_nodes"], "unit": "sessions", "per_node": per_node,
+         "max_sessions": bench["max_concurrent_sessions_observed"], "node_sku": bench["node_sku"]},
+        "session pods per node when the controller started refusing")
+    rec = runs["d-byoaks-2026-09-29/recovery.json"]
+    if not rec["followup_after_kill"]["state_preserved"] or rec["followup_after_kill"]["answer"] != "LANTERN-7":
+        raise BuildError("the different live session used after D pod deletion did not keep LANTERN-7")
+    put("d.pod_lost", rec["run_id"], "LOCAL_MEASUREMENT", single(rec["replacement_ready_s"]),
+        "session pod deleted until its replacement is Ready")
+    put("d.other_session_followup", rec["run_id"], "LOCAL_MEASUREMENT",
+        single(rec["followup_after_kill"]["wall_s"]),
+        "follow-up on a different live session after the deletion; that other session kept LANTERN-7")
+    cap = runs["d-byoaks-2026-09-29/capacity.json"]
+    created = sorted(utc(p["created"]) for p in cap["session_pods_after_cleanup"])
+    oldest, newest = created[0], created[-1]
+    idle_min = int((newest - oldest).total_seconds() // 60)
+    put("d.idle", cap["run_id"], "LOCAL_MEASUREMENT",
+        {"n": len(created), "unit": "min", "value": idle_min,
+         "oldest_created": oldest.strftime("%H:%MZ"), "listed_after": newest.strftime("%H:%MZ")},
+        "pod age lower bound while still Running; no last-request timestamp was retained, so this is not idle duration")
+    kernels = sorted({n["kernel"] for n in cap["nodes_after_scale"]})
+    put("d.node_kernel", cap["run_id"], "LOCAL_MEASUREMENT",
+        {"n": len(cap["nodes_after_scale"]), "unit": "nodes", "value": kernels[0] if len(kernels) == 1 else kernels},
+        "kernelVersion of the Kata pool nodes")
+    direct = runs["d-byoaks-2026-09-29/model-direct.json"]
+    put("d.model_direct", direct["run_id"], "LOCAL_MEASUREMENT", stat([r["wall_s"] for r in direct["runs"]]),
+        "same model called directly from the same client")
+    put("d.node_scale", rid, "LOCAL_MEASUREMENT", single(bench["scale_one_to_three_seconds"]),
+        "Kata pool scale operation from one to three nodes")
+    latency = bench["latency_observation"]
+    put("d.client_rtt", rid, "LOCAL_MEASUREMENT",
+        {"n": 1, "unit": "ms", "min": latency["client_rtt_ms"][0], "max": latency["client_rtt_ms"][1]},
+        "client-to-Azure round-trip range recorded in the run manifest")
+    put("d.agent_turn", rid, "LOCAL_MEASUREMENT",
+        {"n": 1, "unit": "s", "min": latency["agent_created_to_completed_s"][0],
+         "max": latency["agent_created_to_completed_s"][1]},
+        "response created_at to completed_at range; not an internal gateway clock")
+    pl = runs["d-byoaks-2026-09-29/placement.json"]
+    pod = pl["session_pod"]
+    put("d.placement", pl["run_id"], "LOCAL_MEASUREMENT",
+        {"n": 1 + len(pl["session_pods_at_recheck"]), "unit": "pod observations",
+         "runtime_class": pod["runtimeClassName"],
+         "kata_pods_at_recheck": sum(p["runtimeClassName"] == "kata-vm-isolation" for p in pl["session_pods_at_recheck"]),
+         "scheduled_to_ready_s": int((utc(pod["ready_at"]) - utc(pod["scheduled_at"])).total_seconds()),
+         "first_session_wall_s": pl["first_session_after_fix"]["client_wall_seconds"],
+         "nsg_rule": pl["nsg_rule_added"]["name"], "nsg_priority": pl["nsg_rule_added"]["priority"]},
+        "one initial pod observation plus the recheck observations; not a count of distinct pods")
+    fld = runs["d-byoaks-2026-09-22/field.json"]
+    put("d.aks_start", fld["run_id"], "LOCAL_MEASUREMENT", stat(fld["aks_start_seconds"]), "az aks start until Running")
+    onboarding = fld["onboarding_recorded"]
+    put("d.role_assignments", fld["run_id"], "LOCAL_MEASUREMENT",
+        single(onboarding["role_assignments_seconds_approx"]), "BYO-AKS role assignments; approximate")
+    put("d.azd_provision", fld["run_id"], "LOCAL_MEASUREMENT",
+        single(onboarding["azd_provision_seconds"]), "BYO-AKS azd provision")
+    put("d.azd_deploy", fld["run_id"], "LOCAL_MEASUREMENT",
+        single(onboarding["azd_deploy_seconds"]), "first BYO-AKS agent azd deploy")
+    put("d.onboarding", fld["run_id"], "LOCAL_MEASUREMENT",
+        single(onboarding["total_seconds_approx"]), "roles + azd provision + first azd deploy; console not retained")
+    put("d.initial_runtime_pods", fld["run_id"], "LOCAL_MEASUREMENT",
+        {"n": 1, "unit": "pods", "value": fld["foundry_system_pods"]},
+        "foundry-system pods in the initial one-Kata-node read-back")
+    cost = fld["cost_floor_usd_per_hour"]
+    put("d.cost_floor", fld["run_id"], "SOURCE_FACT",
+        {"n": 1, "unit": "USD/h", "value": round(cost["system_pool"] + cost["kata_pool"] + cost["standard_tier"], 3)},
+        cost["shape"] + ", " + cost["source"])
     return {"schema": 1, "built_from": dict(sorted(index.items())), "metrics": m}
 
 

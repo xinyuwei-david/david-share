@@ -1,0 +1,172 @@
+{
+  "run_id": "d-2026-09-29-placement",
+  "path": "D",
+  "what": "Where a BYO-AKS session runs, after the product-side enablement fix and the subnet NSG fix",
+  "date_utc": "2026-09-29",
+  "region": "eastus2",
+  "agent": "agent-framework-agent-basic-responses-byoaks (private-preview sample), agent version 3",
+  "root_cause": "The subnet NSG on the AKS subnet had no inbound rule for the foundry-router load balancer, so DenyAllInBound dropped Foundry's calls to <router-ip>:443. The AKS-managed NIC NSG already allowed AzureCloud to that address; the load-balancer rule uses floating IP, so both NSGs evaluate the frontend address.",
+  "ip_flow_verify_before_fix": [
+    {
+      "source": "AzureCloud",
+      "destination": "agent node :443",
+      "access": "Deny",
+      "rule": "defaultSecurityRules/DenyAllInBound"
+    },
+    {
+      "source": "AzureCloud",
+      "destination": "agent node :443",
+      "access": "Deny",
+      "rule": "defaultSecurityRules/DenyAllInBound"
+    },
+    {
+      "source": "VNet",
+      "destination": "agent node :443",
+      "access": "Allow",
+      "rule": "defaultSecurityRules/AllowVnetInBound"
+    }
+  ],
+  "router_service": {
+    "name": "foundry-router",
+    "namespace": "foundry-system",
+    "type": "LoadBalancer",
+    "ports": [
+      443
+    ]
+  },
+  "nsg_rule_added": {
+    "name": "Allow-AzureCloud-FoundryRouter-443",
+    "priority": 500,
+    "direction": "Inbound",
+    "access": "Allow",
+    "protocol": "Tcp",
+    "source": "AzureCloud",
+    "destination": "<router-ip>",
+    "destination_port": "443",
+    "nsg": "<subnet-nsg>",
+    "provisioning_state": "Succeeded"
+  },
+  "first_session_after_fix": {
+    "http": 200,
+    "answer": "BYO-AKS-OK",
+    "server_seconds": 5,
+    "agent_version": "3",
+    "client_wall_seconds": 51,
+    "request_text": "not retained in the run record"
+  },
+  "session_pod": {
+    "name": "session-pod-1",
+    "namespace": "foundry-<project>-<hash>",
+    "runtimeClassName": "kata-vm-isolation",
+    "node": "agent-node-1",
+    "owner_kind": "ReplicaSet",
+    "containers": [
+      {
+        "name": "agent",
+        "resources": {
+          "limits": {
+            "memory": "1Gi"
+          },
+          "requests": {
+            "cpu": "500m",
+            "memory": "1Gi"
+          }
+        }
+      }
+    ],
+    "init_containers": [
+      "foundry-sandbox-agent",
+      "foundry-sandbox-init"
+    ],
+    "overhead": {
+      "memory": "600Mi"
+    },
+    "phase": "Running",
+    "scheduled_at": "2026-09-29T08:40:21Z",
+    "ready_at": "2026-09-29T08:40:56Z"
+  },
+  "session_pods_at_recheck": [
+    {
+      "created": "2026-09-29T08:56:28Z",
+      "runtimeClassName": "kata-vm-isolation",
+      "phase": "Running"
+    },
+    {
+      "created": "2026-09-29T10:15:53Z",
+      "runtimeClassName": "kata-vm-isolation",
+      "phase": "Running"
+    },
+    {
+      "created": "2026-09-29T08:40:21Z",
+      "runtimeClassName": "kata-vm-isolation",
+      "phase": "Running"
+    }
+  ],
+  "recheck_two_turns": [
+    {
+      "turn": "turn1",
+      "status": "completed",
+      "answer": "OK",
+      "agent_version": "3",
+      "server_seconds": 4
+    },
+    {
+      "turn": "turn2",
+      "status": "completed",
+      "answer": "HERON-1815",
+      "agent_version": "3",
+      "server_seconds": 2
+    }
+  ],
+  "guest_kernel_inside_session_pod": "not read: no uname -r was run inside a BYO-AKS session pod",
+  "_sources": [
+    {
+      "file": "invoke-3-podwatch.txt",
+      "sha256": "88f2b6c480719cd73d2a0d5b876a011faabf7d682ae49e42a4217d649fe71377",
+      "bytes": 3294,
+      "role": "run record"
+    },
+    {
+      "file": "invoke-3.json",
+      "sha256": "3af491a049287fb62ebcd98d05881ad9dc71ade6af80b57ccb7b20b41895f04f",
+      "bytes": 1030,
+      "role": "run record"
+    },
+    {
+      "file": "ip-flow-verify.txt",
+      "sha256": "4251b1f1696a82fab23439d5ffda0cfc4bdbf1c469253a7ded4d7181877e2522",
+      "bytes": 296,
+      "role": "run record"
+    },
+    {
+      "file": "nsg-rule-create.json",
+      "sha256": "3c9c7db4a6c729a58ed948faa0c997346e27a840d763f1c2425698bf8b303250",
+      "bytes": 999,
+      "role": "run record"
+    },
+    {
+      "file": "session-pod.json",
+      "sha256": "1163f08354736f5352109ff30ff6f1c302652d2332b72ce006219a69ac975d13",
+      "bytes": 25884,
+      "role": "run record"
+    },
+    {
+      "file": "svc-foundry-system.json",
+      "sha256": "298f28962c3182d3009f57492fcb1fd0cd3702808753c649fcb9aef0f8084630",
+      "bytes": 7609,
+      "role": "run record"
+    },
+    {
+      "file": "session-pods.json",
+      "sha256": "c17b87ebccd0f3904287d1d78153be99106e4baf82d5d8f9c8648ef91c4197ee",
+      "bytes": 77417,
+      "role": "kubectl read-back"
+    },
+    {
+      "file": "multiturn.json",
+      "sha256": "335def858dfbd5b31a8993b1508a8a46d73149d09eb388e70d4f0614fdbf3991",
+      "bytes": 2825,
+      "role": "Responses read-back"
+    }
+  ]
+}

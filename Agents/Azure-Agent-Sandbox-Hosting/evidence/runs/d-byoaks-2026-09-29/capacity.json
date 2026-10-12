@@ -1,0 +1,134 @@
+{
+  "run_id": "d-2026-09-29-capacity",
+  "path": "D",
+  "date_utc": "2026-09-29",
+  "what": "Nodes, DaemonSets and the session pods still alive after the benchmark and a pod-deletion attempt",
+  "nodes_after_scale": [
+    {
+      "node": "agent-node-4",
+      "status": "Ready",
+      "kernel": "6.6.137.mshv2-2.azl3",
+      "sandbox_node_label": "true",
+      "kata_label": "true"
+    },
+    {
+      "node": "agent-node-3",
+      "status": "Ready",
+      "kernel": "6.6.137.mshv2-2.azl3",
+      "sandbox_node_label": "true",
+      "kata_label": "true"
+    },
+    {
+      "node": "agent-node-2",
+      "status": "Ready",
+      "kernel": "6.6.137.mshv2-2.azl3",
+      "sandbox_node_label": "true",
+      "kata_label": "true"
+    }
+  ],
+  "daemonsets_after_scale": [
+    {
+      "daemonset": "foundry-egress-proxy",
+      "desired": 3,
+      "ready": 3
+    },
+    {
+      "daemonset": "foundry-node-agent",
+      "desired": 3,
+      "ready": 3
+    },
+    {
+      "daemonset": "foundry-system-log-collector",
+      "desired": 3,
+      "ready": 3
+    },
+    {
+      "daemonset": "foundry-user-telemetry",
+      "desired": 3,
+      "ready": 3
+    }
+  ],
+  "session_pods_after_cleanup": [
+    {
+      "name": "session-pod-5",
+      "phase": "Running",
+      "created": "2026-09-29T16:00:56Z"
+    },
+    {
+      "name": "session-pod-6",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:00Z"
+    },
+    {
+      "name": "session-pod-7",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:00Z"
+    },
+    {
+      "name": "session-pod-8",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:01Z"
+    },
+    {
+      "name": "session-pod-9",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:03Z"
+    },
+    {
+      "name": "session-pod-10",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:04Z"
+    },
+    {
+      "name": "session-pod-11",
+      "phase": "Running",
+      "created": "2026-09-29T14:35:30Z"
+    },
+    {
+      "name": "session-pod-12",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:05Z"
+    },
+    {
+      "name": "session-pod-13",
+      "phase": "Running",
+      "created": "2026-09-29T14:33:27Z"
+    },
+    {
+      "name": "session-pod-14",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:06Z"
+    },
+    {
+      "name": "session-pod-15",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:06Z"
+    },
+    {
+      "name": "session-pod-16",
+      "phase": "Running",
+      "created": "2026-09-29T16:01:07Z"
+    }
+  ],
+  "cleanup_note": "Session pods deleted at about 16:01Z were recreated by their Deployments within seconds; the two pods created at 14:33Z and 14:35Z were never deleted and stayed Running.",
+  "_sources": [
+    {
+      "file": "nodes-after-scale.txt",
+      "sha256": "24375adcf9feb5c0843631eb59a5f9974fbff890de85f54513b1a8afd0b83574",
+      "bytes": 336,
+      "role": "kubectl read-back"
+    },
+    {
+      "file": "ds-after-scale.txt",
+      "sha256": "b8dc225623cdb30739c1ab8cf809edb6d72e7875c19f9b42a015d124de0c28e4",
+      "bytes": 224,
+      "role": "kubectl read-back"
+    },
+    {
+      "file": "pods-after-cleanup.txt",
+      "sha256": "77c52e395923cdd43126a695c3816cbf0693e8490ad786405181f609f0464585",
+      "bytes": 1261,
+      "role": "kubectl read-back"
+    }
+  ]
+}

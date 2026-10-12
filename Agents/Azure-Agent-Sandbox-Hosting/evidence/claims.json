@@ -4,13 +4,14 @@
     "model": "gpt-5.4-mini",
     "same_container_across_all_paths": false,
     "abc_workload": "agenthost workshop reflection agent at commit 905f2c2",
+    "d_workload": "BYO-AKS private-preview sample agent",
     "common_behavior": "new stateful session, follow-up in the same session, and lifecycle or recovery where the path exposes it",
     "general_managed_start": "B",
     "qira_like_long_running_start": "A"
   },
   "measurement_scope": {
     "region": "East US 2",
-    "first_date": "2026-09-27",
+    "first_date": "2026-09-22",
     "last_date": "2026-10-09"
   },
   "run_order": [
@@ -19,7 +20,10 @@
     "a-2026-10-09-attribution",
     "a-2026-10-09-late-mount",
     "b-2026-09-27",
-    "c-2026-09-27"
+    "c-2026-09-27",
+    "d-2026-09-29-placement",
+    "d-2026-09-29-perf",
+    "d-2026-09-29-recovery"
   ],
   "letter_mapping": {
     "A": {
@@ -36,6 +40,11 @@
       "name": "AKS + agent-sandbox",
       "upstream_module": "module-03",
       "upstream_solution_letter": "B"
+    },
+    "D": {
+      "name": "BYO-AKS",
+      "upstream_module": "private-preview sample",
+      "upstream_solution_letter": null
     }
   },
   "paths": {
@@ -92,7 +101,31 @@
       "boundary_zh": "每个 Sandbox 一个 Kata pod VM",
       "node_owner_en": "You",
       "node_owner_zh": "你"
+    },
+    "D": {
+      "status_en": "**Private preview**",
+      "status_zh": "**私有预览**",
+      "diagram_status_en": "private preview",
+      "diagram_status_zh": "私有预览",
+      "lifecycle_owner_en": "Foundry, on your cluster",
+      "lifecycle_owner_zh": "Foundry，运行在你的集群上",
+      "session_location_en": "Your Kata node pool",
+      "session_location_zh": "你的 Kata 节点池",
+      "memory_suspend_en": "No suspend in the preview",
+      "memory_suspend_zh": "预览版不挂起",
+      "max_session_en": "Customer-selected node SKU; the preview's per-session cap is not documented",
+      "max_session_zh": "节点 SKU 由你选择；预览版没有公布单会话上限",
+      "boundary_en": "One Kata pod VM per session",
+      "boundary_zh": "每个会话一个 Kata pod VM",
+      "node_owner_en": "You",
+      "node_owner_zh": "你"
     }
+  },
+  "d_runtime_topology": {
+    "fixed_deployment_pods": 9,
+    "daemonsets": 4,
+    "total_with_one_matching_node": 13,
+    "daemonsets_scale_with_matching_nodes": true
   },
   "sources": {
     "aca_sandboxes": "https://learn.microsoft.com/azure/container-apps/sandboxes-overview",
@@ -100,15 +133,5 @@
     "pod_sandboxing": "https://learn.microsoft.com/azure/aks/use-pod-sandboxing",
     "agent_sandbox_v052": "https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v0.5.2",
     "workshop_905f2c2": "https://github.com/oxcp/ainotes/tree/905f2c2/agenthost"
-  },
-  "publication": {
-    "edition": "public",
-    "paths": [
-      "A",
-      "B",
-      "C"
-    ],
-    "full_version_url": "https://github.com/david-xinyuwei/azure-agent-sandbox-hosting",
-    "omitted": "BYO-AKS private-preview onboarding, implementation details and measurements"
   }
 }

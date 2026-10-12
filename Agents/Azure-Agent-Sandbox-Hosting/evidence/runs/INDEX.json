@@ -5,5 +5,12 @@
   "a-aca-2026-10-09/late-mount.json": "c81ac0539603589d7beb3422537c6a7f6a24994ece00db566244a29b50eeea3c",
   "abc-2026-09-27/foundation.json": "e7d733b8ad0e56dfb6acab73261d3750838ff6725b4b4352cd0e0ffb131d17f6",
   "b-hosted-agent-2026-09-27/run.json": "bae0b8e3eee47f6b62decd2f2cb63fec87b0e7ff36d6ca486c7820ae1db7e3ac",
-  "c-aks-agent-sandbox-2026-09-27/run.json": "2e63af0990bacff14136796256061b9e5e688a2f26ad23c5f211b3d25f61e077"
+  "c-aks-agent-sandbox-2026-09-27/run.json": "2e63af0990bacff14136796256061b9e5e688a2f26ad23c5f211b3d25f61e077",
+  "d-byoaks-2026-09-22/field.json": "15b384f087ceaceef87f66cde174803cafd51d7c5c1fe1455802cb52b2acce1c",
+  "d-byoaks-2026-09-29/bench.json": "4b24197e2e075f0f669e65b778e9ca5fd687c5b1ec9f44bd2fc79759b13f5dd7",
+  "d-byoaks-2026-09-29/capacity.json": "3aece70f02c5d84e606f6fa2bff5df4e6cd038766ee0917c3eec61eb8b2cc802",
+  "d-byoaks-2026-09-29/cold-early.json": "7b2060090147ecd6543a04f410e6fcdefd2a2f79d19cb329d7e048578c2ca525",
+  "d-byoaks-2026-09-29/model-direct.json": "f55403b68aca3ec7fc6382287ec071b06813d4bdc284d7f927e0f47e60488b18",
+  "d-byoaks-2026-09-29/placement.json": "a19f92faf818acb0c3bf1e7f757dcdae7c0d36364cf310f6f5ebc96363d863d2",
+  "d-byoaks-2026-09-29/recovery.json": "f3f21116914bc42268e8cfaee4c28097c75dfe389729669b406e37eef11e2fdb"
 }

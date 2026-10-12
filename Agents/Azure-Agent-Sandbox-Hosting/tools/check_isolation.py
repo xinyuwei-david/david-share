@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Path C: check that agent pods run as Kata micro-VMs on your nodes.
+"""Paths C and D: check that agent pods run as Kata micro-VMs on your nodes.
 
     python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname          # C
+    python tools/check_isolation.py -n "$SESSION_NAMESPACE" --container agent --exec-uname   # D
 
 For every matching pod it prints one line:
 
@@ -83,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter, epilog=__doc__)
     ap.add_argument("-n", "--namespace", help="namespace of the agent or session pods")
     ap.add_argument("-l", "--selector", help="label selector, for example app=agent-host")
-    ap.add_argument("--container", help="container to exec into when the pod has multiple containers")
+    ap.add_argument("--container", help="container to exec into (D: agent)")
     ap.add_argument("--exec-uname", action="store_true", help="read uname -r inside each pod")
     ap.add_argument("--pods-json", type=Path, help="offline: saved kubectl get pods -o json")
     ap.add_argument("--nodes-json", type=Path, help="offline: saved kubectl get nodes -o json")

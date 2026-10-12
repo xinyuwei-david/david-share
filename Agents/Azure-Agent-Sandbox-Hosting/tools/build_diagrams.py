@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the three-path public architecture figure (English and Chinese) from one layout.
+"""Draw the four-path architecture figure (English and Chinese) from one layout.
 
     python tools/build_diagrams.py           # write the SVGs and update images/SOURCES.json
     python tools/build_diagrams.py --png     # also render the PNGs with headless Microsoft Edge (Windows)
@@ -39,8 +39,8 @@ STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91"}
 FONT = "'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif"
 
 GAP, MARGIN = 16, 24
-COL_W = (W - 2 * MARGIN - 2 * GAP) // 3
-COL_X = [MARGIN + i * (COL_W + GAP) for i in range(3)]
+COL_W = (W - 2 * MARGIN - 3 * GAP) // 4
+COL_X = [MARGIN + i * (COL_W + GAP) for i in range(4)]
 HEAD_Y, ENTRY_Y = 112, 196
 MS_Y, MS_H = 244, 236
 SUB_Y, SUB_H = 496, 424
@@ -53,12 +53,13 @@ I_AKS = "10023-icon-service-Kubernetes-Services.svg"
 I_ACR = "10105-icon-service-Container-Registries.svg"
 I_STORAGE = "10086-icon-service-Storage-Accounts.svg"
 I_APPI = "00012-icon-service-Application-Insights.svg"
+I_NSG = "10067-icon-service-Network-Security-Groups.svg"
 
 # Each card: (icon or None for the micro-VM boundary, title, detail)
 LAYOUT = {
     "en": {
-        "title": "Three public ways to host an agent sandbox on Azure",
-        "subtitle": "Who runs the lifecycle, and where each session's micro-VM runs. A/C placement is from our "
+        "title": "Four ways to host an agent sandbox on Azure",
+        "subtitle": "Who runs the lifecycle, and where each session's micro-VM runs. A/C/D placement is from our "
                     "read-backs; B's VM-isolated boundary is from Learn.",
         "ms": "MICROSOFT-MANAGED",
         "sub": "YOUR SUBSCRIPTION",
@@ -83,16 +84,23 @@ LAYOUT = {
                      (None, "Kata pod VM per Sandbox", "runtimeClass kata-vm-isolation · your image · own kernel"),
                      (I_AKS, "Kata node pool", "Azure Linux · Gen2 VM size with nested virtualization"),
                      (I_STORAGE, "Storage · Blob PVC", "agent state survives pod loss and suspend")]},
+            {"letter": "D", "name": "BYO-AKS", "status": ("private preview", "preview"),
+             "entry": "Client → Foundry agent endpoint (Responses)",
+             "ms": [(I_AGENT, "Foundry Agent Service", "endpoint · sessions · dispatch to your cluster")],
+             "sub": [(I_NSG, "Subnet NSG", "allow AzureCloud → foundry-router :443"),
+                     (I_AKS, "foundry-system on your AKS", "9 fixed pods + 4 DaemonSets that scale with Kata nodes"),
+                     (None, "Kata pod VM per session", "runtimeClass kata-vm-isolation · one Deployment each"),
+                     (I_ACR, "Container Registry · Storage", "agent image · session state")]},
         ],
-        "model": "Model inference stays on Foundry Models in all three paths; the agent calls it from inside its sandbox.",
+        "model": "Model inference stays on Foundry Models in all four paths; the agent calls it from inside its sandbox.",
         "legend": ["Microsoft-managed", "Your subscription", "One micro-VM per sandbox or session"],
         "footer": "Original explanatory diagram. Sources: Microsoft Learn (Container Apps Sandboxes overview, Hosted "
                   "agents in Foundry Agent Service, Pod sandboxing with AKS), agent-sandbox v0.5.2, and the runs in "
                   "evidence/runs/. Icons: Azure Architecture Icons V24, unmodified.",
     },
     "zh": {
-        "title": "在 Azure 上托管 agent 沙箱的三种公开方式",
-        "subtitle": "谁负责生命周期，每个会话的 micro-VM 跑在哪里。A/C 的落点来自实测读回，B 的 VM 级"
+        "title": "在 Azure 上托管 agent 沙箱的四种方式",
+        "subtitle": "谁负责生命周期，每个会话的 micro-VM 跑在哪里。A/C/D 的落点来自实测读回，B 的 VM 级"
                     "隔离边界来自 Learn。",
         "ms": "微软托管",
         "sub": "你的订阅",
@@ -117,8 +125,15 @@ LAYOUT = {
                      (None, "每个 Sandbox 一个 Kata pod VM", "runtimeClass kata-vm-isolation · 你的镜像 · 独立内核"),
                      (I_AKS, "Kata 节点池", "Azure Linux · 支持嵌套虚拟化的 Gen2 规格"),
                      (I_STORAGE, "Storage · Blob PVC", "pod 丢失或挂起后 agent 状态仍在")]},
+            {"letter": "D", "name": "BYO-AKS", "status": ("私有预览", "preview"),
+             "entry": "客户端 → Foundry agent 端点（Responses）",
+             "ms": [(I_AGENT, "Foundry Agent Service", "端点 · 会话 · 把会话派发到你的集群")],
+             "sub": [(I_NSG, "子网 NSG", "放行 AzureCloud → foundry-router :443"),
+                     (I_AKS, "你的 AKS 上的 foundry-system", "9 个固定 pod + 4 个随 Kata 节点扩展的 DaemonSet"),
+                     (None, "每会话一个 Kata pod VM", "runtimeClass kata-vm-isolation · 每个会话一个 Deployment"),
+                     (I_ACR, "Container Registry · Storage", "agent 镜像 · 会话状态")]},
         ],
-        "model": "三条路径的模型推理都在 Foundry Models 上；agent 在自己的沙箱里调用模型。",
+        "model": "四条路径的模型推理都在 Foundry Models 上；agent 在自己的沙箱里调用模型。",
         "legend": ["微软托管", "你的订阅", "每个沙箱或会话一个 micro-VM"],
         "footer": "原创解释图。来源：Microsoft Learn（Container Apps Sandboxes 概览、Foundry Agent Service 的 "
                   "Hosted agents、AKS Pod sandboxing）、agent-sandbox v0.5.2，以及 evidence/runs/ 中的实测记录。"
@@ -351,6 +366,15 @@ def validate_claims() -> None:
                 raise RuntimeError(f"[{lang}] path {letter} name differs from evidence/claims.json")
             if col["status"][0] != expected_status:
                 raise RuntimeError(f"[{lang}] path {letter} status differs from evidence/claims.json")
+    topology = claims["d_runtime_topology"]
+    expected_en = (f"{topology['fixed_deployment_pods']} fixed pods + {topology['daemonsets']} DaemonSets "
+                   "that scale with Kata nodes")
+    expected_zh = (f"{topology['fixed_deployment_pods']} 个固定 pod + {topology['daemonsets']} 个随 Kata 节点"
+                   "扩展的 DaemonSet")
+    for lang, expected in (("en", expected_en), ("zh", expected_zh)):
+        d = next(c for c in LAYOUT[lang]["cols"] if c["letter"] == "D")
+        if d["sub"][1][2] != expected:
+            raise RuntimeError(f"[{lang}] D runtime topology differs from evidence/claims.json")
 
 
 def build_svgs(ledger: dict) -> dict[str, str]:

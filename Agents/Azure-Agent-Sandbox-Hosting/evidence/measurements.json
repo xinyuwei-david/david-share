@@ -7,7 +7,14 @@
     "a-aca-2026-10-09/late-mount.json": "c81ac0539603589d7beb3422537c6a7f6a24994ece00db566244a29b50eeea3c",
     "abc-2026-09-27/foundation.json": "e7d733b8ad0e56dfb6acab73261d3750838ff6725b4b4352cd0e0ffb131d17f6",
     "b-hosted-agent-2026-09-27/run.json": "bae0b8e3eee47f6b62decd2f2cb63fec87b0e7ff36d6ca486c7820ae1db7e3ac",
-    "c-aks-agent-sandbox-2026-09-27/run.json": "2e63af0990bacff14136796256061b9e5e688a2f26ad23c5f211b3d25f61e077"
+    "c-aks-agent-sandbox-2026-09-27/run.json": "2e63af0990bacff14136796256061b9e5e688a2f26ad23c5f211b3d25f61e077",
+    "d-byoaks-2026-09-22/field.json": "15b384f087ceaceef87f66cde174803cafd51d7c5c1fe1455802cb52b2acce1c",
+    "d-byoaks-2026-09-29/bench.json": "4b24197e2e075f0f669e65b778e9ca5fd687c5b1ec9f44bd2fc79759b13f5dd7",
+    "d-byoaks-2026-09-29/capacity.json": "3aece70f02c5d84e606f6fa2bff5df4e6cd038766ee0917c3eec61eb8b2cc802",
+    "d-byoaks-2026-09-29/cold-early.json": "7b2060090147ecd6543a04f410e6fcdefd2a2f79d19cb329d7e048578c2ca525",
+    "d-byoaks-2026-09-29/model-direct.json": "f55403b68aca3ec7fc6382287ec071b06813d4bdc284d7f927e0f47e60488b18",
+    "d-byoaks-2026-09-29/placement.json": "a19f92faf818acb0c3bf1e7f757dcdae7c0d36364cf310f6f5ebc96363d863d2",
+    "d-byoaks-2026-09-29/recovery.json": "f3f21116914bc42268e8cfaee4c28097c75dfe389729669b406e37eef11e2fdb"
   },
   "metrics": {
     "a.create": {
@@ -561,6 +568,300 @@
       "guest_kernel": "6.6.137.mshv1-1.azl3",
       "system_node_kernel": "6.8.0-1067-azure",
       "runtime_class": "kata-vm-isolation"
+    },
+    "d.cold": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "new session until the answer, node already holds the image",
+      "n": 5,
+      "unit": "s",
+      "values": [
+        26.7,
+        24.014,
+        25.494,
+        26.16,
+        23.532
+      ],
+      "min": 23.532,
+      "max": 26.7,
+      "median": 25.494
+    },
+    "d.cold_fresh": {
+      "run": "d-2026-09-29-cold-early",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "new session until the answer, first pod on a node without the image",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        41.9,
+        40.6
+      ],
+      "min": 40.6,
+      "max": 41.9
+    },
+    "d.pod_ready": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "session pod created until Ready, image cached",
+      "n": 6,
+      "unit": "s",
+      "values": [
+        8,
+        9,
+        10,
+        10,
+        10,
+        10
+      ],
+      "min": 8,
+      "max": 10
+    },
+    "d.pod_ready_fresh": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "session pod created until Ready, fresh node",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        25,
+        25
+      ],
+      "min": 25,
+      "max": 25
+    },
+    "d.warm": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "follow-up turns, same session",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        16.421,
+        11.169,
+        12.899
+      ],
+      "min": 11.169,
+      "max": 16.421,
+      "median": 12.899
+    },
+    "d.c4": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "4 new sessions at once",
+      "n": 4,
+      "unit": "sessions",
+      "answered": 0,
+      "answered_s": [],
+      "refused": 4,
+      "refused_codes": [
+        "500 session_creation_failed"
+      ],
+      "refused_after_s": [
+        18.397,
+        18.897
+      ]
+    },
+    "d.c8": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "8 new sessions at once",
+      "n": 8,
+      "unit": "sessions",
+      "answered": 2,
+      "answered_s": [
+        24.14,
+        24.965
+      ],
+      "refused": 6,
+      "refused_codes": [
+        "429 aks_quota_exceeded"
+      ],
+      "refused_after_s": [
+        68.029,
+        80.513
+      ]
+    },
+    "d.capacity": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "session pods per node when the controller started refusing",
+      "n": 3,
+      "unit": "sessions",
+      "per_node": 5,
+      "max_sessions": 12,
+      "node_sku": "Standard_D4s_v5"
+    },
+    "d.pod_lost": {
+      "run": "d-2026-09-29-recovery",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "session pod deleted until its replacement is Ready",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        23.9
+      ],
+      "value": 23.9
+    },
+    "d.other_session_followup": {
+      "run": "d-2026-09-29-recovery",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "follow-up on a different live session after the deletion; that other session kept LANTERN-7",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        14.8
+      ],
+      "value": 14.8
+    },
+    "d.idle": {
+      "run": "d-2026-09-29-capacity",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "pod age lower bound while still Running; no last-request timestamp was retained, so this is not idle duration",
+      "n": 12,
+      "unit": "min",
+      "value": 87,
+      "oldest_created": "14:33Z",
+      "listed_after": "16:01Z"
+    },
+    "d.node_kernel": {
+      "run": "d-2026-09-29-capacity",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "kernelVersion of the Kata pool nodes",
+      "n": 3,
+      "unit": "nodes",
+      "value": "6.6.137.mshv2-2.azl3"
+    },
+    "d.model_direct": {
+      "run": "d-2026-09-29-model-direct",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "same model called directly from the same client",
+      "n": 5,
+      "unit": "s",
+      "values": [
+        5.07,
+        2.69,
+        2.15,
+        3.32,
+        1.82
+      ],
+      "min": 1.82,
+      "max": 5.07,
+      "median": 2.69
+    },
+    "d.node_scale": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "Kata pool scale operation from one to three nodes",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        143
+      ],
+      "value": 143
+    },
+    "d.client_rtt": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "client-to-Azure round-trip range recorded in the run manifest",
+      "n": 1,
+      "unit": "ms",
+      "min": 320,
+      "max": 800
+    },
+    "d.agent_turn": {
+      "run": "d-2026-09-29-perf",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "response created_at to completed_at range; not an internal gateway clock",
+      "n": 1,
+      "unit": "s",
+      "min": 2,
+      "max": 5
+    },
+    "d.placement": {
+      "run": "d-2026-09-29-placement",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "one initial pod observation plus the recheck observations; not a count of distinct pods",
+      "n": 4,
+      "unit": "pod observations",
+      "runtime_class": "kata-vm-isolation",
+      "kata_pods_at_recheck": 3,
+      "scheduled_to_ready_s": 35,
+      "first_session_wall_s": 51,
+      "nsg_rule": "Allow-AzureCloud-FoundryRouter-443",
+      "nsg_priority": 500
+    },
+    "d.aks_start": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "az aks start until Running",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        283,
+        281
+      ],
+      "min": 281,
+      "max": 283
+    },
+    "d.role_assignments": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "BYO-AKS role assignments; approximate",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        120
+      ],
+      "value": 120
+    },
+    "d.azd_provision": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "BYO-AKS azd provision",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        522
+      ],
+      "value": 522
+    },
+    "d.azd_deploy": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "first BYO-AKS agent azd deploy",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        212
+      ],
+      "value": 212
+    },
+    "d.onboarding": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "roles + azd provision + first azd deploy; console not retained",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        854
+      ],
+      "value": 854
+    },
+    "d.initial_runtime_pods": {
+      "run": "d-2026-09-22-field",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "foundry-system pods in the initial one-Kata-node read-back",
+      "n": 1,
+      "unit": "pods",
+      "value": 13
+    },
+    "d.cost_floor": {
+      "run": "d-2026-09-22-field",
+      "label": "SOURCE_FACT",
+      "what": "1 x Standard_D4s_v5 system + 1 x Standard_D4s_v5 Kata + Standard tier, Azure retail prices queried 2026-09-21",
+      "n": 1,
+      "unit": "USD/h",
+      "value": 0.484
     }
   }
 }

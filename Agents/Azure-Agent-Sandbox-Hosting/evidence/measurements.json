@@ -1,0 +1,566 @@
+{
+  "schema": 1,
+  "built_from": {
+    "a-aca-2026-09-27/setup-and-wake.json": "979a4bf6a61361b5f98a49368aefaf82994dc26b91ca1c20094311ab6dba2bcb",
+    "a-aca-2026-10-09/agent-runs.json": "1c0df4840cc9704eb8943482335d7eb691249bc872d9809c86bd5625452bae05",
+    "a-aca-2026-10-09/create-attribution.json": "ba70e60c2ceba929c5d9619092df6f9d12a25e586992ab5c33bf92f6fcb09bbf",
+    "a-aca-2026-10-09/late-mount.json": "c81ac0539603589d7beb3422537c6a7f6a24994ece00db566244a29b50eeea3c",
+    "abc-2026-09-27/foundation.json": "e7d733b8ad0e56dfb6acab73261d3750838ff6725b4b4352cd0e0ffb131d17f6",
+    "b-hosted-agent-2026-09-27/run.json": "bae0b8e3eee47f6b62decd2f2cb63fec87b0e7ff36d6ca486c7820ae1db7e3ac",
+    "c-aks-agent-sandbox-2026-09-27/run.json": "2e63af0990bacff14136796256061b9e5e688a2f26ad23c5f211b3d25f61e077"
+  },
+  "metrics": {
+    "a.create": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "create call until Running, full spec",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        44.86,
+        24.12,
+        24.25
+      ],
+      "min": 24.12,
+      "max": 44.86,
+      "median": 24.25
+    },
+    "a.cold": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "SDK create wall time + first answer timed inside the sandbox; a component sum, not client end-to-end wall time",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        50.41,
+        28.0,
+        27.07
+      ],
+      "min": 27.07,
+      "max": 50.41,
+      "median": 28.0
+    },
+    "a.first_answer": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "first answer only, timed inside the sandbox",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        5.55,
+        3.88,
+        2.82
+      ],
+      "min": 2.82,
+      "max": 5.55,
+      "median": 3.88
+    },
+    "a.warm": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "follow-up answer in the running sandbox",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        1.54,
+        1.04,
+        1.05
+      ],
+      "min": 1.04,
+      "max": 1.54,
+      "median": 1.05
+    },
+    "a.stop": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "stop call until Stopped (memory snapshot)",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        7.56,
+        5.97,
+        9.31
+      ],
+      "min": 5.97,
+      "max": 9.31,
+      "median": 7.56
+    },
+    "a.resume": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "resume call until Running",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        2.83,
+        1.61,
+        3.02
+      ],
+      "min": 1.61,
+      "max": 3.02,
+      "median": 2.83
+    },
+    "a.first_after_resume": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "first answer after resume",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        14.39,
+        12.84,
+        9.42
+      ],
+      "min": 9.42,
+      "max": 14.39,
+      "median": 12.84
+    },
+    "a.recover": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "SDK resume wall time + first answer inside the sandbox; excludes stop and idle waiting",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        17.22,
+        14.45,
+        12.44
+      ],
+      "min": 12.44,
+      "max": 17.22,
+      "median": 14.45
+    },
+    "a.warm_after_resume": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "next answer after that",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        1.44,
+        2.05,
+        1.1
+      ],
+      "min": 1.1,
+      "max": 2.05,
+      "median": 1.44
+    },
+    "a.vmm": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "vmm_type the API reported",
+      "n": 3,
+      "unit": "runs",
+      "value": "cloudhypervisor",
+      "count": 3
+    },
+    "a.state_kept": {
+      "run": "a-2026-10-09-agent",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "conversation history length kept growing across stop and resume",
+      "n": 3,
+      "unit": "runs",
+      "count": 3
+    },
+    "a.attr.builtin": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "built-in ubuntu disk, SDK defaults, no VNet, volume or port",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        5.74,
+        2.2,
+        4.68
+      ],
+      "min": 2.2,
+      "max": 5.74,
+      "median": 4.68
+    },
+    "a.attr.image": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "the agent's disk image from ACR, nothing else",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        2.31,
+        1.6,
+        2.7
+      ],
+      "min": 1.6,
+      "max": 2.7,
+      "median": 2.31
+    },
+    "a.attr.vnet": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image + VNet connection",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        1.97,
+        2.52
+      ],
+      "min": 1.97,
+      "max": 2.52
+    },
+    "a.attr.port": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image + OnDemand port with IP access control",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        2.33,
+        2.3
+      ],
+      "min": 2.3,
+      "max": 2.33
+    },
+    "a.attr.vnetvolume": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image + VNet connection + private Blob volume",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        25.12,
+        15.79
+      ],
+      "min": 15.79,
+      "max": 25.12
+    },
+    "a.attr.full": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image + VNet connection + private Blob volume + OnDemand port",
+      "n": 3,
+      "unit": "s",
+      "values": [
+        25.9,
+        22.2,
+        26.32
+      ],
+      "min": 22.2,
+      "max": 26.32,
+      "median": 25.9
+    },
+    "a.attr.small": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image alone, image + VNet, image + port: every create time",
+      "n": 7,
+      "unit": "s",
+      "values": [
+        2.31,
+        1.6,
+        2.7,
+        1.97,
+        2.52,
+        2.33,
+        2.3
+      ],
+      "min": 1.6,
+      "max": 2.7,
+      "median": 2.31
+    },
+    "a.attr.process_survived": {
+      "run": "a-2026-10-09-attribution",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "guest uptime after resume exceeded its pre-stop value; this alone does not prove process-memory continuity",
+      "n": 15,
+      "unit": "runs",
+      "count": 15
+    },
+    "a.late.create": {
+      "run": "a-2026-10-09-late-mount",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "create image + VNet without the volume",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        7.2,
+        3.99
+      ],
+      "min": 3.99,
+      "max": 7.2
+    },
+    "a.late.mount": {
+      "run": "a-2026-10-09-late-mount",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "attach the Blob volume to the running sandbox",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        20.29,
+        12.4
+      ],
+      "min": 12.4,
+      "max": 20.29
+    },
+    "a.setup": {
+      "run": "a-2026-09-27-setup",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "sandbox group + VNet connection + disk image + Blob volume + sandbox",
+      "n": 1,
+      "unit": "s",
+      "value": 146.6,
+      "parts": [
+        90,
+        9.6,
+        21.9,
+        3.6,
+        21.5
+      ]
+    },
+    "a.wake_http": {
+      "run": "a-2026-09-27-setup",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "HTTP request to a stopped sandbox's on-demand port until the answer",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        23.7
+      ],
+      "value": 23.7
+    },
+    "a.isolation": {
+      "run": "a-2026-09-27-setup",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "read inside the sandbox",
+      "n": 1,
+      "unit": "read-back",
+      "vmm_type": "cloudhypervisor",
+      "guest_kernel": "6.12.8+"
+    },
+    "f.deploy": {
+      "run": "abc-2026-09-27-foundation",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "module-01 deployment",
+      "n": 1,
+      "unit": "min",
+      "values": [
+        3
+      ],
+      "value": 3
+    },
+    "b.init": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "azd ai agent init",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        38.4
+      ],
+      "value": 38.4
+    },
+    "b.deploy": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "azd deploy, version 1",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        161
+      ],
+      "value": 161
+    },
+    "b.deploy_v2": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "azd deploy, version 2",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        100
+      ],
+      "value": 100
+    },
+    "b.cold_gateway": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "new session until the answer, gateway route",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        9.43
+      ],
+      "value": 9.43
+    },
+    "b.cold_direct": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "new session until the answer, direct route",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        5.29
+      ],
+      "value": 5.29
+    },
+    "b.warm_gateway": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "follow-up turns, gateway route",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        4.03,
+        5.54
+      ],
+      "min": 4.03,
+      "max": 5.54
+    },
+    "b.warm_direct": {
+      "run": "b-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "follow-up turns, direct route",
+      "n": 2,
+      "unit": "s",
+      "values": [
+        4.94,
+        4.38
+      ],
+      "min": 4.38,
+      "max": 4.94
+    },
+    "c.prepare": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "image, AKS, Kata pool, controller, storage",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        600
+      ],
+      "value": 600
+    },
+    "c.private_link": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "Blob private endpoint",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        168
+      ],
+      "value": 168
+    },
+    "c.apply_ready": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "Sandbox apply until Ready",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        44.9
+      ],
+      "value": 44.9
+    },
+    "c.first": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "first answer",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        12.75
+      ],
+      "value": 12.75
+    },
+    "c.warm": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "second answer",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        1.96
+      ],
+      "value": 1.96
+    },
+    "c.cold": {
+      "run": "c-2026-09-27",
+      "label": "DERIVED",
+      "what": "apply until Ready + first answer",
+      "n": 1,
+      "unit": "s",
+      "value": 57.65
+    },
+    "c.setup": {
+      "run": "c-2026-09-27",
+      "label": "DERIVED",
+      "what": "prepare + private link + apply until Ready",
+      "n": 1,
+      "unit": "s",
+      "value": 812.9
+    },
+    "c.pod_lost": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "pod deleted until Ready again",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        23.4
+      ],
+      "value": 23.4
+    },
+    "c.suspend": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "operatingMode Suspended until the pod is gone",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        9.7
+      ],
+      "value": 9.7
+    },
+    "c.resume_ready": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "operatingMode Running until the Sandbox is Ready",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        17.1
+      ],
+      "value": 17.1
+    },
+    "c.resume_lb": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "until the LoadBalancer health check returns 200",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        26.1
+      ],
+      "value": 26.1
+    },
+    "c.resume_answer": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "until the first answer",
+      "n": 1,
+      "unit": "s",
+      "values": [
+        34.2
+      ],
+      "value": 34.2
+    },
+    "c.isolation": {
+      "run": "c-2026-09-27",
+      "label": "LOCAL_MEASUREMENT",
+      "what": "uname -r in the Sandbox pod and a runc pod on a different system pool; system_node_kernel is a legacy field name",
+      "n": 1,
+      "unit": "read-back",
+      "guest_kernel": "6.6.137.mshv1-1.azl3",
+      "system_node_kernel": "6.8.0-1067-azure",
+      "runtime_class": "kata-vm-isolation"
+    }
+  }
+}

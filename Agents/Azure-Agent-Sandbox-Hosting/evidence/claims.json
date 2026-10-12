@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "comparison_contract": {
+    "model": "gpt-5.4-mini",
+    "same_container_across_all_paths": false,
+    "abc_workload": "agenthost workshop reflection agent at commit 905f2c2",
+    "common_behavior": "new stateful session, follow-up in the same session, and lifecycle or recovery where the path exposes it",
+    "general_managed_start": "B",
+    "qira_like_long_running_start": "A"
+  },
+  "measurement_scope": {
+    "region": "East US 2",
+    "first_date": "2026-09-27",
+    "last_date": "2026-10-09"
+  },
+  "run_order": [
+    "a-2026-09-27-setup",
+    "a-2026-10-09-agent",
+    "a-2026-10-09-attribution",
+    "a-2026-10-09-late-mount",
+    "b-2026-09-27",
+    "c-2026-09-27"
+  ],
+  "letter_mapping": {
+    "A": {
+      "name": "ACA Sandboxes",
+      "upstream_module": "module-04",
+      "upstream_solution_letter": "C"
+    },
+    "B": {
+      "name": "Foundry hosted agent",
+      "upstream_module": "module-02",
+      "upstream_solution_letter": "A"
+    },
+    "C": {
+      "name": "AKS + agent-sandbox",
+      "upstream_module": "module-03",
+      "upstream_solution_letter": "B"
+    }
+  },
+  "paths": {
+    "A": {
+      "status_en": "GA",
+      "status_zh": "GA",
+      "diagram_status_en": "GA",
+      "diagram_status_zh": "GA",
+      "lifecycle_owner_en": "The ACA service",
+      "lifecycle_owner_zh": "ACA 服务",
+      "session_location_en": "Service-managed compute",
+      "session_location_zh": "服务托管的算力",
+      "memory_suspend_en": "Yes",
+      "memory_suspend_zh": "支持",
+      "max_session_en": "4 vCPU / 8 GB",
+      "max_session_zh": "4 vCPU / 8 GB",
+      "boundary_en": "One micro-VM per sandbox",
+      "boundary_zh": "每个沙箱一个 micro-VM",
+      "node_owner_en": "Microsoft",
+      "node_owner_zh": "微软"
+    },
+    "B": {
+      "status_en": "GA",
+      "status_zh": "GA",
+      "diagram_status_en": "GA",
+      "diagram_status_zh": "GA",
+      "lifecycle_owner_en": "Foundry",
+      "lifecycle_owner_zh": "Foundry",
+      "session_location_en": "Microsoft-managed compute",
+      "session_location_zh": "微软托管的算力",
+      "memory_suspend_en": "No: idle releases compute, `$HOME` and `/files` are restored",
+      "memory_suspend_zh": "不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files`",
+      "max_session_en": "2 vCPU / 4 GiB",
+      "max_session_zh": "2 vCPU / 4 GiB",
+      "boundary_en": "Per-session VM-isolated sandbox (Learn)",
+      "boundary_zh": "每会话一个 VM 级隔离的沙箱（Learn）",
+      "node_owner_en": "Microsoft",
+      "node_owner_zh": "微软"
+    },
+    "C": {
+      "status_en": "Pod Sandboxing GA; agent-sandbox v0.5.2 is open source",
+      "status_zh": "Pod Sandboxing GA；agent-sandbox v0.5.2 为开源项目",
+      "diagram_status_en": "Pod Sandboxing GA · OSS",
+      "diagram_status_zh": "Pod Sandboxing GA · 开源",
+      "lifecycle_owner_en": "You: controller, gateway, idle sweeper",
+      "lifecycle_owner_zh": "你自己：控制器、网关、空闲回收",
+      "session_location_en": "Your Kata node pool",
+      "session_location_zh": "你的 Kata 节点池",
+      "memory_suspend_en": "No memory snapshot: you patch `operatingMode`; the pod goes, file state comes back from Blob",
+      "memory_suspend_zh": "不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复",
+      "max_session_en": "Bounded by the node VM you select",
+      "max_session_zh": "受你选择的节点 VM 限制",
+      "boundary_en": "One Kata pod VM per Sandbox",
+      "boundary_zh": "每个 Sandbox 一个 Kata pod VM",
+      "node_owner_en": "You",
+      "node_owner_zh": "你"
+    }
+  },
+  "sources": {
+    "aca_sandboxes": "https://learn.microsoft.com/azure/container-apps/sandboxes-overview",
+    "hosted_agents": "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents",
+    "pod_sandboxing": "https://learn.microsoft.com/azure/aks/use-pod-sandboxing",
+    "agent_sandbox_v052": "https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v0.5.2",
+    "workshop_905f2c2": "https://github.com/oxcp/ainotes/tree/905f2c2/agenthost"
+  },
+  "publication": {
+    "edition": "public",
+    "paths": [
+      "A",
+      "B",
+      "C"
+    ],
+    "full_version_url": "https://github.com/david-xinyuwei/azure-agent-sandbox-hosting",
+    "omitted": "BYO-AKS private-preview onboarding, implementation details and measurements"
+  }
+}

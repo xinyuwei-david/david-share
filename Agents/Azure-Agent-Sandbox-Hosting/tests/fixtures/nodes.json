@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "name": "agent-node-3"
+      },
+      "status": {
+        "nodeInfo": {
+          "kernelVersion": "fixture-host-kernel"
+        }
+      }
+    },
+    {
+      "metadata": {
+        "name": "agent-node-2"
+      },
+      "status": {
+        "nodeInfo": {
+          "kernelVersion": "fixture-host-kernel"
+        }
+      }
+    }
+  ]
+}

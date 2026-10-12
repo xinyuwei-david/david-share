@@ -1,0 +1,146 @@
+{
+  "run_id": "a-2026-09-27-setup",
+  "path": "A",
+  "what": "First deployment of the agent to ACA Sandboxes: sandbox group, VNet connection, disk image, Blob volume, sandbox; then answer, suspend, resume and wake on an HTTP request",
+  "date_utc": "2026-09-27",
+  "region": "eastus2",
+  "sdk": "azure-containerapps-sandbox 0.1.0b4",
+  "sandbox_group_deploy_seconds": 90,
+  "sandbox_spec": {
+    "cpu": "1000m",
+    "memory": "2048Mi",
+    "auto_suspend_seconds": 900,
+    "auto_suspend_mode": "Memory",
+    "port": 8080,
+    "activation_mode": "OnDemand",
+    "vnet": true,
+    "blob_volume": "/app/app/data"
+  },
+  "disk_image_auth": "short-lived ACR token (az acr login --expose-token), as in the official BYO-container lab; managed-identity pull returned RegistryAuthFailed 401",
+  "isolation_check": {
+    "vmm_type": "cloudhypervisor",
+    "guest_kernel": "6.12.8+",
+    "vcpus": 1,
+    "note": "checked 2026-09-27 after resume (2.1 s); repo diagram label 'gVisor, Public Preview' predates the 25 Sep README update (micro-VM boundary, GA)"
+  },
+  "process_survived_resume": true,
+  "notes": [
+    "The first outbound call after a memory resume took 12.5 s, then about 1 s; likely stale keep-alive connections",
+    "Port IP access control could not admit the operator: requests arrived from rotating Azure egress IPs (x-forwarded-for), so the wake test used a 44 s anonymous window and the port was removed afterwards"
+  ],
+  "events": [
+    {
+      "step": "vnet_connection",
+      "at": "2026-09-27T02:20:33Z",
+      "seconds": 9.6
+    },
+    {
+      "step": "disk_image",
+      "at": "2026-09-27T02:22:45Z",
+      "seconds": 21.9
+    },
+    {
+      "step": "volume",
+      "at": "2026-09-27T02:22:59Z",
+      "seconds": 3.6
+    },
+    {
+      "step": "sandbox_create",
+      "at": "2026-09-27T02:23:22Z",
+      "seconds": 21.5,
+      "state": "Running"
+    },
+    {
+      "step": "reflect_in_sandbox",
+      "at": "2026-09-27T02:27:12Z",
+      "seconds": 3.6,
+      "question": "where is Bangkok? one sentence",
+      "response": "Bangkok is the capital city of Thailand, in Southeast Asia.",
+      "history_length": 1,
+      "exec_wall": 7.0
+    },
+    {
+      "step": "reflect_in_sandbox",
+      "at": "2026-09-27T02:27:14Z",
+      "seconds": 1.1,
+      "question": "What did I just ask you about? Reply in five words.",
+      "response": "Bangkok’s location in the world.",
+      "history_length": 2,
+      "exec_wall": 1.7
+    },
+    {
+      "step": "suspend_sdk",
+      "at": "2026-09-27T02:27:43Z",
+      "seconds": 9.9,
+      "state": "Stopped"
+    },
+    {
+      "step": "resume_sdk",
+      "at": "2026-09-27T02:27:55Z",
+      "seconds": 1.5,
+      "state": "Running"
+    },
+    {
+      "step": "reflect_after_resume",
+      "at": "2026-09-27T02:28:08Z",
+      "seconds": 12.5,
+      "response": "2",
+      "history_length": 3,
+      "exec_wall": 13.1
+    },
+    {
+      "step": "reflect_warm_after_resume",
+      "at": "2026-09-27T02:28:34Z",
+      "seconds": 0.9,
+      "question": "Name the city we discussed. One word.",
+      "response": "Bangkok",
+      "history_length": 4
+    },
+    {
+      "step": "reflect_warm_after_resume",
+      "at": "2026-09-27T02:28:36Z",
+      "seconds": 1.1,
+      "question": "Reply with OK.",
+      "response": "OK",
+      "history_length": 5
+    },
+    {
+      "step": "suspend_sdk_2",
+      "at": "2026-09-27T02:29:04Z",
+      "seconds": 6.3,
+      "state": "Stopped"
+    },
+    {
+      "step": "wake_on_http_request",
+      "at": "2026-09-27T02:29:36Z",
+      "seconds": 23.7,
+      "code": 200,
+      "query": "How many questions have I asked before this one? Number only.",
+      "response": "5",
+      "history_length": 6
+    },
+    {
+      "step": "reflect_external_warm",
+      "at": "2026-09-27T02:29:39Z",
+      "seconds": 2.5,
+      "code": 200,
+      "query": "Reply with OK.",
+      "response": "OK",
+      "history_length": 7
+    }
+  ],
+  "_sources": [
+    {
+      "file": "m04_events.json",
+      "sha256": "df1f70675117065a6059e5a408fd065a4f628cbff6034d4984fd9ba173eb7d4f",
+      "bytes": 4527,
+      "role": "SDK event log"
+    },
+    {
+      "file": "evidence.json",
+      "sha256": "0cc6d5a4641307f3379f559b8e29f8de07dd3ef2f2bc897b8ef5b64222dab074",
+      "bytes": 7927,
+      "role": "run summary"
+    }
+  ]
+}

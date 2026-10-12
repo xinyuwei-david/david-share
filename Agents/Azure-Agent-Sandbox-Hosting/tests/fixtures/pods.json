@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "name": "session-pod-1"
+      },
+      "spec": {
+        "nodeName": "agent-node-2",
+        "runtimeClassName": "kata-vm-isolation"
+      },
+      "status": {
+        "phase": "Running"
+      }
+    },
+    {
+      "metadata": {
+        "name": "runc-pod-1"
+      },
+      "spec": {
+        "nodeName": "agent-node-3"
+      },
+      "status": {
+        "phase": "Running"
+      }
+    }
+  ]
+}

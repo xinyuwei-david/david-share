@@ -1,0 +1,53 @@
+{
+  "run_id": "abc-2026-09-27-foundation",
+  "path": "shared",
+  "what": "Workshop module-01: the shared foundation A, B and C use",
+  "date_utc": "2026-09-27",
+  "region": "eastus2",
+  "workshop": "https://github.com/oxcp/ainotes/tree/905f2c2/agenthost",
+  "operator_shell": "Windows + Git Bash (az 2.88.0, azd 1.34.1, kubectl, containerapp ext 1.3.0b5, azure-containerapps-sandbox 0.1.0b4)",
+  "model": "gpt-5.4-mini (GlobalStandard, capacity 50)",
+  "module": "module-01",
+  "deploy_minutes": 3,
+  "core_resources_arm_seconds": 116,
+  "creates": [
+    "Foundry account + project maf-agent-prj",
+    "gpt-5.4-mini deployment",
+    "APIM BasicV2 (validate-jwt + managed identity to Foundry)",
+    "UAMI",
+    "Key Vault",
+    "Storage (agent-state container)",
+    "ACR Standard",
+    "Defender for AI"
+  ],
+  "apim_gateway_check": {
+    "http": 200,
+    "first_call_seconds": 5.29,
+    "without_token_http": 401
+  },
+  "native_ai_gateway_step": {
+    "done": false,
+    "reason": "Portal-only step (Foundry > Manage > AI Gateway); the automation browser had no signed-in session. foundry-samples shows the ARM shape (resource links + per-project APIM product) but the account-level shared API would have to be reverse-engineered."
+  },
+  "deviations_from_workshop": [
+    "Module-01 step 4 (native AI gateway) skipped: portal sign-in not available to automation",
+    "Module-03 private link run with MSYS_NO_PATHCONV=1 under Git Bash",
+    "Module-04 portal steps replaced by SDK calls; disk image pulled with an ACR token instead of managed identity"
+  ],
+  "not_reproduced": [
+    "module-01 step 4 native AI gateway (portal)",
+    "module-02 step 7 via portal playground (did the same with a second azd deploy)",
+    "module-03 browser chat UI (used the HTTP API)",
+    "module-04 sandboxes.azure.com portal flow (used the SDK)",
+    "module-04 optional ACA Dynamic Sessions track (README: not ready)",
+    "module-05 is reading only"
+  ],
+  "_sources": [
+    {
+      "file": "evidence.json",
+      "sha256": "0cc6d5a4641307f3379f559b8e29f8de07dd3ef2f2bc897b8ef5b64222dab074",
+      "bytes": 7927,
+      "role": "run summary"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "note": "Every image in this repository, its kind, its source and its SHA-256. tools/build_diagrams.py --check verifies the list.",
+  "figures": [
+    {
+      "file": "images/architecture-en.svg",
+      "sha256": "584ca27aedaa0348c7b30e66e515c53a3c898e1de77a74079bb8748c17031a82",
+      "kind": "original explanatory diagram",
+      "generator": "tools/build_diagrams.py"
+    },
+    {
+      "file": "images/architecture-en.png",
+      "sha256": "be8bfd68847f254e58d9e4d118078c8def291a45be945b8ed0c8d238cb179c41",
+      "width": 3200,
+      "height": 2072,
+      "rendered_from_svg_sha256": "584ca27aedaa0348c7b30e66e515c53a3c898e1de77a74079bb8748c17031a82",
+      "renderer": "Microsoft Edge via isolated Playwright process, device scale factor 2"
+    },
+    {
+      "file": "images/architecture-zh.svg",
+      "sha256": "b75e49fa849c6360a5b37034f67e1ffe4b17b5facfec355e809e36c0f60283e8",
+      "kind": "original explanatory diagram",
+      "generator": "tools/build_diagrams.py"
+    },
+    {
+      "file": "images/architecture-zh.png",
+      "sha256": "e49be148ae007600462d7f368217d87b58115f21b9764388deee8df77569e8ae",
+      "width": 3200,
+      "height": 2072,
+      "rendered_from_svg_sha256": "b75e49fa849c6360a5b37034f67e1ffe4b17b5facfec355e809e36c0f60283e8",
+      "renderer": "Microsoft Edge via isolated Playwright process, device scale factor 2"
+    }
+  ],
+  "icons": [
+    {
+      "file": "images/icons/00012-icon-service-Application-Insights.svg",
+      "sha256": "36c73dea8b1598fbfff84890a2b409600f1339eec8c1bf1a896439e9da8f9dca",
+      "bytes": 2320,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/monitor/00012-icon-service-Application-Insights.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/02989-icon-service-Container-Apps-Environments.svg",
+      "sha256": "3cf4ba9242e31496f778a27e92c9c2b2a09664f105c58325d5e2dcb142d3c3b9",
+      "bytes": 2029,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/other/02989-icon-service-Container-Apps-Environments.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/036509415-icon-service-Foundry-Project.svg",
+      "sha256": "152187174d7d632cd91fd7d17b37316c423e008a84a889241163af832c8c3dec",
+      "bytes": 2348,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/ai + machine learning/036509415-icon-service-Foundry-Project.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/038470523-icon-service-Foundry-Agent-Service.svg",
+      "sha256": "aedb65eeb06c1d4f3d57568edd2e8e7205065589ae8ceba4513a2fd21b4053ca",
+      "bytes": 3284,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/ai + machine learning/038470523-icon-service-Foundry-Agent-Service.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/10023-icon-service-Kubernetes-Services.svg",
+      "sha256": "81954a481503057498d543a51863b2eb4673284e109662cdc421051d11dba25c",
+      "bytes": 3943,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/containers/10023-icon-service-Kubernetes-Services.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/10086-icon-service-Storage-Accounts.svg",
+      "sha256": "7190d3bb14ce30ce74bd0af873915830fe821e8c5f6ef6f3149e6f7cfb2aa4f7",
+      "bytes": 1157,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/storage/10086-icon-service-Storage-Accounts.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    },
+    {
+      "file": "images/icons/10105-icon-service-Container-Registries.svg",
+      "sha256": "c134b0a442f203a7eeeb6f99a1f02ed34e51373d7fca59f96c9f125874c9d7d4",
+      "bytes": 2708,
+      "packageEntry": "Azure_Public_Service_Icons/Icons/containers/10105-icon-service-Container-Registries.svg",
+      "packageUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "termsUrl": "https://learn.microsoft.com/azure/architecture/icons/",
+      "terms": "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. Don't crop, flip, rotate, distort or change icon shape.",
+      "modified": false
+    }
+  ]
+}

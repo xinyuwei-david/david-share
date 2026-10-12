@@ -1,0 +1,4 @@
+# Live tools (tools/aca_sandbox.py, tools/measure_aca.py).
+# The ACA SDK pin matches the measured runs; azure-identity is pinned for reproducible live tooling.
+azure-containerapps-sandbox==0.1.0b4
+azure-identity==1.25.3

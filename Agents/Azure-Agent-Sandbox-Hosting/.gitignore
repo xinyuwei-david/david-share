@@ -1,0 +1,21 @@
+# Settings and credentials stay on your machine
+.env
+*.env
+!config/.env.example
+aca-state.json
+kubeconfig*
+*.kubeconfig
+
+# Local measurement output; commit only exported, redacted evidence
+evidence-local/
+
+# Editors and notebooks
+.vscode/
+.idea/
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/

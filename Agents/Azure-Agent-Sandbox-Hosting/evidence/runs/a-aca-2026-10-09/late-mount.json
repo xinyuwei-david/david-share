@@ -1,0 +1,38 @@
+{
+  "run_id": "a-2026-10-09-late-mount",
+  "path": "A",
+  "what": "Start the sandbox without the Blob volume (image + VNet), then attach the volume to the running sandbox",
+  "date_utc": "2026-10-09",
+  "runs": [
+    {
+      "run": 1,
+      "put_s": 6.69,
+      "create_total_s": 7.2,
+      "add_volume_mount_s": 20.29,
+      "state_after_mount": "Running",
+      "mount_check": "1\nagent-host-on-aca.json\nagent-host.json"
+    },
+    {
+      "run": 2,
+      "put_s": 3.19,
+      "create_total_s": 3.99,
+      "add_volume_mount_s": 12.4,
+      "state_after_mount": "Running",
+      "mount_check": "1\nagent-host-on-aca.json\nagent-host.json"
+    }
+  ],
+  "_sources": [
+    {
+      "file": "latemount_20261009.json",
+      "sha256": "cf2c21add24f925a5e2d8d9e18c38621d91cd1ee3e69f6399a5c7375a4b0bf69",
+      "bytes": 1119,
+      "role": "run record"
+    },
+    {
+      "file": "latemount_20261009.py",
+      "sha256": "5decfac947772fc174762b3845bda79a5da10806021acb152427b96598a08e3d",
+      "bytes": 3194,
+      "role": "script"
+    }
+  ]
+}

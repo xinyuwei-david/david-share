@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json !filter !diff !merge text eol=lf
+*.svg text eol=lf
+*.png binary

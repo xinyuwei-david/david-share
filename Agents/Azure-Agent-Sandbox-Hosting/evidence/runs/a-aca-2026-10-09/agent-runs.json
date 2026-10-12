@@ -1,0 +1,182 @@
+{
+  "run_id": "a-2026-10-09-agent",
+  "path": "A",
+  "what": "Full agent path in ACA Sandboxes, three times: create, first answer, follow-up, stop, resume, answer after resume",
+  "date_utc": "2026-10-09",
+  "region": "eastus2",
+  "service": "ACA Sandboxes GA",
+  "sdk": "azure-containerapps-sandbox 0.1.0b4 (latest public beta)",
+  "client": "Windows laptop; calls timed inside sandbox; SDK wall time also retained",
+  "configuration": "custom agent disk image + VNet + Blob volume + OnDemand port",
+  "sandbox_spec": {
+    "cpu": "1000m",
+    "memory": "2048Mi",
+    "auto_suspend_seconds": 900,
+    "auto_suspend_mode": "Memory",
+    "port": 8080,
+    "port_activation": "OnDemand",
+    "vnet_connection": true,
+    "blob_volume_mount": "/app/app/data",
+    "entrypoint": "cd /app && exec python -m app.main"
+  },
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "warm": "How many questions have I asked before this one? Number only.",
+    "first_after_resume": "How many questions have I asked before this one? Number only.",
+    "warm_after_resume": "How many questions have I asked before this one? Number only.",
+    "request": "POST http://127.0.0.1:8080/reflect {\"query\": <input>}, sent with sandbox exec from inside the sandbox"
+  },
+  "clocks": {
+    "create_total_s": "SDK create call until the sandbox reads Running (polled every 0.25 s), wall time on the client",
+    "guest_s": "HTTP /reflect duration measured inside the sandbox",
+    "cold_total_s": "create_total_s + first.guest_s",
+    "resume_total_s": "SDK resume call until Running",
+    "recover_total_s": "resume_total_s + first_after_resume.guest_s"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "started_at": "2026-10-09T08:34:49.019Z",
+      "put_s": 33.35,
+      "create_total_s": 44.86,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 50.41,
+      "stop_post_s": 7.04,
+      "stop_total_s": 7.56,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 1.82,
+      "resume_total_s": 2.83,
+      "state_after_resume": "Running",
+      "recover_total_s": 17.22,
+      "delete_post_s": 3.85,
+      "finished_at": "2026-10-09T08:36:39.830Z",
+      "first": {
+        "guest_s": 5.55,
+        "exec_wall_s": 27.01,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 1.54,
+        "exec_wall_s": 2.56,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 14.39,
+        "exec_wall_s": 15.06,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 1.44,
+        "exec_wall_s": 2.07,
+        "response": "4",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 2,
+      "started_at": "2026-10-09T08:36:42.862Z",
+      "put_s": 23.73,
+      "create_total_s": 24.12,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 28.0,
+      "stop_post_s": 5.41,
+      "stop_total_s": 5.97,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 1.11,
+      "resume_total_s": 1.61,
+      "state_after_resume": "Running",
+      "recover_total_s": 14.45,
+      "delete_post_s": 4.77,
+      "finished_at": "2026-10-09T08:37:46.942Z",
+      "first": {
+        "guest_s": 3.88,
+        "exec_wall_s": 4.57,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 1.04,
+        "exec_wall_s": 1.81,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 12.84,
+        "exec_wall_s": 13.52,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 2.05,
+        "exec_wall_s": 2.71,
+        "response": "4",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 3,
+      "started_at": "2026-10-09T08:37:49.943Z",
+      "put_s": 23.79,
+      "create_total_s": 24.25,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 27.07,
+      "stop_post_s": 8.53,
+      "stop_total_s": 9.31,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 1.69,
+      "resume_total_s": 3.02,
+      "state_after_resume": "Running",
+      "recover_total_s": 12.44,
+      "delete_post_s": 5.4,
+      "finished_at": "2026-10-09T08:38:54.412Z",
+      "first": {
+        "guest_s": 2.82,
+        "exec_wall_s": 3.54,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 1.05,
+        "exec_wall_s": 1.68,
+        "response": "1",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 9.42,
+        "exec_wall_s": 10.54,
+        "response": "2",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 1.1,
+        "exec_wall_s": 1.72,
+        "response": "3",
+        "history_length": 4
+      }
+    }
+  ],
+  "leftover_sandboxes": 0,
+  "_sources": [
+    {
+      "file": "remeasure_agent_20261009.json",
+      "sha256": "88ec9c669a53e2a838588d487a161a8253da9f263e0cf1a5f4a687548f5fbb4d",
+      "bytes": 4213,
+      "role": "run record"
+    },
+    {
+      "file": "remeasure_agent_20261009.py",
+      "sha256": "f06feb892d5b986915b5bbb88e425bdcb73a33bf3d98f0272b86a6d858c03ef0",
+      "bytes": 6369,
+      "role": "script, inputs"
+    }
+  ]
+}

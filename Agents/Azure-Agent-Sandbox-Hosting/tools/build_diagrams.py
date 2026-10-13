@@ -36,7 +36,7 @@ CARD_BORDER = "#C8C6C4"
 VM_GREEN = "#107C10"
 TEXT = "#201F1E"
 SUBTEXT = "#605E5C"
-STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91", "unverified": "#605E5C"}
+STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91"}
 FONT = "'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif"
 
 GAP, MARGIN = 16, 24
@@ -65,20 +65,20 @@ LAYOUT = {
         "ms": "MICROSOFT-MANAGED",
         "sub": "YOUR SUBSCRIPTION",
         "cols": [
-            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA unverified", "unverified"),
+            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA", "ga"),
              "entry": "Client → sandbox port (wakes on request) or SDK",
              "ms": [(I_ACA, "ACA Sandboxes service", "create · stop with memory snapshot · resume"),
                     (None, "Sandbox micro-VM", "your disk image · own kernel · read back: Cloud Hypervisor")],
              "sub": [(I_ACA, "Sandbox group", "Microsoft.App resource · disk images · volumes · VNet connection"),
                      (I_ACR, "Container Registry", "source of the sandbox disk image"),
                      (I_STORAGE, "Storage · Blob volume", "agent state, mounted into the sandbox")]},
-            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA unverified", "unverified"),
+            {"letter": "B", "name": "Foundry hosted agent", "status": ("public preview", "preview"),
              "entry": "Client → Foundry agent endpoint (Responses)",
              "ms": [(I_AGENT, "Foundry Agent Service", "endpoint · sessions · versions · agent identity"),
                     (None, "Per-session sandbox", "VM-isolated (docs) · $HOME and /files kept across idle")],
              "sub": [(I_PROJECT, "Foundry project", "agent definition and model deployment"),
                      (I_APPI, "Application Insights", "agent traces, when connected")]},
-            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("GA unverified · OSS", "unverified"),
+            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("Pod Sandboxing GA · OSS", "oss"),
              "entry": "Client → your LoadBalancer (not Foundry)",
              "ms": [(I_AKS, "AKS control plane", "managed Kubernetes API")],
              "sub": [(I_AKS, "agent-sandbox controller", "Sandbox resource · operatingMode Running / Suspended"),
@@ -106,20 +106,20 @@ LAYOUT = {
         "ms": "微软托管",
         "sub": "你的订阅",
         "cols": [
-            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA 未核实", "unverified"),
+            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA", "ga"),
              "entry": "客户端 → 沙箱端口（请求即唤醒）或 SDK",
              "ms": [(I_ACA, "ACA Sandboxes 服务", "创建 · 带内存快照的停止 · 恢复"),
                     (None, "沙箱 micro-VM", "你的磁盘镜像 · 独立内核 · 读回 VMM：Cloud Hypervisor")],
              "sub": [(I_ACA, "Sandbox group", "Microsoft.App 资源 · 磁盘镜像 · 卷 · VNet 连接"),
                      (I_ACR, "Container Registry", "沙箱磁盘镜像的来源"),
                      (I_STORAGE, "Storage · Blob 卷", "agent 状态，挂载进沙箱")]},
-            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA 未核实", "unverified"),
+            {"letter": "B", "name": "Foundry hosted agent", "status": ("公开预览", "preview"),
              "entry": "客户端 → Foundry agent 端点（Responses）",
              "ms": [(I_AGENT, "Foundry Agent Service", "端点 · 会话 · 版本 · agent 身份"),
                     (None, "每会话一个沙箱", "VM 级隔离（文档）· 空闲后保留 $HOME 和 /files")],
              "sub": [(I_PROJECT, "Foundry 项目", "agent 定义和模型部署"),
                      (I_APPI, "Application Insights", "接入后接收 agent 的 trace")]},
-            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("GA 未核实 · 开源", "unverified"),
+            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("Pod Sandboxing GA · 开源", "oss"),
              "entry": "客户端 → 你的 LoadBalancer，不经 Foundry 端点",
              "ms": [(I_AKS, "AKS 控制面", "托管的 Kubernetes API")],
              "sub": [(I_AKS, "agent-sandbox 控制器", "Sandbox 资源 · operatingMode Running / Suspended"),

@@ -2,7 +2,7 @@
 """Paths C and D: check that agent pods run as Kata micro-VMs on your nodes.
 
     python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname          # C
-    python tools/check_isolation.py -n "$SESSION_NAMESPACE" --container agent --exec-uname   # D
+    python tools/check_isolation.py -n "$SESSION_NAMESPACE"   # D; add --container agent --exec-uname if exec is allowed
 
 For every matching pod it prints one line:
 

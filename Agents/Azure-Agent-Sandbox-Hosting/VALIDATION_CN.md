@@ -95,7 +95,7 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 
 ### a-2026-10-09-agent：在 ACA Sandboxes 里跑完整 agent 流程，共 3 次
 
-**问题。** 用 workshop 的完整配置，新沙箱多久能给出回答，下一轮回答多快？挂起完成后，发起恢复 → 第一个回答要多久？
+**问题。** 在 GA 服务上、用 workshop 的完整配置，新沙箱多久能给出回答，下一轮回答多快？挂起完成后，发起恢复 → 第一个回答要多久？
 
 **输入。** 每次都用 agent 的磁盘镜像新建一个沙箱，并依次问下面这些原样的问题（[`evidence/runs/a-aca-2026-10-09/agent-runs.json`](evidence/runs/a-aca-2026-10-09/agent-runs.json)）：
 
@@ -106,7 +106,7 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 > 之后每一轮："How many questions have I asked before this one? Number only."
 <!-- END GENERATED: a-agent-input -->
 
-**变量与固定项。** 只有轮次不同。服务、固定的 beta SDK 0.1.0b4、sandbox group、镜像和配置三次都相同。SDK 的 beta 状态不能证明服务的发布成熟度；本次未独立核实 GA 日期。
+**变量与固定项。** 只有轮次不同。服务（[2026-09-23 起 GA](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)）、SDK 0.1.0b4（仍是 beta）、sandbox group、镜像和配置三次都相同。
 
 **结果。**
 
@@ -391,14 +391,14 @@ CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流]
 - `NOT_MEASURED`：B 的恢复和会话丢失；A 的宿主机丢失；服务端结束会话后 D 的行为；由 Foundry 治理的 agent 按任务调用 ACA 沙箱；有空闲容量时的并发时延；E2B 或其他第三方沙箱。
 - `SOURCE_FACT`：ACA Sandboxes 从“prewarmed pools for near-instant availability”启动，恢复“with sub-second restore times”（[概览](https://learn.microsoft.com/azure/container-apps/sandboxes-overview)）。可选档位（vCPU / GB）：XS 0.25 / 0.5、S 0.5 / 1、M 1 / 2、L 2 / 4、XL 4 / 8。可配置空闲自动挂起；Memory 保存内存和磁盘，Disk 只保存磁盘。本次 900 s 是本地设置，不是全服务默认值。
 - `SOURCE_FACT`：hosted agent 运行在“per-session VM-isolated sandboxes”中，保留 `$HOME` 和 `/files`；空闲超时 2–60 分钟，默认 15；30 天不活跃后删除会话（[hosted agents](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)）。
-- `SOURCE_FACT`：hosted agent 可配置 CPU 和内存。[部署指南](https://learn.microsoft.com/azure/foundry/agents/how-to/deploy-hosted-agent) 中的 `cpu="1"`、`memory="2Gi"` 只是示例，不是完整可选清单或上限。本次核对的官网页面不能确认此前列出的 2 vCPU / 4 GiB 上限，因此可选规格行不再把该上限写成已核实事实。
+- `SOURCE_FACT`：hosted agent 的[沙箱规格](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes)为 0.5 vCPU / 1 GiB、1 vCPU / 2 GiB、2 vCPU / 4 GiB；agent 版本上设置的值作用于每个会话，不选择 VM SKU。workshop 的 module-02 使用 0.5 vCPU / 1 GiB。
 - `SOURCE_FACT`：AKS Pod Sandboxing 由 Azure Linux 主机 + Microsoft Hyper-V + Cloud Hypervisor + Kata Containers 组成；节点 VM 必须是支持嵌套虚拟化的第 2 代规格；每个 pod VM 的内存等于 pod 的内存 limit（未设置时为 512 Mi），CPU limit 的小数部分向上取整到整数 vCPU（[pod sandboxing](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)）。
 - `SOURCE_FACT`：agent-sandbox v0.5.2 支持绝对到期时间 `shutdownTime`；到期后删除 pod 和 Service，`shutdownPolicy` 决定是否保留 Sandbox 对象（[官方 API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)）。这是定时到期回收，不是按请求计时的空闲检测；`operatingMode` 仍提供显式挂起和恢复。
 - `NOT_VERIFIED`：本次未核实到 BYO-AKS 官方公开的空闲策略、挂起支持或完整节点 SKU 清单。预览要求须向产品组确认，pod 年龄的现场观察不能证明这些策略。
 - `SOURCE_FACT`：[ACA 官方配额说明](https://sandboxes.azure.com/docs/sandboxes/limits) 按并发 active cores 计量，停止的沙箱不占该配额；这不是固定会话数上限。
 - `SOURCE_FACT`：[AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) 只隔离计算，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。隔离工具检查 runtime 配置；要求执行的内核读取必须成功，版本字符串不是硬件证明。
 - `SOURCE_FACT`：[固定版本 module-02 的实现](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) 中，`MODEL_ROUTING=direct` 调用 Foundry project endpoint。如果项目注册了原生 AI Gateway，该请求仍可能经 APIM；不能只凭模式名判断它绕过了网关。
-- `NOT_VERIFIED`：本次引用页面未能证明 A/B/C 的明确 GA 公告或日期。仓库不再把原 GA 标签和日期写成已核实事实，但这也不表示它们处于 Preview。
+- `SOURCE_FACT`：状态来源：A [2026-09-23 GA](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)；B [公开预览](https://devblogs.microsoft.com/foundry/hosted-agents-build26/)（2026-06-02 原文 “Hosted agents are in public preview today”，此后未找到 GA 公告）；C [Pod Sandboxing 于 2025-11-18 GA](https://azure.microsoft.com/updates?id=526237)，agent-sandbox v0.5.2 为开源项目。
 - `LOCAL_MEASUREMENT`：A 的保存记录显示对话历史长度继续增长。这检查历史连续性，不证明答案精确正确，也不证明任意进程内存都被保留。
 - `SOURCE_FACT`：D 的保底费用 <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h，是两个 `Standard_D4s_v5` 节点各 0.192 USD/h 加 AKS Standard 层 0.10 USD/h，按 2026-09-21 查询的 East US 2 零售价；不含折扣和税。这不是三个 Kata 节点压测池的费用。
 - D 的接入耗时（角色分配约 <!--v:d.role_assignments.value-->120<!--/v--> s、`azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s、`azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s）来自更早那份现场记录里的作者控制台；控制台原始输出没有保留。

@@ -8,8 +8,8 @@
 <rect x="24" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="46" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="46" dy="0">A</tspan></text>
 <text x="82" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="82" dy="0">ACA Sandboxes</tspan></text>
-<rect x="82" y="152" width="101.15360000000001" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="132.5768" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="132.5768" dy="0">GA unverified</tspan></text>
+<rect x="82" y="152" width="36.0272" height="22" rx="11" fill="#107C10" stroke="none" stroke-width="1.0"/>
+<text x="100.0136" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="100.0136" dy="0">GA</tspan></text>
 <text x="36" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="36" dy="0">Client → sandbox port (wakes on request) or SDK</tspan></text>
 <line x1="212.0" y1="222" x2="212.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="24" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -39,8 +39,8 @@
 <rect x="416" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="438" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="438" dy="0">B</tspan></text>
 <text x="474" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="474" dy="0">Foundry hosted agent</tspan></text>
-<rect x="474" y="152" width="101.15360000000001" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="524.5768" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="524.5768" dy="0">GA unverified</tspan></text>
+<rect x="474" y="152" width="106.11440000000002" height="22" rx="11" fill="#5C2D91" stroke="none" stroke-width="1.0"/>
+<text x="527.0572" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="527.0572" dy="0">public preview</tspan></text>
 <text x="428" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="428" dy="0">Client → Foundry agent endpoint (Responses)</tspan></text>
 <line x1="604.0" y1="222" x2="604.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="416" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -66,8 +66,8 @@
 <rect x="808" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="830" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="830" dy="0">C</tspan></text>
 <text x="866" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="866" dy="0">AKS + agent-sandbox</tspan></text>
-<rect x="866" y="152" width="136.1336" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="934.0668000000001" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="934.0668000000001" dy="0">GA unverified · OSS</tspan></text>
+<rect x="866" y="152" width="165.3896" height="22" rx="11" fill="#0078D4" stroke="none" stroke-width="1.0"/>
+<text x="948.6948" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="948.6948" dy="0">Pod Sandboxing GA · OSS</tspan></text>
 <text x="820" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="820" dy="0">Client → your LoadBalancer (not Foundry)</tspan></text>
 <line x1="996.0" y1="222" x2="996.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="808" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>

@@ -8,8 +8,8 @@
 <rect x="24" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="46" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="46" dy="0">A</tspan></text>
 <text x="82" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="82" dy="0">ACA Sandboxes</tspan></text>
-<rect x="82" y="152" width="77.74880000000002" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="120.87440000000001" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="120.87440000000001" dy="0">GA 未核实</tspan></text>
+<rect x="82" y="152" width="36.0272" height="22" rx="11" fill="#107C10" stroke="none" stroke-width="1.0"/>
+<text x="100.0136" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="100.0136" dy="0">GA</tspan></text>
 <text x="36" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="36" dy="0">客户端 → 沙箱端口（请求即唤醒）或 SDK</tspan></text>
 <line x1="212.0" y1="222" x2="212.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="24" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -39,8 +39,8 @@
 <rect x="416" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="438" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="438" dy="0">B</tspan></text>
 <text x="474" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="474" dy="0">Foundry hosted agent</tspan></text>
-<rect x="474" y="152" width="77.74880000000002" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="512.8744" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="512.8744" dy="0">GA 未核实</tspan></text>
+<rect x="474" y="152" width="70.88" height="22" rx="11" fill="#5C2D91" stroke="none" stroke-width="1.0"/>
+<text x="509.44" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="509.44" dy="0">公开预览</tspan></text>
 <text x="428" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="428" dy="0">客户端 → Foundry agent 端点（Responses）</tspan></text>
 <line x1="604.0" y1="222" x2="604.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="416" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -66,8 +66,8 @@
 <rect x="808" y="112" width="44" height="70" rx="6" fill="#0078D4" stroke="none" stroke-width="1.0"/>
 <text x="830" y="158" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="830" dy="0">C</tspan></text>
 <text x="866" y="142" font-size="18" fill="#201F1E" text-anchor="start" font-weight="600"><tspan x="866" dy="0">AKS + agent-sandbox</tspan></text>
-<rect x="866" y="152" width="114.12800000000001" height="22" rx="11" fill="#605E5C" stroke="none" stroke-width="1.0"/>
-<text x="923.064" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="923.064" dy="0">GA 未核实 · 开源</tspan></text>
+<rect x="866" y="152" width="166.78880000000004" height="22" rx="11" fill="#0078D4" stroke="none" stroke-width="1.0"/>
+<text x="949.3944" y="167.5" font-size="12" fill="#FFFFFF" text-anchor="middle" font-weight="600"><tspan x="949.3944" dy="0">Pod Sandboxing GA · 开源</tspan></text>
 <text x="820" y="212" font-size="13" fill="#0078D4" text-anchor="start" font-weight="600"><tspan x="820" dy="0">客户端 → 你的 LoadBalancer，不经 Foundry 端点</tspan></text>
 <line x1="996.0" y1="222" x2="996.0" y2="242" stroke="#0078D4" stroke-width="2.0" marker-end="url(#arrow)"/>
 <rect x="808" y="244" width="376" height="236" rx="6" fill="#F3F2F1" stroke="#A19F9D" stroke-width="1.2" stroke-dasharray="6 4"/>

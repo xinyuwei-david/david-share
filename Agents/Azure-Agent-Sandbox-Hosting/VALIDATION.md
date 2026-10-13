@@ -95,7 +95,7 @@ Read inside the sandbox: vmm_type `cloudhypervisor`, kernel `6.12.8+`, 1 vCPU.
 
 ### a-2026-10-09-agent: the full agent path in ACA Sandboxes, 3 runs
 
-**Question.** How long does a new sandbox take to answer, how fast is the next answer, and how long does a resume request → first answer take after suspension has finished, with the full specification the workshop uses?
+**Question.** How long does a new sandbox take to answer, how fast is the next answer, and how long does a resume request → first answer take after suspension has finished, on the GA service with the full specification the workshop uses?
 
 **Input.** Each run created a new sandbox from the agent's disk image and asked, in order, these exact questions ([`evidence/runs/a-aca-2026-10-09/agent-runs.json`](evidence/runs/a-aca-2026-10-09/agent-runs.json)):
 
@@ -106,7 +106,7 @@ Read inside the sandbox: vmm_type `cloudhypervisor`, kernel `6.12.8+`, 1 vCPU.
 > Every later turn: "How many questions have I asked before this one? Number only."
 <!-- END GENERATED: a-agent-input -->
 
-**Varied and fixed.** Only the run number varied. The service, pinned beta SDK 0.1.0b4, sandbox group, image and specification were the same in all three. SDK beta status does not establish the service's release maturity; a GA date was not independently verified.
+**Varied and fixed.** Only the run number varied. The service ([GA since 2026-09-23](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)), SDK 0.1.0b4 (still beta), the sandbox group, the image and the specification were the same in all three.
 
 **Result.**
 
@@ -391,14 +391,14 @@ Not tested here: the tools against a fresh subscription end to end after this re
 - `NOT_MEASURED`: B's resume and session loss; A's host loss; D's behaviour once the service ends a session; the Foundry-governed agent calling an ACA sandbox per task; latency under concurrency with free capacity; E2B or any other third-party sandbox.
 - `SOURCE_FACT`: ACA Sandboxes start "from prewarmed pools for near-instant availability" and resume "with sub-second restore times" ([overview](https://learn.microsoft.com/azure/container-apps/sandboxes-overview)). Selectable tiers (vCPU / GB): XS 0.25 / 0.5, S 0.5 / 1, M 1 / 2, L 2 / 4, XL 4 / 8. Idle auto-suspend is configurable; Memory preserves memory and disk, while Disk preserves disk only. The local 900 s setting is not a service-wide default.
 - `SOURCE_FACT`: hosted agents run in "per-session VM-isolated sandboxes" with `$HOME` and `/files` persisted; idle timeout 2–60 minutes, default 15; sessions deleted after 30 days of inactivity ([hosted agents](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)).
-- `SOURCE_FACT`: hosted agents let you configure CPU and memory. The [deployment guide](https://learn.microsoft.com/azure/foundry/agents/how-to/deploy-hosted-agent) shows `cpu="1"` and `memory="2Gi"` as an example, not an exhaustive selectable list or a maximum. The reviewed official pages do not establish the previously listed 2 vCPU / 4 GiB cap, so the selectable row does not publish that cap as verified.
+- `SOURCE_FACT`: hosted agent [sandbox sizes](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes) are 0.5 vCPU / 1 GiB, 1 vCPU / 2 GiB and 2 vCPU / 4 GiB; the values set on an agent version apply to each session, and no VM SKU is chosen. The workshop's module-02 uses 0.5 vCPU / 1 GiB.
 - `SOURCE_FACT`: AKS Pod Sandboxing is Azure Linux host + Microsoft Hyper-V + Cloud Hypervisor + Kata Containers; the node VM must be a generation 2 size that supports nested virtualization; each pod VM's memory follows the pod memory limit (512 Mi if unset) and fractional CPU limits round up to a whole vCPU ([pod sandboxing](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)).
 - `SOURCE_FACT`: agent-sandbox v0.5.2 supports an absolute `shutdownTime`; underlying pods and services are deleted on expiry, and `shutdownPolicy` controls retention of the Sandbox object ([official API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)). This is scheduled expiry, not a request-idle timer. `operatingMode` still exposes explicit suspend/resume.
 - `NOT_VERIFIED`: no public official BYO-AKS idle policy, suspend support or exhaustive node-SKU list was verified in this review. Confirm preview requirements with the product group; the pod-age observation cannot establish those policies.
 - `SOURCE_FACT`: [ACA's official quota documentation](https://sandboxes.azure.com/docs/sandboxes/limits) measures concurrent active cores; stopped sandboxes do not consume this quota. This is not a fixed session-count limit.
 - `SOURCE_FACT`: [AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) isolates compute, not the control plane, storage/data paths or cluster-admin actions. The isolation tool checks runtime configuration; requested kernel reads must succeed, and a version string is not hardware attestation.
 - `SOURCE_FACT`: the [fixed module-02 implementation](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) makes `MODEL_ROUTING=direct` call the Foundry project endpoint. A project with a registered native AI Gateway may still forward those calls through APIM; the mode name alone does not prove a gateway bypass.
-- `NOT_VERIFIED`: explicit GA announcements and dates for A/B/C were not established from the cited pages. The repository no longer publishes the old GA labels or date as verified; this does not assert that the services are Preview.
+- `SOURCE_FACT`: status sources: A [GA on 2026-09-23](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125); B [public preview](https://devblogs.microsoft.com/foundry/hosted-agents-build26/) ("Hosted agents are in public preview today", 2026-06-02; no later GA announcement was found); C [Pod Sandboxing GA on 2025-11-18](https://azure.microsoft.com/updates?id=526237), with agent-sandbox v0.5.2 as an open-source project.
 - `LOCAL_MEASUREMENT`: A's history length continued increasing in the saved run. This checks history continuity, not exact answer correctness or preservation of arbitrary process memory.
 - `SOURCE_FACT`: D's cost floor of <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h is two `Standard_D4s_v5` nodes at 0.192 USD/h each plus the AKS Standard tier at 0.10 USD/h, East US 2 retail prices queried 2026-09-21; no discounts or tax. This is not the cost of the three-Kata-node benchmark pool.
 - D's onboarding durations (role assignments about <!--v:d.role_assignments.value-->120<!--/v--> s, `azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s, `azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s) come from the author's console recorded in the earlier field record; the console itself was not kept.

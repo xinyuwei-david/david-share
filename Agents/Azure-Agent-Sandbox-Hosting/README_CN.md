@@ -12,18 +12,18 @@
 
 | 问题 | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|
-| 状态 | 有公开文档；GA 状态未核实 | 有公开文档；GA 状态未核实 | Pod Sandboxing GA 状态未核实；agent-sandbox v0.5.2 为开源项目 | **私有预览** |
+| 状态 | GA（2026-09-23） | 公开预览 | Pod Sandboxing GA（2025-11-18）；agent-sandbox v0.5.2 为开源项目 | **私有预览** |
 | 谁负责会话生命周期 | ACA 服务 | Foundry | 你自己：控制器、网关、空闲回收 | Foundry，运行在你的集群上 |
 | 会话的 micro-VM 跑在哪里 | 服务托管的算力 | 微软托管的算力 | 你的 Kata 节点池 | 你的 Kata 节点池 |
 | 带内存快照的挂起 | 支持 | 不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files` | 不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复 | 未测；预览版是否支持挂起须向产品组确认 |
-| 可选规格 / 节点 SKU（文档） | XS：0.25 vCPU / 0.5 GB<br>S：0.5 vCPU / 1 GB<br>M（默认）：1 vCPU / 2 GB<br>L：2 vCPU / 4 GB<br>XL：4 vCPU / 8 GB | 按 CPU / 内存配置；未从官网核实到完整档位或 VM SKU 清单 | 支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化 | 在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认 |
+| 可选规格 / 节点 SKU（文档） | XS：0.25 vCPU / 0.5 GB<br>S：0.5 vCPU / 1 GB<br>M（默认）：1 vCPU / 2 GB<br>L：2 vCPU / 4 GB<br>XL：4 vCPU / 8 GB | 0.5 vCPU / 1 GiB<br>1 vCPU / 2 GiB<br>2 vCPU / 4 GiB<br>不选择 VM SKU | 支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化 | 在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认 |
 | 适合的场景 | 要每用户一个 micro-VM、要快照、不想管集群 | 希望 Foundry 托管一切，且它的限制对你没有影响 | 必须自己掌控节点、网络和控制面 | 既要 Foundry 的 agent 平台，**又**要求会话跑在你自己的节点上 |
 
-产品能力和状态来自 Microsoft Learn，实测声明来自我们的运行记录，最后一行是我们的选型建议。一般企业 agent 在 B 的限制可接受时先选 B。对于 Qira 这类需要按用户长期运行、要内存快照又不想管集群的场景，先选 A。只有执行节点必须归你时才选 C 或 D；如果还要求 Foundry 继续运行 agent 平台，选 D。
+产品能力来自 Microsoft Learn，状态来自下文链接的官方公告，实测声明来自我们的运行记录，最后一行是我们的选型建议。一般企业 agent 在 B 的限制可接受、且能接受公开预览时先选 B。对于 Qira 这类需要按用户长期运行、要内存快照又不想管集群的场景，先选 A。只有执行节点必须归你时才选 C 或 D；如果还要求 Foundry 继续运行 agent 平台，选 D。
 
-可选项分三类：[A 的沙箱资源档位](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers)、[B 的 CPU / 内存配置](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)、[C/D 的节点 VM SKU](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)。节点 SKU 不是单会话分配规格；每个 Kata 会话还受 pod 的 requests、limits 和开销限制。节点 SKU 的可用性与配额取决于区域和订阅，D 还须满足预览开通条件。
+可选项分三类：[A 的沙箱资源档位](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers)、[B 的沙箱规格](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes)、[C/D 的节点 VM SKU](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)。节点 SKU 不是单会话分配规格；每个 Kata 会话还受 pod 的 requests、limits 和开销限制。节点 SKU 的可用性与配额取决于区域和订阅，D 还须满足预览开通条件。
 
-本次引用页面能证明产品能力，但未核实到明确的 GA 发布公告或日期。“GA 状态未核实”不等于 Preview。对 C/D，[Kata 只提供计算隔离](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing)，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。
+状态来源：[A 的 GA 公告](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)、[B 的公开预览说明](https://devblogs.microsoft.com/foundry/hosted-agents-build26/)、[C 的 Pod Sandboxing GA](https://azure.microsoft.com/updates?id=526237)；agent-sandbox 本身是开源项目，不是 Azure 服务。对 C/D，[Kata 只提供计算隔离](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing)，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。
 
 <img src="images/architecture-zh.png" width="900" alt="A 到 D 四列，每列包含客户端入口、微软托管区和你的订阅。A：ACA Sandboxes 服务和沙箱 micro-VM，你的订阅里有 sandbox group、镜像仓库和 Blob 卷。B：Foundry Agent Service 和每会话沙箱，你的订阅里有项目和 Application Insights。C：AKS 控制面，你的订阅里有控制器、Kata pod VM、Kata 节点池和 Blob PVC。D：Foundry Agent Service，你的订阅里有子网 NSG、foundry-system、每会话 Kata pod VM，以及镜像仓库和存储。">
 
@@ -185,10 +185,10 @@ azd deploy
 
 ```bash
 python tools/measure_responses.py --cold 1 --warm-turns 1 --observe
-python tools/check_isolation.py -n "$SESSION_NAMESPACE" --container agent --exec-uname
+python tools/check_isolation.py -n "$SESSION_NAMESPACE"
 ```
 
-成功的标志：输出 `MEASURE PASS … remembered=True`，并且每个会话 pod 输出一行 `CHECK isolation PASS … runtimeClass=kata-vm-isolation`。如果输出 `CHECK isolation BLOCKED no pod matched`，说明没有会话 pod 到达你的集群：先检查 D3 的 NSG 规则，再问产品组该订阅是否已开通会话落地。
+成功的标志：输出 `MEASURE PASS … remembered=True`，并且每个会话 pod 输出一行 `CHECK isolation PASS … runtimeClass=kata-vm-isolation`。我们这次没有在会话 pod 内读取内核；只有你的角色允许 exec 进会话 pod 时才加 `--container agent --exec-uname`，读取被拒绝时退出码为 1。如果输出 `CHECK isolation BLOCKED no pod matched`，说明没有会话 pod 到达你的集群：先检查 D3 的 NSG 规则，再问产品组该订阅是否已开通会话落地。
 
 **D5. 按“开过的会话数”规划节点池。** 最早的会话 pod 在创建至少 <!--v:d.idle.value-->87<!--/v--> 分钟后仍是 Running。这是 pod 的年龄，不是空闲时长：没有保留它最后一次请求的时间戳，所以未测出空闲回收超时。在你的预览 build 证实有回收超时之前，应保守地假设每个开过的会话都会一直占着一个 pod（500m CPU / 1 Gi，外加 600 Mi Kata 开销），直到服务端结束它。每个 `Standard_D4s_v5` 节点最多按 <!--v:d.capacity.per_node-->5<!--/v--> 个会话规划（同时跑系统 pod 的节点更少）；容量耗尽实测既返回过 HTTP 500 `session_creation_failed`，也返回过 HTTP 429 `aks_quota_exceeded`。删除会话 pod 不会释放容量：它的 Deployment 会把它重新创建出来。
 

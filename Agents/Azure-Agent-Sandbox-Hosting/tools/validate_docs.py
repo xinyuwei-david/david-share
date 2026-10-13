@@ -72,8 +72,7 @@ RETIRED_CLAIMS = ["not observed on the cluster", "Sessions on cluster-not observ
                   "A, B and C use the agenthost workshop's reflection agent",
                   "A、B、C 使用 workshop reflection agent",
                   "A、B、C 使用 workshop 的 reflection agent",
-                  "A、B、C 用 agenthost workshop 的 reflection agent",
-                  "GA since 2026-09-23", "2026-09-23 起 GA"]
+                  "A、B、C 用 agenthost workshop 的 reflection agent"]
 SCAN_SUFFIXES = {".md", ".json", ".py", ".yml", ".yaml", ".txt", ".example", ".svg", ".in"}
 SKIP_SCAN = {"tests/test_guards.py", "tools/validate_docs.py"}
 
@@ -157,7 +156,7 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             errors.append(f"{name}: {label} row differs from evidence/claims.json")
     required = {
         "README.md": [
-            "Start with B for a general managed enterprise agent",
+            "Start with B for a general managed enterprise agent when its limits fit and a public preview is acceptable",
             "For a Qira-like long-running, per-user workload",
             "A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS",
             "not the same container",
@@ -166,7 +165,7 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             "pod age, not idle duration",
         ],
         "README_CN.md": [
-            "一般企业 agent 在 B 的限制可接受时先选 B",
+            "一般企业 agent 在 B 的限制可接受、且能接受公开预览时先选 B",
             "对于 Qira 这类需要按用户长期运行",
             "A = ACA Sandboxes，B = Foundry hosted agent，C = AKS + agent-sandbox，D = BYO-AKS",
             "不是相同容器",

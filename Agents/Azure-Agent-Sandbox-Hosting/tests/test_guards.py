@@ -45,6 +45,13 @@ def test_same_container_claim_fails_information_alignment():
     assert vd.check_information_alignment(p)
 
 
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md", "VALIDATION.md", "VALIDATION_CN.md"))
+def test_b_workload_implementation_cannot_disappear(name):
+    p = pages()
+    p[name] = p[name].replace("ResponsesHostServer", "reflection service")
+    assert any("distinct workload" in error for error in vd.check_information_alignment(p))
+
+
 def test_deleted_session_state_overclaim_fails_information_alignment():
     p = pages()
     p["VALIDATION.md"] = p["VALIDATION.md"].replace(

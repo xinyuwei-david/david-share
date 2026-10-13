@@ -3,30 +3,30 @@
   "figures": [
     {
       "file": "images/architecture-en.svg",
-      "sha256": "e807ff5d2664c4f6c7f5970cd2e7a1a51318d4688e8d1766db5b985b8a33adec",
+      "sha256": "73df3a37548a50bf596ac307967222d3170040d4efff598f812822b251174e8c",
       "kind": "original explanatory diagram",
       "generator": "tools/build_diagrams.py"
     },
     {
       "file": "images/architecture-en.png",
-      "sha256": "d7c2543ac3dd98ff6642bba7e37822b9df07ff7155d949c7f069e5b856807d5c",
+      "sha256": "39117f2c94b22ea5245f738c147ff27bf48cd84fbdf048a3d8f17adb46f74921",
       "width": 3200,
       "height": 2072,
-      "rendered_from_svg_sha256": "e807ff5d2664c4f6c7f5970cd2e7a1a51318d4688e8d1766db5b985b8a33adec",
+      "rendered_from_svg_sha256": "73df3a37548a50bf596ac307967222d3170040d4efff598f812822b251174e8c",
       "renderer": "Microsoft Edge via isolated Playwright process, device scale factor 2"
     },
     {
       "file": "images/architecture-zh.svg",
-      "sha256": "bf57cf840542be6349becb3132daab9de5eb06a71d749aaad07ed34368a4344c",
+      "sha256": "fce9408e133c790306292002b9449b0320775be26e8dd76ee01f43a7e2142b78",
       "kind": "original explanatory diagram",
       "generator": "tools/build_diagrams.py"
     },
     {
       "file": "images/architecture-zh.png",
-      "sha256": "2effb880aa5230143ce5fc2e3d7aa2f9b7ec5dac49baa4b29e170bfe6bc744ea",
+      "sha256": "46d5b161b9108bb6e84cf364ee0b6b625ff7500556663f0aa19434c4dec305be",
       "width": 3200,
       "height": 2072,
-      "rendered_from_svg_sha256": "bf57cf840542be6349becb3132daab9de5eb06a71d749aaad07ed34368a4344c",
+      "rendered_from_svg_sha256": "fce9408e133c790306292002b9449b0320775be26e8dd76ee01f43a7e2142b78",
       "renderer": "Microsoft Edge via isolated Playwright process, device scale factor 2"
     }
   ],

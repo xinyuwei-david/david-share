@@ -8,10 +8,10 @@ For every matching pod it prints one line:
 
     CHECK isolation PASS pod=<pod> runtimeClass=kata-vm-isolation node=<node> nodeKernel=<k> podKernel=<k>
 
-PASS needs runtimeClassName kata-vm-isolation and phase Running. With --exec-uname the pod's own kernel
-(uname -r inside the pod) is compared with the kernelVersion of its node: a different string proves the pod does
-not share the node's kernel (a runc container always reports the node's); the same string is reported as
-inconclusive. If exec is refused, the kernel is reported as not read.
+PASS checks runtimeClassName kata-vm-isolation and phase Running, not hardware attestation.
+With --exec-uname the pod's kernel version is compared with its assigned node's: a different string
+supports a separate guest kernel; an identical version string is inconclusive, not a failure.
+A requested kernel read that fails or returns no value exits 1 instead of reporting PASS.
 Exit codes: 0 every pod PASS, 1 any pod FAIL, 3 no pod matched.
 
 Offline: --pods-json and --nodes-json evaluate saved `kubectl get pods/nodes -o json` output, and
@@ -69,14 +69,17 @@ def kubectl_json(*args: str) -> dict:
     return json.loads(out.stdout)
 
 
-def read_uname(namespace: str, pod: str, container: str | None) -> str | None:
+def read_uname(namespace: str, pod: str, container: str | None) -> str:
     cmd = ["kubectl", "exec", "-n", namespace, pod]
     if container:
         cmd += ["-c", container]
     out = subprocess.run(cmd + ["--", "uname", "-r"], capture_output=True, text=True, timeout=60)
     if out.returncode != 0:
-        return None
-    return out.stdout.strip() or None
+        raise RuntimeError(f"kubectl exec uname failed: {out.stderr.strip()[:300]}")
+    kernel = out.stdout.strip()
+    if not kernel:
+        raise RuntimeError("kubectl exec uname returned an empty kernel version")
+    return kernel
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -102,7 +105,12 @@ def main(argv: list[str] | None = None) -> int:
         unames = {}
         if args.exec_uname:
             for p in pods.get("items", []):
-                unames[p["metadata"]["name"]] = read_uname(args.namespace, p["metadata"]["name"], args.container)
+                name = p["metadata"]["name"]
+                try:
+                    unames[name] = read_uname(args.namespace, name, args.container)
+                except (RuntimeError, subprocess.TimeoutExpired) as exc:
+                    print(f"CHECK isolation BLOCKED kernel read failed pod={name}: {exc}", file=sys.stderr)
+                    return 1
     results = evaluate(pods, nodes, unames)
     if not results:
         print("CHECK isolation BLOCKED no pod matched")

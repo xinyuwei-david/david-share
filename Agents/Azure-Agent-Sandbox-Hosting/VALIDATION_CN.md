@@ -6,7 +6,7 @@
 
 ## 架构与指标口径
 
-全文围绕两个问题组织：谁负责会话生命周期，会话的 micro-VM 跑在谁的节点上。四条路径的工作负载口径可比，但容器并不完全相同：A、B、C 用 agenthost workshop 的 reflection agent（[`oxcp/ainotes`，固定在 `905f2c2`](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost)），D 用私有预览示例 `agent-framework-agent-basic-responses-byoaks`。它们都调用 `gpt-5.4-mini`，并执行新建有状态会话和同会话追问。
+全文围绕两个问题组织：谁负责会话生命周期，会话的 micro-VM 跑在谁的节点上。四条路径的工作负载口径可比，但容器并不完全相同：A 和 C 使用 workshop 的 [module-03 reflection agent](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/agent-src/app/main.py)；B 使用另一个 [module-02 Agent Framework + ResponsesHostServer agent](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py)；D 用私有预览示例 `agent-framework-agent-basic-responses-byoaks`。它们都调用 `gpt-5.4-mini`，并执行新建有状态会话和同会话追问。
 
 - **A · ACA Sandboxes。** agent 的容器镜像被构建成沙箱磁盘镜像；每个实测会话一个沙箱，`cpu 1000m`、`memory 2048Mi`（M 档），Memory 模式下空闲 900 s 自动挂起，带 VNet 连接、挂在 `/app/app/data` 的私有 Blob 卷，以及按需激活的 8080 端口。控制面是 ARM（`Microsoft.App/sandboxGroups`），数据面是 `management.azuredevcompute.io`；调用方需要 *Container Apps SandboxGroup Data Owner* 角色。
 - **B · Foundry hosted agent。** `azd ai agent init` 把 workshop 的 `azure.yaml` 绑定到已有项目，`azd deploy` 构建并发布一个版本。Learn 的描述是：每会话一个 VM 级隔离的沙箱，空闲期间保留 `$HOME` 和 `/files`，空闲超时 2–60 分钟（默认 15），30 天不活跃后删除会话。
@@ -19,7 +19,7 @@
 |---|---|---|---|
 | 冷启动，A（分段相加） | SDK create 调用 → Running | 加上第一个 `/reflect` 回答耗时 | create 在客户端计时；回答在沙箱内计时 |
 | 冷启动，B 和 D | 客户端 POST 一个新会话 | 读完整个响应体 | 客户端，经 Foundry 端点 |
-| 冷启动，C（分段相加） | `kubectl apply` → Sandbox Ready | 加上 LoadBalancer 的第一个回答耗时 | 客户端，不经网关 |
+| 冷启动，C（分段相加） | `kubectl apply` → Sandbox Ready | 加上 LoadBalancer 的第一个回答耗时 | 客户端经自己的 LoadBalancer；模型推理仍经 APIM |
 | 后续回答 | 下一轮请求发出 | 收到回答 | 同冷启动 |
 | 恢复，A（分段相加） | SDK resume 调用 → Running | 加上恢复后的第一个回答耗时 | resume 在客户端计时；回答在沙箱内计时 |
 | 恢复，C | patch `operatingMode: Running` | LoadBalancer 返回第一个回答 | 客户端 |
@@ -95,7 +95,7 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 
 ### a-2026-10-09-agent：在 ACA Sandboxes 里跑完整 agent 流程，共 3 次
 
-**问题。** 在 GA 服务上、用 workshop 的完整配置，新沙箱多久能给出回答，下一轮回答多快？挂起完成后，发起恢复 → 第一个回答要多久？
+**问题。** 用 workshop 的完整配置，新沙箱多久能给出回答，下一轮回答多快？挂起完成后，发起恢复 → 第一个回答要多久？
 
 **输入。** 每次都用 agent 的磁盘镜像新建一个沙箱，并依次问下面这些原样的问题（[`evidence/runs/a-aca-2026-10-09/agent-runs.json`](evidence/runs/a-aca-2026-10-09/agent-runs.json)）：
 
@@ -106,7 +106,7 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 > 之后每一轮："How many questions have I asked before this one? Number only."
 <!-- END GENERATED: a-agent-input -->
 
-**变量与固定项。** 只有轮次不同。服务（2026-09-23 起 GA）、SDK 0.1.0b4（当天 PyPI 上最新的公开版本，仍是 beta）、sandbox group、镜像和配置三次都相同。
+**变量与固定项。** 只有轮次不同。服务、固定的 beta SDK 0.1.0b4、sandbox group、镜像和配置三次都相同。SDK 的 beta 状态不能证明服务的发布成熟度；本次未独立核实 GA 日期。
 
 **结果。**
 
@@ -384,7 +384,7 @@ CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流]
 **边界。**
 
 - `LOCAL_MEASUREMENT`：A 的完整 agent 时延 n=3；B 和 C 各是一轮端到端实测；D 是一轮压测，其中镜像已缓存的冷启动 n=5、后续回答 n=3，会话落地和恢复各一次。依赖某个数字之前，请按 README 第 7 步重新测。
-- `LOCAL_MEASUREMENT`：A、B、C 使用 workshop reflection agent，D 使用私有预览 sample。B 和 D 包含 Foundry 端点和位于中国的客户端（往返 <!--v:d.client_rtt.range-->320–800<!--/v--> ms）；A 的回答在沙箱内计时；C 在它的 LoadBalancer 处计时。表中每一行比较的是现场实现，不是相同容器或相同网络链路。
+- `LOCAL_MEASUREMENT`：A 和 C 使用 workshop reflection agent；B 使用 Agent Framework 和 ResponsesHostServer；D 使用私有预览 sample。B 和 D 包含 Foundry 端点和位于中国的客户端（往返 <!--v:d.client_rtt.range-->320–800<!--/v--> ms）；A 的回答在沙箱内计时；C 在它的 LoadBalancer 处计时。表中每一行比较的是现场实现，不是相同容器或相同网络链路。
 - `LOCAL_MEASUREMENT`：A 加上私有 Blob 卷后创建耗时为 <!--v:a.attr.vnetvolume.range-->15.79–25.12<!--/v--> s；只加镜像、VNet 或端口时为 <!--v:a.attr.small.range-->1.6–2.7<!--/v--> s。
 - `LOCAL_MEASUREMENT`：最早的 D 会话 pod 在创建至少 <!--v:d.idle.value-->87<!--/v--> 分钟后仍是 Running。这是 pod 的年龄，不是空闲时长：没有保留最后一次请求的时间戳。它不能证明配置的空闲超时，也不能证明期间始终空闲。
 - `LOCAL_MEASUREMENT`：按示例的 500m CPU / 1 Gi 请求加 600 Mi Kata 开销，D 每个 `Standard_D4s_v5` 节点最多容纳 <!--v:d.capacity.per_node-->5<!--/v--> 个会话；同时运行系统 pod 的节点更少。
@@ -395,6 +395,11 @@ CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流]
 - `SOURCE_FACT`：AKS Pod Sandboxing 由 Azure Linux 主机 + Microsoft Hyper-V + Cloud Hypervisor + Kata Containers 组成；节点 VM 必须是支持嵌套虚拟化的第 2 代规格；每个 pod VM 的内存等于 pod 的内存 limit（未设置时为 512 Mi），CPU limit 的小数部分向上取整到整数 vCPU（[pod sandboxing](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)）。
 - `SOURCE_FACT`：agent-sandbox v0.5.2 支持绝对到期时间 `shutdownTime`；到期后删除 pod 和 Service，`shutdownPolicy` 决定是否保留 Sandbox 对象（[官方 API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)）。这是定时到期回收，不是按请求计时的空闲检测；`operatingMode` 仍提供显式挂起和恢复。
 - `NOT_VERIFIED`：本次未核实到 BYO-AKS 官方公开的空闲策略、挂起支持或完整节点 SKU 清单。预览要求须向产品组确认，pod 年龄的现场观察不能证明这些策略。
+- `SOURCE_FACT`：[ACA 官方配额说明](https://sandboxes.azure.com/docs/sandboxes/limits) 按并发 active cores 计量，停止的沙箱不占该配额；这不是固定会话数上限。
+- `SOURCE_FACT`：[AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) 只隔离计算，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。隔离工具检查 runtime 配置；要求执行的内核读取必须成功，版本字符串不是硬件证明。
+- `SOURCE_FACT`：[固定版本 module-02 的实现](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) 中，`MODEL_ROUTING=direct` 调用 Foundry project endpoint。如果项目注册了原生 AI Gateway，该请求仍可能经 APIM；不能只凭模式名判断它绕过了网关。
+- `NOT_VERIFIED`：本次引用页面未能证明 A/B/C 的明确 GA 公告或日期。仓库不再把原 GA 标签和日期写成已核实事实，但这也不表示它们处于 Preview。
+- `LOCAL_MEASUREMENT`：A 的保存记录显示对话历史长度继续增长。这检查历史连续性，不证明答案精确正确，也不证明任意进程内存都被保留。
 - `SOURCE_FACT`：D 的保底费用 <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h，是两个 `Standard_D4s_v5` 节点各 0.192 USD/h 加 AKS Standard 层 0.10 USD/h，按 2026-09-21 查询的 East US 2 零售价；不含折扣和税。这不是三个 Kata 节点压测池的费用。
 - D 的接入耗时（角色分配约 <!--v:d.role_assignments.value-->120<!--/v--> s、`azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s、`azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s）来自更早那份现场记录里的作者控制台；控制台原始输出没有保留。
 

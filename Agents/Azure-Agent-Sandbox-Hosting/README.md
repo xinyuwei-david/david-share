@@ -8,20 +8,22 @@ Author: Xinyu Wei · [中文](README_CN.md)
 
 ## Purpose
 
-You want each agent session to run in its own micro-VM on Azure, and you have to pick who runs that micro-VM and its lifecycle: a service, Foundry, or you on your own AKS nodes. The four paths make different trade-offs, and their seconds are hard to compare from product pages alone. This repository applies one comparable stateful interaction contract to all four paths, gives the steps to reproduce each one, and shows what we measured. A, B and C use the workshop's reflection agent; D uses the product group's private-preview sample, so this is not an identical-container benchmark:
+You want each agent session to run in its own micro-VM on Azure, and you have to pick who runs that micro-VM and its lifecycle: a service, Foundry, or you on your own AKS nodes. The four paths make different trade-offs, and their seconds are hard to compare from product pages alone. This repository applies one comparable stateful interaction contract to all four paths, gives the steps to reproduce each one, and shows what we measured. A and C share the workshop reflection agent; B uses its distinct Agent Framework agent with ResponsesHostServer; D uses the product group's private-preview sample, so this is not an identical-container benchmark:
 
 | Question | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|
-| Status | GA | GA | Pod Sandboxing GA; agent-sandbox v0.5.2 is open source | **Private preview** |
+| Status | Public documentation; GA status not verified | Public documentation; GA status not verified | Pod Sandboxing GA status not verified; agent-sandbox v0.5.2 is open source | **Private preview** |
 | Who runs the session lifecycle | The ACA service | Foundry | You: controller, gateway, idle sweeper | Foundry, on your cluster |
 | Where the session's micro-VM runs | Service-managed compute | Microsoft-managed compute | Your Kata node pool | Your Kata node pool |
 | Suspend with memory snapshot | Yes | No: idle releases compute, `$HOME` and `/files` are restored | No memory snapshot: you patch `operatingMode`; the pod goes, file state comes back from Blob | Not exercised; confirm preview suspend support with the product group |
-| Selectable size / node SKU (docs) | XS / S / M / L / XL (0.25–4 vCPU, 0.5–8 GB) | Configure CPU and memory; the docs do not list selectable VM SKUs | Kata-compatible Gen2 VM SKUs, such as the Dsv3 series; Azure Linux and nested virtualization required | Kata node SKUs within the approved preview requirements; confirm the selectable list with the product group |
+| Selectable size / node SKU (docs) | XS: 0.25 vCPU / 0.5 GB<br>S: 0.5 vCPU / 1 GB<br>M (default): 1 vCPU / 2 GB<br>L: 2 vCPU / 4 GB<br>XL: 4 vCPU / 8 GB | Configure CPU and memory; no exhaustive tier or VM-SKU list verified in the official docs | Kata-compatible Gen2 VM SKUs, such as the Dsv3 series; Azure Linux and nested virtualization required | Kata node SKUs within the approved preview requirements; confirm the selectable list with the product group |
 | Choose it when | You want per-user micro-VMs, snapshots and no cluster | You want Foundry to run everything and its limits do not bite | You must own the node, the network and the control plane | You need Foundry's agent platform **and** sessions on nodes you own |
 
 Product capabilities and status come from Microsoft Learn; measured claims come from our runs; the last row is our selection guidance. Start with B for a general managed enterprise agent when its limits fit. For a Qira-like long-running, per-user workload that needs memory snapshots without a cluster, start with A. Use C or D only when owning the execution nodes is non-negotiable; choose D when Foundry must still run the agent platform.
 
 The selectable row separates [A's sandbox resource tiers](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers), [B's CPU/memory configuration](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents), and [C/D's node VM SKUs](https://learn.microsoft.com/azure/aks/use-pod-sandboxing). A node SKU is not a per-session allocation; Kata pod requests, limits and overhead also constrain each session. Node availability and quota vary by region and subscription, and D has additional preview requirements.
+
+The cited pages document capabilities but did not establish an explicit GA announcement or date in this review. "GA status not verified" does not mean Preview. For C/D, [Kata provides compute isolation only](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing), not isolation of the control plane, storage/data paths or cluster-admin actions.
 
 <img src="images/architecture-en.png" width="900" alt="Four columns A to D. Each shows the client entry, the Microsoft-managed zone and your subscription. A: ACA Sandboxes service and a sandbox micro-VM, with sandbox group, registry and Blob volume in your subscription. B: Foundry Agent Service and a per-session sandbox, with project and Application Insights in your subscription. C: AKS control plane, then controller, Kata pod VM, Kata node pool and Blob PVC in your subscription. D: Foundry Agent Service, then subnet NSG, foundry-system, Kata pod VM per session and registry and storage in your subscription.">
 
@@ -95,7 +97,7 @@ kubectl wait --for=condition=Ready pod -l app=agent-host -n "$NAMESPACE" --timeo
 cd - && python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
 ```
 
-Success: `prepare-agent-sandbox.sh` ends with `Solution B infrastructure prepared` (the workshop's letter for this path), the wait prints `condition met`, and the check prints `CHECK isolation PASS … runtimeClass=kata-vm-isolation … kernel=differs-from-node`. Suspend and resume are one patch each; your gateway does this in production:
+Success: `prepare-agent-sandbox.sh` ends with `Solution B infrastructure prepared` (the workshop's letter for this path), the wait prints `condition met`, and the check prints `CHECK isolation PASS … runtimeClass=kata-vm-isolation`. PASS checks the configured runtime and Running phase, not hardware attestation. Kernel versions may differ or be identical; an identical version is inconclusive, not failure. A failed requested `--exec-uname` read exits 1. Suspend and resume are one patch each; your gateway does this in production:
 
 ```bash
 kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
@@ -210,7 +212,7 @@ python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery
 
 Exit 0 means every requested phase passed: A checks growing conversation-history lengths across resume; B and D check completed responses and exact code-word recall, including each concurrency follow-up and recovery when requested. A skipped recovery, failed pod observation or failed deletion is not a pass. Expected full-pool refusals are saved as measurements but still return exit 1.
 
-**Offboard and remove.** A sandbox stops billing CPU and memory when stopped; an AKS cluster bills nodes until it is stopped or deleted:
+**Offboard and remove, only after explicit owner approval.** Stopped sandboxes do not bill CPU or memory. [Stopping AKS saves compute costs](https://learn.microsoft.com/azure/aks/start-stop-cluster), but retained disks, public IPs, storage and other resources can still incur charges; stopping is not zero total cost:
 
 ```bash
 python tools/aca_sandbox.py delete
@@ -232,7 +234,7 @@ az group delete -n "$RESOURCE_GROUP" --yes --no-wait                  # removes 
 
 B's per-session VM-isolated boundary is a `SOURCE_FACT`, not a local VMM or kernel read-back. C and D use the same Kata runtime class, so isolation does not separate them: who runs the platform does.
 
-**The seconds.** A is the median of three runs on 2026-10-09; B and C are single runs on 2026-09-27; D is one benchmark campaign on 2026-09-29. A, B and C use the workshop reflection agent; D uses the private-preview sample. All use the same model and a stateful two-turn interaction, but not the same container. B and D were called through the Foundry endpoint from a laptop in China (Azure round trip <!--v:d.client_rtt.range-->320–800<!--/v--> ms); A's answers were timed inside the sandbox and C's at its LoadBalancer. Compare within a row as a field report, not as a controlled product benchmark:
+**The seconds.** A is the median of three runs on 2026-10-09; B and C are single runs on 2026-09-27; D is one benchmark campaign on 2026-09-29. A and C use the workshop reflection agent; B uses its Agent Framework agent with ResponsesHostServer; D uses the private-preview sample. All use the same model and a stateful two-turn interaction, but not the same container. B and D were called through the Foundry endpoint from a laptop in China (Azure round trip <!--v:d.client_rtt.range-->320–800<!--/v--> ms); A's answers were timed inside the sandbox and C's at its LoadBalancer. Compare within a row as a field report, not as a controlled product benchmark:
 
 A's cold and resume-to-answer numbers are component sums, not a single end-to-end client stopwatch: SDK create or resume wall time plus the answer timed inside the sandbox. C's cold number is likewise apply-to-Ready plus first-answer time. Resume starts after suspension has finished; stop and idle waiting are excluded. B's rows use the gateway (APIM) model route; its direct-route results are separate in VALIDATION.
 
@@ -264,7 +266,7 @@ What stands out:
 | Run | Path | Scenario | Result |
 |---|---|---|---|
 | `a-2026-09-27-setup` | A | first deployment, wake on request | setup 146.6 s; a request to a stopped sandbox answered in 23.7 s; kernel `6.12.8+` |
-| `a-2026-10-09-agent` | A | full agent, 3 runs | cold 28.0 s, warm 1.05 s, resume → answer 14.45 s (medians); vmm `cloudhypervisor` in 3/3; state kept 3/3 |
+| `a-2026-10-09-agent` | A | full agent, 3 runs | cold 28.0 s, warm 1.05 s, resume → answer 14.45 s (medians); vmm `cloudhypervisor` in 3/3; history grew 3/3 |
 | `a-2026-10-09-attribution` | A | create time by configuration | image, VNet or port alone 1.6–2.7 s; adding the private Blob volume 15.79–25.12 s |
 | `a-2026-10-09-late-mount` | A | start first, mount Blob later | start 3.99–7.2 s, then mount 12.4–20.29 s (n=2) |
 | `b-2026-09-27` | B | deploy, new session, follow-ups; gateway model route | deploy 161 s; new session 9.43 s; follow-ups 4.03, 5.54 s |

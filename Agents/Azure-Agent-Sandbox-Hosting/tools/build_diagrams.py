@@ -17,6 +17,7 @@ import json
 import struct
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -35,7 +36,7 @@ CARD_BORDER = "#C8C6C4"
 VM_GREEN = "#107C10"
 TEXT = "#201F1E"
 SUBTEXT = "#605E5C"
-STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91"}
+STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91", "unverified": "#605E5C"}
 FONT = "'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif"
 
 GAP, MARGIN = 16, 24
@@ -64,21 +65,21 @@ LAYOUT = {
         "ms": "MICROSOFT-MANAGED",
         "sub": "YOUR SUBSCRIPTION",
         "cols": [
-            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA", "ga"),
+            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA unverified", "unverified"),
              "entry": "Client → sandbox port (wakes on request) or SDK",
              "ms": [(I_ACA, "ACA Sandboxes service", "create · stop with memory snapshot · resume"),
                     (None, "Sandbox micro-VM", "your disk image · own kernel · read back: Cloud Hypervisor")],
              "sub": [(I_ACA, "Sandbox group", "Microsoft.App resource · disk images · volumes · VNet connection"),
                      (I_ACR, "Container Registry", "source of the sandbox disk image"),
                      (I_STORAGE, "Storage · Blob volume", "agent state, mounted into the sandbox")]},
-            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA", "ga"),
+            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA unverified", "unverified"),
              "entry": "Client → Foundry agent endpoint (Responses)",
              "ms": [(I_AGENT, "Foundry Agent Service", "endpoint · sessions · versions · agent identity"),
                     (None, "Per-session sandbox", "VM-isolated (docs) · $HOME and /files kept across idle")],
              "sub": [(I_PROJECT, "Foundry project", "agent definition and model deployment"),
                      (I_APPI, "Application Insights", "agent traces, when connected")]},
-            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("Pod Sandboxing GA · OSS", "oss"),
-             "entry": "Client → your LoadBalancer, no gateway",
+            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("GA unverified · OSS", "unverified"),
+             "entry": "Client → your LoadBalancer (not Foundry)",
              "ms": [(I_AKS, "AKS control plane", "managed Kubernetes API")],
              "sub": [(I_AKS, "agent-sandbox controller", "Sandbox resource · operatingMode Running / Suspended"),
                      (None, "Kata pod VM per Sandbox", "runtimeClass kata-vm-isolation · your image · own kernel"),
@@ -105,21 +106,21 @@ LAYOUT = {
         "ms": "微软托管",
         "sub": "你的订阅",
         "cols": [
-            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA", "ga"),
+            {"letter": "A", "name": "ACA Sandboxes", "status": ("GA 未核实", "unverified"),
              "entry": "客户端 → 沙箱端口（请求即唤醒）或 SDK",
              "ms": [(I_ACA, "ACA Sandboxes 服务", "创建 · 带内存快照的停止 · 恢复"),
                     (None, "沙箱 micro-VM", "你的磁盘镜像 · 独立内核 · 读回 VMM：Cloud Hypervisor")],
              "sub": [(I_ACA, "Sandbox group", "Microsoft.App 资源 · 磁盘镜像 · 卷 · VNet 连接"),
                      (I_ACR, "Container Registry", "沙箱磁盘镜像的来源"),
                      (I_STORAGE, "Storage · Blob 卷", "agent 状态，挂载进沙箱")]},
-            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA", "ga"),
+            {"letter": "B", "name": "Foundry hosted agent", "status": ("GA 未核实", "unverified"),
              "entry": "客户端 → Foundry agent 端点（Responses）",
              "ms": [(I_AGENT, "Foundry Agent Service", "端点 · 会话 · 版本 · agent 身份"),
                     (None, "每会话一个沙箱", "VM 级隔离（文档）· 空闲后保留 $HOME 和 /files")],
              "sub": [(I_PROJECT, "Foundry 项目", "agent 定义和模型部署"),
                      (I_APPI, "Application Insights", "接入后接收 agent 的 trace")]},
-            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("Pod Sandboxing GA · 开源", "oss"),
-             "entry": "客户端 → 你的 LoadBalancer，不经网关",
+            {"letter": "C", "name": "AKS + agent-sandbox", "status": ("GA 未核实 · 开源", "unverified"),
+             "entry": "客户端 → 你的 LoadBalancer，不经 Foundry 端点",
              "ms": [(I_AKS, "AKS 控制面", "托管的 Kubernetes API")],
              "sub": [(I_AKS, "agent-sandbox 控制器", "Sandbox 资源 · operatingMode Running / Suspended"),
                      (None, "每个 Sandbox 一个 Kata pod VM", "runtimeClass kata-vm-isolation · 你的镜像 · 独立内核"),
@@ -304,18 +305,43 @@ def png_size(path: Path) -> tuple[int, int]:
 
 def _render_png_in_process(svg_path: Path, png_path: Path, scale: int) -> None:
     try:
-        from playwright.sync_api import sync_playwright
+        import playwright
     except ImportError as exc:
         raise RuntimeError("PNG rendering needs playwright; install requirements-dev.txt") from exc
-    png_path.unlink(missing_ok=True)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(channel="msedge", headless=True)
-        page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=scale)
-        page.goto(svg_path.as_uri(), wait_until="load")
-        page.screenshot(path=str(png_path), animations="disabled")
-        browser.close()
-    if png_size(png_path) != (W * scale, H * scale):
-        raise RuntimeError(f"unexpected PNG size {png_size(png_path)} for {png_path.name}")
+    driver = Path(playwright.__file__).resolve().parent / "driver"
+    node = driver / ("node.exe" if sys.platform == "win32" else "node")
+    script = """
+const [pkg, url, output, width, height, scale] = process.argv.slice(1);
+const {chromium} = require(pkg);
+(async () => {
+  const browser = await chromium.launch({channel: 'msedge', headless: true, timeout: 15000});
+  try {
+    const page = await browser.newPage({
+      viewport: {width: Number(width), height: Number(height)},
+      deviceScaleFactor: Number(scale)
+    });
+    await page.goto(url, {waitUntil: 'load', timeout: 15000});
+    await page.screenshot({path: output, animations: 'disabled', timeout: 15000});
+  } finally {
+    await browser.close();
+  }
+})().then(() => process.exit(0), error => {console.error(error); process.exit(1);});
+"""
+    with tempfile.NamedTemporaryFile(dir=png_path.parent, suffix=".png", delete=False) as temporary:
+        output = Path(temporary.name)
+    try:
+        result = subprocess.run(
+            [str(node), "-e", script, str(driver / "package"), svg_path.as_uri(), str(output),
+             str(W), str(H), str(scale)],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode:
+            raise RuntimeError(f"Edge PNG renderer failed: {(result.stderr or result.stdout).strip()}")
+        if png_size(output) != (W * scale, H * scale):
+            raise RuntimeError(f"unexpected PNG size {png_size(output)} for {png_path.name}")
+        output.replace(png_path)
+    finally:
+        output.unlink(missing_ok=True)
 
 
 def render_png(svg_path: Path, png_path: Path, scale: int = PNG_SCALE) -> None:

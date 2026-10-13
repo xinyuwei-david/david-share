@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 import aca_sandbox
+import build_diagrams
 import check_isolation
 import measure_aca
 import measure_responses
@@ -24,6 +25,26 @@ def test_help_runs_without_azure(tool):
                          timeout=60)
     assert out.returncode == 0, out.stderr
     assert "usage:" in out.stdout
+
+
+@pytest.mark.parametrize("failure", ("renderer-error", "bad-size", "timeout"))
+def test_failed_diagram_render_preserves_existing_png(monkeypatch, tmp_path, failure):
+    svg, png = tmp_path / "figure.svg", tmp_path / "figure.png"
+    svg.write_text("<svg/>", encoding="utf-8")
+    png.write_bytes(b"previous-image")
+
+    def run(*args, **kwargs):
+        if failure == "timeout":
+            raise subprocess.TimeoutExpired(args[0], 60)
+        return SimpleNamespace(returncode=1 if failure == "renderer-error" else 0,
+                               stdout="", stderr="renderer failed" if failure == "renderer-error" else "")
+
+    monkeypatch.setattr(build_diagrams.subprocess, "run", run)
+    monkeypatch.setattr(build_diagrams, "png_size", lambda _: (1, 1))
+    with pytest.raises((RuntimeError, subprocess.TimeoutExpired)):
+        build_diagrams._render_png_in_process(svg, png, 2)
+    assert png.read_bytes() == b"previous-image"
+    assert list(tmp_path.glob("tmp*.png")) == []
 
 
 def test_isolation_pass_and_fail_from_saved_json():
@@ -53,6 +74,27 @@ def test_isolation_no_pod_is_blocked(tmp_path):
     out = subprocess.run([sys.executable, str(ROOT / "tools" / "check_isolation.py"), "--pods-json", str(empty)],
                          capture_output=True, text=True)
     assert out.returncode == 3 and "BLOCKED" in out.stdout
+
+
+@pytest.mark.parametrize("failure", ("denied", "empty", "timeout"))
+def test_requested_kernel_read_failure_cannot_report_pass(monkeypatch, capsys, failure):
+    pods = json.loads((FIX / "pods.json").read_text(encoding="utf-8"))
+    pods["items"] = pods["items"][:1]
+    nodes = json.loads((FIX / "nodes.json").read_text(encoding="utf-8"))
+    monkeypatch.setattr(check_isolation, "kubectl_json",
+                        lambda *args: pods if args[1] == "pods" else nodes)
+
+    def run(*args, **kwargs):
+        if failure == "timeout":
+            raise subprocess.TimeoutExpired(args[0], 60)
+        return SimpleNamespace(returncode=1 if failure == "denied" else 0,
+                               stdout="", stderr="exec denied" if failure == "denied" else "")
+
+    monkeypatch.setattr(check_isolation.subprocess, "run", run)
+    assert check_isolation.main(["-n", "example", "--exec-uname"]) == 1
+    output = capsys.readouterr()
+    assert "BLOCKED kernel read failed" in output.err
+    assert "CHECK isolation PASS" not in output.out
 
 
 def test_missing_setting_exits_2(monkeypatch):

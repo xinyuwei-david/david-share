@@ -6,7 +6,7 @@ This page is for readers who want to check the numbers: how each path was measur
 
 ## Architecture and Metrics
 
-The narrative is organized around two questions: who runs the session lifecycle, and whose node the session's micro-VM runs on. The workload contract is comparable, but the container is not identical across all four paths: A, B and C use the agenthost workshop's reflection agent ([`oxcp/ainotes` at `905f2c2`](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost)); D uses the private-preview sample `agent-framework-agent-basic-responses-byoaks`. All call `gpt-5.4-mini` and exercise a new stateful session plus a follow-up.
+The narrative is organized around two questions: who runs the session lifecycle, and whose node the session's micro-VM runs on. The workload contract is comparable, but the container is not identical across all four paths: A and C use the workshop's [module-03 reflection agent](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/agent-src/app/main.py); B uses its distinct [module-02 Agent Framework agent with ResponsesHostServer](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py); D uses the private-preview sample `agent-framework-agent-basic-responses-byoaks`. All call `gpt-5.4-mini` and exercise a new stateful session plus a follow-up.
 
 - **A · ACA Sandboxes.** The agent's container image becomes a sandbox disk image; one sandbox per measured session, `cpu 1000m`, `memory 2048Mi` (the M tier), auto-suspend after 900 s in Memory mode, a VNet connection, a private Blob volume at `/app/app/data` and port 8080 in on-demand mode. The control plane is ARM (`Microsoft.App/sandboxGroups`), the data plane `management.azuredevcompute.io`; the caller needs *Container Apps SandboxGroup Data Owner*.
 - **B · Foundry hosted agent.** `azd ai agent init` binds the workshop's `azure.yaml` to the existing project and `azd deploy` builds and publishes a version. Learn describes per-session VM-isolated sandboxes, `$HOME` and `/files` persisted across idle, an idle timeout of 2–60 minutes (default 15) and deletion after 30 days of inactivity.
@@ -19,7 +19,7 @@ Why these clocks:
 |---|---|---|---|
 | Cold, A (component sum) | SDK create call → Running | add first `/reflect` answer duration | create on the client; answer inside the sandbox |
 | Cold, B and D | client POST of a new session | full response body read | client, through the Foundry endpoint |
-| Cold, C (component sum) | `kubectl apply` → Sandbox Ready | add first answer duration at the LoadBalancer | client, no gateway |
+| Cold, C (component sum) | `kubectl apply` → Sandbox Ready | add first answer duration at the LoadBalancer | client via its own LoadBalancer; model inference still uses APIM |
 | Warm | request of the next turn | its answer | as for cold |
 | Resume, A (component sum) | SDK resume call → Running | add first answer duration after resume | resume on the client; answer inside |
 | Resume, C | `operatingMode: Running` patch | first answer at the LoadBalancer | client |
@@ -95,7 +95,7 @@ Read inside the sandbox: vmm_type `cloudhypervisor`, kernel `6.12.8+`, 1 vCPU.
 
 ### a-2026-10-09-agent: the full agent path in ACA Sandboxes, 3 runs
 
-**Question.** How long does a new sandbox take to answer, how fast is the next answer, and how long does a resume request → first answer take after suspension has finished, on the GA service with the full specification the workshop uses?
+**Question.** How long does a new sandbox take to answer, how fast is the next answer, and how long does a resume request → first answer take after suspension has finished, with the full specification the workshop uses?
 
 **Input.** Each run created a new sandbox from the agent's disk image and asked, in order, these exact questions ([`evidence/runs/a-aca-2026-10-09/agent-runs.json`](evidence/runs/a-aca-2026-10-09/agent-runs.json)):
 
@@ -106,7 +106,7 @@ Read inside the sandbox: vmm_type `cloudhypervisor`, kernel `6.12.8+`, 1 vCPU.
 > Every later turn: "How many questions have I asked before this one? Number only."
 <!-- END GENERATED: a-agent-input -->
 
-**Varied and fixed.** Only the run number varied. The service (GA since 2026-09-23), SDK 0.1.0b4 (the latest public release on that day, still beta), the sandbox group, the image and the specification were the same in all three.
+**Varied and fixed.** Only the run number varied. The service, pinned beta SDK 0.1.0b4, sandbox group, image and specification were the same in all three. SDK beta status does not establish the service's release maturity; a GA date was not independently verified.
 
 **Result.**
 
@@ -384,7 +384,7 @@ Not tested here: the tools against a fresh subscription end to end after this re
 **Limits.**
 
 - `LOCAL_MEASUREMENT`: A full-agent latency has n=3. B and C are one end-to-end run each. D is one benchmark campaign: cached-image cold n=5, warm n=3, and one placement and one recovery observation. Repeat with README step 7 before relying on a number.
-- `LOCAL_MEASUREMENT`: A, B and C use the workshop reflection agent; D uses the private-preview sample. B and D include the Foundry endpoint and a client in China (round trip <!--v:d.client_rtt.range-->320–800<!--/v--> ms); A's answers were timed inside the sandbox; C's at its LoadBalancer. The rows compare field implementations, not identical containers or network paths.
+- `LOCAL_MEASUREMENT`: A and C use the workshop reflection agent; B uses its Agent Framework agent with ResponsesHostServer; D uses the private-preview sample. B and D include the Foundry endpoint and a client in China (round trip <!--v:d.client_rtt.range-->320–800<!--/v--> ms); A's answers were timed inside the sandbox; C's at its LoadBalancer. The rows compare field implementations, not identical containers or network paths.
 - `LOCAL_MEASUREMENT`: in A, the private Blob volume put create at <!--v:a.attr.vnetvolume.range-->15.79–25.12<!--/v--> s; image, VNet and port alone stayed at <!--v:a.attr.small.range-->1.6–2.7<!--/v--> s.
 - `LOCAL_MEASUREMENT`: the oldest D session pod was still Running at least <!--v:d.idle.value-->87<!--/v--> minutes after it was created. This is pod age, not idle duration: no last-request timestamp was retained. It establishes neither a configured idle timeout nor a continuously idle interval.
 - `LOCAL_MEASUREMENT`: D's capacity was at most <!--v:d.capacity.per_node-->5<!--/v--> sessions per `Standard_D4s_v5` node with the sample's 500m CPU / 1 Gi request plus 600 Mi Kata overhead; a node that also hosts system pods fits fewer.
@@ -395,6 +395,11 @@ Not tested here: the tools against a fresh subscription end to end after this re
 - `SOURCE_FACT`: AKS Pod Sandboxing is Azure Linux host + Microsoft Hyper-V + Cloud Hypervisor + Kata Containers; the node VM must be a generation 2 size that supports nested virtualization; each pod VM's memory follows the pod memory limit (512 Mi if unset) and fractional CPU limits round up to a whole vCPU ([pod sandboxing](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)).
 - `SOURCE_FACT`: agent-sandbox v0.5.2 supports an absolute `shutdownTime`; underlying pods and services are deleted on expiry, and `shutdownPolicy` controls retention of the Sandbox object ([official API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)). This is scheduled expiry, not a request-idle timer. `operatingMode` still exposes explicit suspend/resume.
 - `NOT_VERIFIED`: no public official BYO-AKS idle policy, suspend support or exhaustive node-SKU list was verified in this review. Confirm preview requirements with the product group; the pod-age observation cannot establish those policies.
+- `SOURCE_FACT`: [ACA's official quota documentation](https://sandboxes.azure.com/docs/sandboxes/limits) measures concurrent active cores; stopped sandboxes do not consume this quota. This is not a fixed session-count limit.
+- `SOURCE_FACT`: [AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) isolates compute, not the control plane, storage/data paths or cluster-admin actions. The isolation tool checks runtime configuration; requested kernel reads must succeed, and a version string is not hardware attestation.
+- `SOURCE_FACT`: the [fixed module-02 implementation](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) makes `MODEL_ROUTING=direct` call the Foundry project endpoint. A project with a registered native AI Gateway may still forward those calls through APIM; the mode name alone does not prove a gateway bypass.
+- `NOT_VERIFIED`: explicit GA announcements and dates for A/B/C were not established from the cited pages. The repository no longer publishes the old GA labels or date as verified; this does not assert that the services are Preview.
+- `LOCAL_MEASUREMENT`: A's history length continued increasing in the saved run. This checks history continuity, not exact answer correctness or preservation of arbitrary process memory.
 - `SOURCE_FACT`: D's cost floor of <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h is two `Standard_D4s_v5` nodes at 0.192 USD/h each plus the AKS Standard tier at 0.10 USD/h, East US 2 retail prices queried 2026-09-21; no discounts or tax. This is not the cost of the three-Kata-node benchmark pool.
 - D's onboarding durations (role assignments about <!--v:d.role_assignments.value-->120<!--/v--> s, `azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s, `azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s) come from the author's console recorded in the earlier field record; the console itself was not kept.
 

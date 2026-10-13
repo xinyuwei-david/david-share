@@ -66,7 +66,14 @@ RETIRED_CLAIMS = ["not observed on the cluster", "Sessions on cluster-not observ
                   "13 runtime pods, installed and patched by Foundry", "13 个运行时 pod，由 Foundry 安装和升级",
                   "no idle timeout observed in 90 min", "Pod lost → ready again, state kept",
                   "pod 丢失 → 重新就绪，状态保留", "Setup in an existing foundation",
-                  "在已有基础资源上的部署耗时"]
+                  "在已有基础资源上的部署耗时",
+                  "A, B and C use the workshop reflection agent",
+                  "A, B and C use the workshop's reflection agent",
+                  "A, B and C use the agenthost workshop's reflection agent",
+                  "A、B、C 使用 workshop reflection agent",
+                  "A、B、C 使用 workshop 的 reflection agent",
+                  "A、B、C 用 agenthost workshop 的 reflection agent",
+                  "GA since 2026-09-23", "2026-09-23 起 GA"]
 SCAN_SUFFIXES = {".md", ".json", ".py", ".yml", ".yaml", ".txt", ".example", ".svg", ".in"}
 SKIP_SCAN = {"tests/test_guards.py", "tools/validate_docs.py"}
 
@@ -190,6 +197,9 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
         for fragment in fragments:
             if fragment not in pages[name]:
                 errors.append(f"{name}: missing aligned narrative {fragment!r}")
+    for name in ("README.md", "README_CN.md", "VALIDATION.md", "VALIDATION_CN.md"):
+        if "ResponsesHostServer" not in pages[name]:
+            errors.append(f"{name}: B's distinct workload implementation is missing")
     for letter in ("A", "B", "C"):
         mapping = claims["letter_mapping"][letter]
         en_fragment = f"{mapping['upstream_module']} Solution {mapping['upstream_solution_letter']}"

@@ -174,10 +174,10 @@ def b_runs(c: Ctx) -> str:
         ["`a-2026-10-09-agent`", "A", c.t("full agent, 3 runs", "完整 agent，跑 3 次"),
          c.t(f"cold {num(m['a.cold']['median'])} s, warm {num(m['a.warm']['median'])} s, resume → answer "
              f"{num(m['a.recover']['median'])} s (medians); vmm `{m['a.vmm']['value']}` in "
-             f"{m['a.vmm']['count']}/{m['a.vmm']['n']}; state kept {m['a.state_kept']['count']}/{m['a.state_kept']['n']}",
+             f"{m['a.vmm']['count']}/{m['a.vmm']['n']}; history grew {m['a.state_kept']['count']}/{m['a.state_kept']['n']}",
              f"冷启动 {num(m['a.cold']['median'])} s、后续 {num(m['a.warm']['median'])} s、恢复到回答 "
              f"{num(m['a.recover']['median'])} s（中位数）；{m['a.vmm']['count']}/{m['a.vmm']['n']} 次 vmm 为 "
-             f"`{m['a.vmm']['value']}`；状态保留 {m['a.state_kept']['count']}/{m['a.state_kept']['n']}")],
+             f"`{m['a.vmm']['value']}`；历史持续增长 {m['a.state_kept']['count']}/{m['a.state_kept']['n']}")],
         ["`a-2026-10-09-attribution`", "A", c.t("create time by configuration", "按配置拆分创建耗时"),
          c.t(f"image, VNet or port alone {rng(m['a.attr.small'])} s; "
              f"adding the private Blob volume {rng(m['a.attr.vnetvolume'])} s",

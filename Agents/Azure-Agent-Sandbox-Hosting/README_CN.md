@@ -8,20 +8,22 @@
 
 ## 目的
 
-你希望 agent 的每个会话都跑在 Azure 上独立的 micro-VM（带独立内核的轻量虚拟机）里，接下来要决定由谁来运行这个 micro-VM 和它的生命周期：交给一个托管服务、交给 Foundry，还是放在你自己的 AKS 节点上。四条路径各有取舍，光看产品页很难横向比较它们的秒数。本仓库用同一套可比的有状态交互口径测试四条路径，给出每条路径的复现步骤，并列出实测结果。A、B、C 使用 workshop 的 reflection agent，D 使用产品组的私有预览 sample，所以这不是相同容器的基准测试：
+你希望 agent 的每个会话都跑在 Azure 上独立的 micro-VM（带独立内核的轻量虚拟机）里，接下来要决定由谁来运行这个 micro-VM 和它的生命周期：交给一个托管服务、交给 Foundry，还是放在你自己的 AKS 节点上。四条路径各有取舍，光看产品页很难横向比较它们的秒数。本仓库用同一套可比的有状态交互口径测试四条路径，给出每条路径的复现步骤，并列出实测结果。A 和 C 共用 workshop 的 reflection agent；B 是另一个采用 Agent Framework 和 ResponsesHostServer 的 agent；D 使用产品组的私有预览 sample，所以这不是相同容器的基准测试：
 
 | 问题 | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|
-| 状态 | GA | GA | Pod Sandboxing GA；agent-sandbox v0.5.2 为开源项目 | **私有预览** |
+| 状态 | 有公开文档；GA 状态未核实 | 有公开文档；GA 状态未核实 | Pod Sandboxing GA 状态未核实；agent-sandbox v0.5.2 为开源项目 | **私有预览** |
 | 谁负责会话生命周期 | ACA 服务 | Foundry | 你自己：控制器、网关、空闲回收 | Foundry，运行在你的集群上 |
 | 会话的 micro-VM 跑在哪里 | 服务托管的算力 | 微软托管的算力 | 你的 Kata 节点池 | 你的 Kata 节点池 |
 | 带内存快照的挂起 | 支持 | 不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files` | 不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复 | 未测；预览版是否支持挂起须向产品组确认 |
-| 可选规格 / 节点 SKU（文档） | XS / S / M / L / XL（0.25–4 vCPU，0.5–8 GB） | 按 CPU / 内存配置；官网未列出可选 VM SKU | 支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化 | 在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认 |
+| 可选规格 / 节点 SKU（文档） | XS：0.25 vCPU / 0.5 GB<br>S：0.5 vCPU / 1 GB<br>M（默认）：1 vCPU / 2 GB<br>L：2 vCPU / 4 GB<br>XL：4 vCPU / 8 GB | 按 CPU / 内存配置；未从官网核实到完整档位或 VM SKU 清单 | 支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化 | 在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认 |
 | 适合的场景 | 要每用户一个 micro-VM、要快照、不想管集群 | 希望 Foundry 托管一切，且它的限制对你没有影响 | 必须自己掌控节点、网络和控制面 | 既要 Foundry 的 agent 平台，**又**要求会话跑在你自己的节点上 |
 
 产品能力和状态来自 Microsoft Learn，实测声明来自我们的运行记录，最后一行是我们的选型建议。一般企业 agent 在 B 的限制可接受时先选 B。对于 Qira 这类需要按用户长期运行、要内存快照又不想管集群的场景，先选 A。只有执行节点必须归你时才选 C 或 D；如果还要求 Foundry 继续运行 agent 平台，选 D。
 
 可选项分三类：[A 的沙箱资源档位](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers)、[B 的 CPU / 内存配置](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)、[C/D 的节点 VM SKU](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)。节点 SKU 不是单会话分配规格；每个 Kata 会话还受 pod 的 requests、limits 和开销限制。节点 SKU 的可用性与配额取决于区域和订阅，D 还须满足预览开通条件。
+
+本次引用页面能证明产品能力，但未核实到明确的 GA 发布公告或日期。“GA 状态未核实”不等于 Preview。对 C/D，[Kata 只提供计算隔离](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing)，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。
 
 <img src="images/architecture-zh.png" width="900" alt="A 到 D 四列，每列包含客户端入口、微软托管区和你的订阅。A：ACA Sandboxes 服务和沙箱 micro-VM，你的订阅里有 sandbox group、镜像仓库和 Blob 卷。B：Foundry Agent Service 和每会话沙箱，你的订阅里有项目和 Application Insights。C：AKS 控制面，你的订阅里有控制器、Kata pod VM、Kata 节点池和 Blob PVC。D：Foundry Agent Service，你的订阅里有子网 NSG、foundry-system、每会话 Kata pod VM，以及镜像仓库和存储。">
 
@@ -95,7 +97,7 @@ kubectl wait --for=condition=Ready pod -l app=agent-host -n "$NAMESPACE" --timeo
 cd - && python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
 ```
 
-成功的标志：`prepare-agent-sandbox.sh` 最后输出 `Solution B infrastructure prepared`（workshop 里这条路径叫 Solution B），wait 输出 `condition met`，检查输出 `CHECK isolation PASS … runtimeClass=kata-vm-isolation … kernel=differs-from-node`。挂起和恢复各是一条 patch 命令；生产环境里由你的网关来执行：
+成功的标志：`prepare-agent-sandbox.sh` 最后输出 `Solution B infrastructure prepared`（workshop 里这条路径叫 Solution B），wait 输出 `condition met`，检查输出 `CHECK isolation PASS … runtimeClass=kata-vm-isolation`。PASS 只检查配置的 runtime 和 Running 状态，不是硬件证明。guest 与节点的内核版本字符串可以不同，也可以相同；相同只表示无法据此判断，不算失败。要求执行的 `--exec-uname` 读取失败时退出码为 1。挂起和恢复各是一条 patch 命令；生产环境里由你的网关来执行：
 
 ```bash
 kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
@@ -210,7 +212,7 @@ python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery
 
 退出码 0 表示每个请求的阶段都通过：A 检查对话历史长度在恢复前后持续增长；B 和 D 检查响应完成和口令精确匹配，包括要求执行的每个并发追问和恢复。跳过恢复、读取 pod 失败或删除失败都不算通过。节点池满时的预期拒绝仍会保存为测量记录，但返回退出码 1。
 
-**下线与删除。** 沙箱停止后不再收取 CPU 和内存费用；AKS 集群在停止或删除之前会一直按节点计费：
+**下线与删除，仅在资源所有者明确批准后执行。** 沙箱停止后不收取 CPU 和内存费用。[停止 AKS 可以节省计算费用](https://learn.microsoft.com/azure/aks/start-stop-cluster)，但保留的磁盘、公网 IP、Storage 和其他资源仍可能计费；停止不等于总费用归零：
 
 ```bash
 python tools/aca_sandbox.py delete
@@ -232,7 +234,7 @@ az group delete -n "$RESOURCE_GROUP" --yes --no-wait                  # 删除�
 
 B 的“每会话一个、VM 级隔离”是 `SOURCE_FACT`，不是本地读回的 VMM 或内核结果。C 和 D 用的是同一个 Kata runtime class，所以隔离方式并不能区分它们，真正的区别在于由谁来运行平台。
 
-**秒数。** A 是 2026-10-09 三次实测的中位数；B 和 C 是 2026-09-27 各一次实测；D 是 2026-09-29 的一轮压测。A、B、C 使用 workshop reflection agent，D 使用私有预览 sample。它们使用同一个模型和同一种有状态两轮交互，但不是相同容器。B 和 D 是从中国的一台笔记本经 Foundry 端点调用的（到 Azure 的往返时延 <!--v:d.client_rtt.range-->320–800<!--/v--> ms）；A 的回答在沙箱内计时，C 在它的 LoadBalancer 处计时。请把同一行作为现场记录来读，不要当作受控的产品基准测试：
+**秒数。** A 是 2026-10-09 三次实测的中位数；B 和 C 是 2026-09-27 各一次实测；D 是 2026-09-29 的一轮压测。A 和 C 使用 workshop reflection agent；B 使用 Agent Framework 和 ResponsesHostServer；D 使用私有预览 sample。它们使用同一个模型和同一种有状态两轮交互，但不是相同容器。B 和 D 是从中国的一台笔记本经 Foundry 端点调用的（到 Azure 的往返时延 <!--v:d.client_rtt.range-->320–800<!--/v--> ms）；A 的回答在沙箱内计时，C 在它的 LoadBalancer 处计时。请把同一行作为现场记录来读，不要当作受控的产品基准测试：
 
 A 的冷启动和恢复到回答采用分段相加，不是客户端连续端到端计时：SDK 创建或恢复的耗时，加上沙箱内计时的回答耗时。C 的冷启动同样是 apply 到 Ready 加第一个回答。恢复从挂起完成后开始计时，不含停止和空闲等待。B 的各行使用 gateway（APIM）模型路由；direct 路由的结果在 VALIDATION 单独列出。
 
@@ -264,7 +266,7 @@ A 的冷启动和恢复到回答采用分段相加，不是客户端连续端到
 | 实测 | 路径 | 场景 | 结果 |
 |---|---|---|---|
 | `a-2026-09-27-setup` | A | 首次部署，请求唤醒 | 部署 146.6 s；向已停止的沙箱发请求，23.7 s 后回答；内核 `6.12.8+` |
-| `a-2026-10-09-agent` | A | 完整 agent，跑 3 次 | 冷启动 28.0 s、后续 1.05 s、恢复到回答 14.45 s（中位数）；3/3 次 vmm 为 `cloudhypervisor`；状态保留 3/3 |
+| `a-2026-10-09-agent` | A | 完整 agent，跑 3 次 | 冷启动 28.0 s、后续 1.05 s、恢复到回答 14.45 s（中位数）；3/3 次 vmm 为 `cloudhypervisor`；历史持续增长 3/3 |
 | `a-2026-10-09-attribution` | A | 按配置拆分创建耗时 | 只加镜像、VNet 或端口 1.6–2.7 s；加私有 Blob 卷后 15.79–25.12 s |
 | `a-2026-10-09-late-mount` | A | 先启动、后挂 Blob | 启动 3.99–7.2 s，再挂载 12.4–20.29 s（n=2） |
 | `b-2026-09-27` | B | 部署、新会话、后续回答；gateway 模型路由 | 部署 161 s；新会话 9.43 s；后续 4.03, 5.54 s |

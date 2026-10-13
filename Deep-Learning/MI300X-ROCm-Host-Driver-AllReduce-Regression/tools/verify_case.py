@@ -1,5 +1,7 @@
 import argparse
 import csv
+import hashlib
+import ipaddress
 import json
 import math
 import re
@@ -12,6 +14,82 @@ COMMIT = "1284e5da11f7904e8a6efd902b9de52253785bd0"
 SIZES = tuple(1 << exponent for exponent in range(20, 31))
 CODES = {"before": 22203, "after": 22707}
 PHASES = ("out_of_place", "in_place")
+
+
+def evidence_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def validate_evidence_manifest(root: Path = ROOT) -> None:
+    manifest = json.loads((root / "data/evidence-manifest.json").read_text(encoding="utf-8"))
+    expected_paths = {
+        path.relative_to(root).as_posix()
+        for path in (root / "evidence").rglob("*") if path.is_file()
+    } | {"data/native-summary.json", "data/kernel-symptom-counts.json", "data/comparison.csv"}
+    if manifest["hash_algorithm"] != "sha256" or manifest["normalization"] != "UTF-8 text with LF line endings":
+        raise ValueError("Unsupported evidence hash scheme")
+    if set(manifest["files"]) != expected_paths:
+        raise ValueError("Evidence manifest has missing or unexpected files")
+    for name, expected in manifest["files"].items():
+        if evidence_digest(root / name) != expected:
+            raise ValueError(f"Evidence integrity mismatch: {name}")
+
+
+def private_identifier_findings(text: str) -> list[str]:
+    findings = []
+    patterns = {
+        "UUID": r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b",
+        "private path or account": r"C:\\Users\\|/subscriptions/|[A-Za-z0-9._+-]+@microsoft\.com",
+        "credential": r"BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}",
+    }
+    for name, pattern in patterns.items():
+        if re.search(pattern, text):
+            findings.append(name)
+    for match in re.finditer(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])", text):
+        if match[0] in {"7.2.4.0", "30.30.4.0"}:
+            continue
+        try:
+            ipaddress.IPv4Address(match[0])
+        except ipaddress.AddressValueError:
+            continue
+        findings.append("IPv4 address")
+    return findings
+
+
+def validate_publication(root: Path = ROOT) -> None:
+    errors = []
+    for directory in ("evidence", "data"):
+        for path in (root / directory).rglob("*"):
+            if path.is_file():
+                for reason in private_identifier_findings(path.read_text(encoding="utf-8")):
+                    errors.append(f"{path.relative_to(root)}: {reason}")
+    expected_sections = {
+        "README.md": ["Purpose", "Steps", "Results"],
+        "README_CN.md": ["目的", "步骤", "结果"],
+    }
+    documents = []
+    for name, sections in expected_sections.items():
+        path = root / name
+        text = path.read_text(encoding="utf-8")
+        if re.findall(r"^## (.+)$", text, re.MULTILINE) != sections:
+            errors.append(f"{name}: owning Purpose/Steps/Results structure mismatch")
+        if "<br" in text.lower():
+            errors.append(f"{name}: avoid HTML line breaks in configuration tables")
+        for reason in private_identifier_findings(text):
+            errors.append(f"{name}: {reason}")
+        for target in re.findall(r"\]\(([^)]+)\)", text):
+            if target.startswith(("https://", "http://", "#")):
+                continue
+            if not (root / target.split("#")[0]).exists():
+                errors.append(f"{name}: missing local target {target}")
+        diagrams = re.findall(r"```mermaid\n(.*?)```", text, re.DOTALL)
+        if len(diagrams) != 1:
+            errors.append(f"{name}: expected one software-sharing diagram")
+        documents.append((text, diagrams))
+    if len(documents[0][1]) == 1 and documents[0][1] != documents[1][1]:
+        errors.append("Bilingual diagrams differ")
+    if errors:
+        raise ValueError("\n".join(errors))
 
 
 def validate_output(data: dict, log: str, layout: str, code: int, sizes: tuple[int, ...] = SIZES) -> None:
@@ -258,8 +336,11 @@ def main() -> None:
             path.write_text(updated, encoding="utf-8")
         elif updated != text:
             raise ValueError(f"{filename}: published numbers do not match canonical evidence")
+    validate_evidence_manifest()
+    validate_publication()
     print("PASS: 12 native runs / 264 phase measurements / 44 comparison rows / bilingual tables")
     print("PASS: same-source fixed-image driver diagnostics and actually loaded native driver")
+    print("PASS: evidence hashes, public identifiers, local links and bilingual document structure")
 
 
 if __name__ == "__main__":

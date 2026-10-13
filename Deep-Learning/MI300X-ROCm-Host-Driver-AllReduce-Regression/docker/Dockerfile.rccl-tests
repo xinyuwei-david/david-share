@@ -1,0 +1,18 @@
+FROM rocm/dev-ubuntu-24.04:7.2.4-complete@sha256:92f309c51b52cef8762867848f1529dee821624f23cd5df38455e819538f762f
+
+RUN set -eu; \
+    git init -q /tmp/upstream; \
+    git -C /tmp/upstream remote add origin https://github.com/ROCm/rocm-systems.git; \
+    git -C /tmp/upstream fetch --depth 1 --filter=blob:none origin 1284e5da11f7904e8a6efd902b9de52253785bd0; \
+    test "$(git -C /tmp/upstream rev-parse FETCH_HEAD)" = 1284e5da11f7904e8a6efd902b9de52253785bd0; \
+    mkdir -p /opt/rccl-tests; \
+    git -C /tmp/upstream archive --format=tar FETCH_HEAD:projects/rccl-tests > /tmp/source.tar; \
+    tar -xf /tmp/source.tar -C /opt/rccl-tests; \
+    make -C /opt/rccl-tests -j8 MPI=0 GPU_TARGETS=gfx942 HIP_HOME=/opt/rocm NCCL_HOME=/opt/rocm \
+      GIT_REV=1284e5da11f7904e8a6efd902b9de52253785bd0 GIT_BRANCH=pinned GIT_DIFF=; \
+    /opt/rccl-tests/build/all_reduce_perf --help
+
+LABEL org.opencontainers.image.source="https://github.com/ROCm/rocm-systems" \
+      org.opencontainers.image.revision="1284e5da11f7904e8a6efd902b9de52253785bd0"
+
+ENTRYPOINT ["/opt/rccl-tests/build/all_reduce_perf"]

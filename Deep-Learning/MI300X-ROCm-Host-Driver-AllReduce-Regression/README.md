@@ -6,7 +6,20 @@ This directory is a reproducible investigation case, **not a production upgrade 
 
 Author: Xinyu Wei · [中文](README_CN.md) · [Canonical data](data/native-summary.json) · [Original redacted evidence](evidence/) · [Offline verification](#verify-without-a-gpu)
 
-## Measured native before/after
+## Purpose
+
+**AMD engineering review request:** investigate an eight-GPU AllReduce throughput regression after activating AMDGPU 30.30.4 on an Azure MI300X VF VM, and identify a supported resolution. The controlled guest-OS upgrade reproduces the reported low-bandwidth symptom; it does **not** yet establish the cause of a customer's container-only deployment.
+
+Please help confirm:
+
+1. Whether guest driver `1:6.16.13.30300400-2341068.24.04` is supported for this MI300X VF platform, and which GIM/BKC/firmware requirements the platform owner should check.
+2. Whether the new `psp_xgmi_get_topology_info` array-bounds reports and PSP status `0xFFFF000F` match a known regression or driver/platform mismatch.
+3. Which driver release or specific patch should be tested while retaining ROCm 7.2.4/RCCL 2.27.7; a driver-only rollback and A/B/A recovery remain untested.
+4. Which additional guest/platform traces are needed to distinguish the reproduced native upgrade regression from a customer running a high-version container on an unchanged VM driver.
+
+Delivered here: pinned reproduction scripts, actual loaded-driver/library evidence, before/after producer output, correct data checks, and an evidence-linked investigation boundary. Not provided: a claimed code fix, a proven rollback restoration, physical-host GIM/firmware control, or a general ROCm performance guarantee.
+
+### Native upgrade result at a glance
 
 **1 GiB message, out-of-place AllReduce `busbw`, median of three independent runs. Bandwidth is decimal GB/s.**
 
@@ -33,7 +46,7 @@ Both stacks used [the same official rccl-tests source](https://github.com/ROCm/r
 
 The primary evidence comprises **12 native runs, 264 phase measurements and 44 before/after comparison rows**. [comparison.csv](data/comparison.csv) contains every message-size comparison. Do not compare the mixed-size `Avg bus bandwidth` with a large-message plateau, or treat normalized AllReduce `busbw` as raw XGMI link throughput.
 
-## Four configurations: VM, container and the actually used driver
+### Four configurations: VM, container and the actually used driver
 
 The following table explicitly describes **both the VM-installed userspace and the container-installed userspace**. All four values use one process with eight GPUs, a 1 GiB message, and out-of-place AllReduce `busbw`.
 
@@ -60,7 +73,34 @@ The container's ROCm did **not** fall back or downgrade to “ROCm 6.12.12”. [
 
 **Customer applicability is still conditional.** If a customer's deployment really matches configuration 2, this case did not reproduce their low bandwidth under that configuration. The native configuration-3 regression does not establish their root cause. First obtain their actually loaded VM driver, actual container library paths/build versions, partition/topology, test command and communication initialization logs. “Default VM image” and a container tag alone do not prove a matched deployment.
 
-## Why the container-only result was misleading
+### Software-layer boundary
+
+This is an explanatory arrangement of the measured software layers, not a product screenshot. Native and container processes represent **separate runs**, not simultaneous GPU workloads.
+
+```mermaid
+flowchart TB
+    subgraph VM["Guest VM operating system"]
+        N["Native AllReduce process: VM ROCm / RCCL"]
+        subgraph C["Docker container"]
+            U["Container AllReduce process: container ROCm / RCCL"]
+        end
+        K["One loaded AMDGPU kernel driver"]
+        G["Eight MI300X GPU VFs"]
+        N --> K
+        U --> K
+        K --> G
+    end
+    P["Azure physical platform: GIM / firmware not captured"]
+    G -. platform boundary .-> P
+    classDef azure fill:#E8F3FC,stroke:#0078D4,color:#172B4D
+    classDef driver fill:#FFF0F0,stroke:#ED1C24,color:#172B4D
+    class N,U,G,P azure
+    class K driver
+```
+
+Both application paths use the **same kernel module already loaded by the VM**. The container does not upgrade that module. Its ROCm/HIP/RCCL userspace can still be a different version from the VM-installed userspace.
+
+### Driver isolation, not a replacement for native measurements
 
 Three experiments answer different questions:
 
@@ -77,7 +117,7 @@ Three experiments answer different questions:
 
 [The immutable image IDs and diagnostic measurements](data/native-summary.json) and [their raw output](evidence/fixed-images-new-driver/) are retained. This supports investigating the **host-driver transition and its firmware/virtualization/interconnect interaction**, rather than asserting that RCCL 2.27.7 alone must be slow.
 
-## New kernel symptoms, not yet a proven code root cause
+### New kernel symptoms, not yet a proven code root cause
 
 The new-driver boot reported:
 
@@ -100,9 +140,32 @@ See [the redacted old boot excerpt](evidence/before/kernel-xgmi-excerpt.txt), [t
 
 **Both drivers' topology output still labels the links `XGMI`.** A link label, successful GPU enumeration or `#wrong = 0` is not proof of healthy transfer performance. These errors are correlated symptoms, not proof that a particular array access caused the bandwidth loss. Physical-host GIM/firmware details were not collected, and **a driver-only rollback restoring bandwidth has not yet been tested**.
 
-## Reproduce natively, in execution order
+## Steps
 
-### 0. Reserve a disposable, isolated test VM
+### Read or verify the recorded case without starting a GPU VM
+
+Review the four configurations and the linked original logs first. The published case can be verified with Python 3.10+ and its standard library; commands and acceptance criteria are in the offline test section below. No GPU, Azure login or secret is needed to read or validate the published data.
+
+For a live experiment, use an isolated Linux GPU VM with `git`, `make`, `curl`, `python3`, `timeout`, `flock`, HIP development files and MPI for native tests. Configuration 2 also requires Docker. Keep your own SSH/recovery access. The scripts are version-pinned for the recorded Ubuntu 24.04 stack, not universal production installers.
+
+### Configuration 2: high-version container, unchanged VM driver
+
+Run this **before any native driver upgrade**, on a VM with actual loaded AMDGPU `6.12.12`, native ROCm `6.4.4-129` and RCCL `2.22.3.60404-129~24.04`:
+
+```bash
+export CONTAINER_WORKDIR="$PWD/local-runs/container-control"
+sudo -E bash scripts/run_container.sh "$CONTAINER_WORKDIR"
+```
+
+The [pinned Dockerfile](docker/Dockerfile.rccl-tests) uses official ROCm 7.2.4 development-image digest `sha256:92f309c51b52cef8762867848f1529dee821624f23cd5df38455e819538f762f` and the same official test-source commit. It builds `MPI=0`, `gfx942`, one process/eight GPUs. Only the results directory is mounted; the VM's ROCm installation is **not** mounted over the container SDK.
+
+Success: three runs pass data validation and end with `CONFIGURATION_2_CONTAINER_TEST_PASS_VM_DRIVER_UNCHANGED`. `configuration-2/runtime-layers.json` must report **container ROCm 7.2.4, actual container RCCL code 22707, its container library path, and shared VM KMD 6.12.12**. If a version/path check fails, preserve its output and investigate library mounts or loader settings; do not claim a matched configuration from the tag alone. The reported bandwidth is whatever the new experiment measures, not a hardcoded requirement to reach the earlier value.
+
+This newly packaged wrapper follows the recorded experiment's image/source/launch settings. It has offline syntax/guard checks; it was **not** newly GPU-executed after packaging. The earlier real configuration-2 measurements remain the live evidence. The VM is not started merely to validate this documentation update.
+
+### Native upgrade reproduction, in execution order
+
+#### 0. Reserve a disposable, isolated test VM
 
 The measured environment was Ubuntu 24.04 on Azure `Standard_ND96isr_MI300X_v5`. Start with native ROCm 6.4.4/RCCL 2.22.3 and loaded driver 6.12.12. Stop your own GPU workloads before testing. Do not alter another user's running jobs.
 
@@ -122,7 +185,7 @@ az snapshot show --subscription $subscription --resource-group $resourceGroup --
 
 Success: snapshot state `Succeeded`. On failure, **do not install the new driver**. Keep the snapshot reference private; never commit it.
 
-### 1. Record and run the native baseline
+#### 1. Record and run the native baseline
 
 Run from this directory on the Linux VM, not from a container:
 
@@ -135,7 +198,7 @@ sudo -E bash scripts/run_native.sh before "$WORKDIR"
 
 Success: six runs finish with `NATIVE_PHASE_BENCHMARK_PASS`, every data check passes, and `before/host-metadata.json` records actual loaded driver 6.12.12. Adjust `MPI_HOME` to your installed MPI; do not change it between phases. If the source, library, native-execution or data-check guard fails, inspect the files in `WORKDIR/before` and stop before upgrading.
 
-### 2. Opt in to the native upgrade, then reboot
+#### 2. Opt in to the native upgrade, then reboot
 
 ```bash
 export SNAPSHOT_REFERENCE="<YOUR_VERIFIED_PRIVATE_OS_SNAPSHOT_REFERENCE>"
@@ -172,7 +235,7 @@ dkms status
 
 Success: actual loaded module 6.16.13, a new boot ID, matching module `srcversion`, and eight GPUs still in `SPX / NPS1`. GPU initialization took several minutes in this case. If SSH or GPU initialization fails, use the verified management/recovery path and your snapshot or old packages; a full automatic rollback is deliberately **not** supplied as a tested fix.
 
-### 3. Rebuild and run the native upgraded stack
+#### 3. Rebuild and run the native upgraded stack
 
 ```bash
 sudo -E bash scripts/run_native.sh after "$WORKDIR"
@@ -182,7 +245,31 @@ Success: the collector confirms actual native RCCL 2.27.7, actual loaded driver 
 
 Raw JSON and text logs under `local-runs/` are ignored by Git and may contain identifiers. Redact copies before sharing; never commit snapshots, credentials, backups or private run directories.
 
-## Next controlled experiments
+### If low bandwidth appears again: collect before changing versions
+
+1. In the **VM OS**, record `/sys/module/amdgpu/version`, `/sys/module/amdgpu/srcversion`, the kernel, `dpkg-query -W amdgpu-dkms`, GPU partitioning and topology. `modinfo` describes the installed module file; it alone does not prove what is loaded.
+2. In the **actual test environment** (VM or container), record the test binary's `ldd`, the resolved `librccl.so.1` path and its `ncclGetVersion`, HIP/ROCm build versions, mounts and `NCCL_*`/`RCCL_*` settings. Use the startup record rather than only an image tag.
+3. Run the same 1 GiB FP32-sum test and retain both `algbw`, `busbw`, time and `#wrong`. Keep one-process/eight-GPU and eight-process/one-GPU results separate.
+4. Collect `journalctl -k -b --no-pager`, partition/topology output, and a **separate diagnostic run** with `NCCL_DEBUG=INFO` and `NCCL_DEBUG_SUBSYS=INIT,GRAPH,P2P,SHM`. Debug output can interleave with timings; do not replace the baseline measurements with it.
+5. Redact copies and provide AMD with the configuration, exact package versions, source commit, commands and observed errors. Keep the current evidence before applying an AMD-confirmed driver/platform fix. No automatic downgrade, reboot or cloud-resource shutdown is part of these diagnostic steps.
+
+## Results
+
+### Evidence index and conclusion boundary
+
+| Question | First-principle record | What it establishes |
+|---|---|---|
+| Did a native host-driver change actually take effect? | [Before metadata](evidence/before/host-metadata.json), [old boot record](evidence/before/driver-boot-evidence.json), [new module before reboot](evidence/installed-module-before-reboot.json), [after metadata](evidence/after/host-metadata.json) | Different loaded module and boot ID; actual native RCCL path/version |
+| Did the native bandwidth regress with correct output? | [Before single-run output](evidence/before/single-run-1.txt), [after output](evidence/after/single-run-1.txt), [all native records](evidence/) | Repeated correct low-throughput AllReduce, not a failed calculation |
+| Did configuration 2 run new userspace on the old driver? | [Container startup and performance](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt) | Actual RCCL `22707`, ROCm 7.2.4 path, correct high-throughput run |
+| Is the old userspace also slow after the host transition? | [Fixed-image old-driver records](evidence/fixed-images-old-driver/), [same images on the new driver](evidence/fixed-images-new-driver/), [image IDs](data/native-summary.json) | Driver/host-transition association across two fixed userspace images; not proof of the exact KMD code cause |
+| What kernel symptoms appeared? | [Old excerpt](evidence/before/kernel-xgmi-excerpt.txt), [new excerpt](evidence/after/kernel-xgmi-excerpt.txt), [counts](data/kernel-symptom-counts.json) | New correlated XGMI/PSP errors; topology still reports XGMI |
+
+**Expected comparison:** the unchanged workload should be compared against this node's recorded old-stack baseline. No universal 360 GB/s requirement or Azure VF bandwidth guarantee is asserted. **Actual result:** the native upgrade shows the decline in the generated native table, while configuration 2 remains fast in this case.
+
+**Open:** the exact code/firmware cause, the first bad driver, physical-platform GIM/BKC versions, driver-only rollback recovery, and applicability to the customer's real container deployment. We do not call the correlated kernel errors a confirmed fix target.
+
+### Next controlled experiments
 
 These are **not yet measured conclusions**:
 
@@ -192,7 +279,7 @@ These are **not yet measured conclusions**:
 4. Ask AMD/Azure engineering to correlate the XGMI topology/PSP symptoms with VF/GIM/BKC compatibility. Do not modify or claim control over Azure's physical hypervisor/GIM from a guest VM.
 5. Only after the driver/VF mismatch is understood, isolate a kernel-code fix and demonstrate **A/B/A** restoration on the same hardware.
 
-## Verify without a GPU
+### Verify without a GPU
 
 Python 3.10+ and the standard library are sufficient:
 
@@ -211,13 +298,15 @@ python3 tools/verify_case.py --check
 
 Do not edit the raw evidence to make a result pass.
 
-## Evidence and publication boundaries
+The scoped [GitHub Actions workflow](../../.github/workflows/mi300x-host-driver-regression-ci.yml) runs offline checks and unit tests on Linux/Windows with Python 3.10/3.12. It checks shell syntax, explicit entry-point guards and idempotent regeneration. It does **not** allocate a GPU VM, install a host driver or certify hardware performance. The committed evidence hashes are checked separately from generated tables.
+
+### Evidence and publication boundaries
 
 The public JSON/text files are **redacted copies of real rccl-tests output and kernel journals**, not mock results. Host/IP/account/cloud-resource identifiers, boot UUIDs, hive/MAC identifiers and memory addresses are masked. Trailing whitespace in the published text copies is normalized. Numeric measurements, software versions, test options and error codes are unchanged. Original private records are retained separately.
 
 No password, SSH key, tenant/subscription ID, snapshot reference, model weights, package archive or private host is published. The original experiment retained the upgraded low-bandwidth state for investigation; it did not claim an untested downgrade restored performance.
 
-## Producer references
+### Producer references
 
 - [ROCm 7.2.4 native Ubuntu installation](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/install/install-methods/package-manager/package-manager-ubuntu.html)
 - [AMDGPU 30.30.4 native Ubuntu installation](https://instinct.docs.amd.com/projects/amdgpu-docs/en/docs-30.30.4/install/detailed-install/package-manager/package-manager-ubuntu.html)

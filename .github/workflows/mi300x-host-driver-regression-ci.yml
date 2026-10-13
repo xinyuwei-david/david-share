@@ -1,0 +1,55 @@
+name: MI300X Host Driver Regression Evidence
+
+on:
+  push:
+    paths:
+      - "Deep-Learning/MI300X-ROCm-Host-Driver-AllReduce-Regression/**"
+      - ".github/workflows/mi300x-host-driver-regression-ci.yml"
+  pull_request:
+    paths:
+      - "Deep-Learning/MI300X-ROCm-Host-Driver-AllReduce-Regression/**"
+      - ".github/workflows/mi300x-host-driver-regression-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  evidence:
+    name: Offline checks (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    defaults:
+      run:
+        working-directory: Deep-Learning/MI300X-ROCm-Host-Driver-AllReduce-Regression
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Evidence, documentation and privacy checks
+        run: python tools/verify_case.py --check
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Shell syntax and non-mutating entry point
+        shell: bash
+        run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+          bash scripts/run_container.sh --help
+      - name: Regeneration is clean and idempotent
+        shell: bash
+        run: |
+          python tools/verify_case.py --write
+          python tools/verify_case.py --write
+          git diff --exit-code -- .

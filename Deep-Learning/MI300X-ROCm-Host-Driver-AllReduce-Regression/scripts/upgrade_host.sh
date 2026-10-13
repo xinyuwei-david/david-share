@@ -18,6 +18,7 @@ fi
 [[ "$ID" == ubuntu && "$VERSION_ID" == 24.04 ]]
 [[ "$(cat /sys/module/amdgpu/version)" == 6.12.12 ]]
 test -d "/lib/modules/$(uname -r)/build"
+test -d /usr/src/amdgpu-6.12.12-2202139.24.04
 test -s "$work/before/host-metadata.json"
 python3 - "$work" <<'PY'
 import json
@@ -41,6 +42,7 @@ dpkg-query -W -f='${binary:Package}\t${Version}\n' |
     grep -E '60404|2202139' > "$upgrade/old-packages.tsv"
 tar -czf "$upgrade/old-apt-dkms-boot.tgz" -C / \
     etc/apt etc/modprobe.d etc/modules-load.d var/lib/dpkg/status var/lib/dkms/amdgpu \
+    usr/src/amdgpu-6.12.12-2202139.24.04 \
     "boot/initrd.img-$(uname -r)" "boot/vmlinuz-$(uname -r)"
 mapfile -t old < <(awk -F '\t' '{print $1 "=" $2}' "$upgrade/old-packages.tsv")
 (
@@ -48,9 +50,28 @@ mapfile -t old < <(awk -F '\t' '{print $1 "=" $2}' "$upgrade/old-packages.tsv")
     apt-get download "${old[@]}" > "$upgrade/old-package-download.txt" 2>&1
     sha256sum ./*.deb > "$upgrade/old-deb-sha256.txt"
 )
+python3 - "$upgrade" <<'PY'
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+expected = [line.split("\t") for line in (root / "old-packages.tsv").read_text().splitlines()]
+downloaded = set()
+for path in (root / "old-debs").glob("*.deb"):
+    fields = subprocess.check_output(
+        ["dpkg-deb", "--show", "--showformat=${Package}\t${Version}", str(path)], text=True
+    ).split("\t")
+    downloaded.add(tuple(fields))
+missing = [(name, version) for name, version in expected
+           if (name.split(":")[0], version) not in downloaded]
+if missing:
+    raise RuntimeError(f"Exact old-package recovery files are missing: {missing}")
+PY
 curl --fail --show-error --location \
     https://repo.radeon.com/amdgpu-install/7.2.4/ubuntu/noble/amdgpu-install_7.2.4.70204-1_all.deb \
     --output "$upgrade/staging/amdgpu-install.deb"
+[[ "$(dpkg-deb --field "$upgrade/staging/amdgpu-install.deb" Version)" == 30.30.4.0.30300400-2341068.24.04 ]]
 install -d -m 0755 /var/cache/apt/archives
 install -d -o _apt -g root -m 0700 /var/cache/apt/archives/partial
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
@@ -79,6 +100,9 @@ PY
 DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l \
     apt-get install --yes --no-install-recommends -o Dpkg::Options::=--force-confold \
     "${targets[@]}" > "$upgrade/installation.txt" 2>&1
+for package in "${targets[@]}"; do
+    [[ "$(dpkg-query -W -f='${Version}' "${package%%=*}")" == "${package#*=}" ]]
+done
 depmod -a "$(uname -r)"
 update-initramfs -u -k "$(uname -r)" >> "$upgrade/installation.txt" 2>&1
 [[ "$(modinfo -F version amdgpu)" == 6.16.13 ]]

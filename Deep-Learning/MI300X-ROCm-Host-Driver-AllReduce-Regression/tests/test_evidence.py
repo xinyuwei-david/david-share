@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -84,6 +85,51 @@ class EvidenceTests(unittest.TestCase):
         text = "<!-- BEGIN GENERATED: native-results -->\nold table\n<!-- END GENERATED: native-results -->"
         updated = module.replace_generated_block(text, "native-results", "new table")
         self.assertEqual(updated, module.replace_generated_block(updated, "native-results", "new table"))
+
+    def test_evidence_manifest_checks_real_published_files(self) -> None:
+        module.validate_evidence_manifest()
+
+    def test_evidence_manifest_rejects_changed_content(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "evidence").mkdir()
+            (root / "data").mkdir()
+            names = ("evidence/run.txt", "data/native-summary.json",
+                     "data/kernel-symptom-counts.json", "data/comparison.csv")
+            for name in names:
+                (root / name).write_text("original\n", encoding="utf-8")
+            manifest = {
+                "hash_algorithm": "sha256",
+                "normalization": "UTF-8 text with LF line endings",
+                "files": {name: module.evidence_digest(root / name) for name in names},
+            }
+            (root / "data/evidence-manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            module.validate_evidence_manifest(root)
+            (root / "evidence/run.txt").write_text("changed\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "integrity mismatch"):
+                module.validate_evidence_manifest(root)
+
+    def test_redaction_gate_catches_unknown_ip_and_identifier(self) -> None:
+        uuid = "12345678" + "-1234" * 3 + "-123456789abc"
+        self.assertIn("UUID", module.private_identifier_findings(uuid))
+        self.assertIn("IPv4 address", module.private_identifier_findings("address=" + "192.0." + "2.15"))
+
+    def test_version_strings_are_not_misidentified_as_ip(self) -> None:
+        self.assertEqual(module.private_identifier_findings("ROCm 7.2.4.0-93; installer 30.30.4.0.30300400"), [])
+
+    def test_public_readme_links_and_three_section_contract(self) -> None:
+        module.validate_publication()
+
+    def test_container_build_is_pinned_and_does_not_install_host_driver(self) -> None:
+        dockerfile = (ROOT / "docker/Dockerfile.rccl-tests").read_text(encoding="utf-8")
+        self.assertIn("7.2.4-complete@sha256:92f309", dockerfile)
+        self.assertIn(module.COMMIT, dockerfile)
+        self.assertIn("MPI=0 GPU_TARGETS=gfx942", dockerfile)
+        self.assertNotIn("amdgpu-dkms", dockerfile)
+        wrapper = (ROOT / "scripts/run_container.sh").read_text(encoding="utf-8")
+        self.assertIn('shared_vm_loaded_amdgpu_version', wrapper)
+        self.assertIn('version.value != 22707', wrapper)
+        self.assertNotIn('reboot', wrapper)
 
 
 if __name__ == "__main__":

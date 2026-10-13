@@ -123,3 +123,58 @@ def test_forgotten_code_word_fails():
     runs["d-byoaks-2026-09-29/bench.json"]["warm_turns"][1]["answer"] = "I don't remember"
     with pytest.raises(bm.BuildError, match="LANTERN-7"):
         bm.build(runs, index)
+
+
+@pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf"), float("-inf"), True, None, "1.0"])
+@pytest.mark.parametrize("summarize", [bm.stat, bm.single])
+def test_invalid_measurement_numbers_fail(value, summarize):
+    with pytest.raises(bm.BuildError, match="finite non-negative number"):
+        summarize([value] if summarize is bm.stat else value)
+
+
+@pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf"), True, "1.0"])
+def test_invalid_duration_in_raw_runs_fails(value):
+    runs, index = bm.load_runs()
+    runs["a-aca-2026-10-09/agent-runs.json"]["runs"][0]["warm"]["guest_s"] = value
+    with pytest.raises(bm.BuildError, match=r"agent-runs.json.*warm.guest_s"):
+        bm.build(runs, index)
+
+
+def test_invalid_setup_component_fails_before_aggregation():
+    runs, index = bm.load_runs()
+    runs["a-aca-2026-09-27/setup-and-wake.json"]["events"][0]["seconds"] = -1.0
+    with pytest.raises(bm.BuildError, match=r"setup-and-wake.json.*seconds"):
+        bm.build(runs, index)
+
+
+def test_clock_descriptions_are_not_measurement_samples():
+    runs, index = bm.load_runs()
+    runs["a-aca-2026-10-09/agent-runs.json"]["clocks"]["guest_s"] = "inside the sandbox, not client wall time"
+    assert bm.build(runs, index)["metrics"]["a.warm"]["median"] == 1.05
+
+
+@pytest.mark.parametrize("field,value", [("lb_health_200_seconds", 100.0), ("sandbox_ready_seconds", 30.0)])
+def test_c_resume_milestones_cannot_run_backwards(field, value):
+    runs, index = bm.load_runs()
+    runs["c-aks-agent-sandbox-2026-09-27/run.json"]["resume"][field] = value
+    with pytest.raises(bm.BuildError, match="C resume"):
+        bm.build(runs, index)
+
+
+def test_d_pod_ready_cannot_exceed_its_paired_request():
+    runs, index = bm.load_runs()
+    runs["d-byoaks-2026-09-29/bench.json"]["cold_turns"][0]["wall_s"] = 1.0
+    with pytest.raises(bm.BuildError, match="paired request wall time"):
+        bm.build(runs, index)
+
+
+def test_d_concurrency_requires_every_session_record():
+    runs, index = bm.load_runs()
+    runs["d-byoaks-2026-09-29/bench.json"]["scalability"][0]["sessions"].pop()
+    with pytest.raises(bm.BuildError, match="expected 4 session records"):
+        bm.build(runs, index)
+
+
+def test_render_rejects_non_standard_json_numbers():
+    with pytest.raises(ValueError, match="JSON compliant"):
+        bm.render({"value": float("nan")})

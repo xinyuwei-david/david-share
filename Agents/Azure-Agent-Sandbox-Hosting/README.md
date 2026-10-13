@@ -234,6 +234,8 @@ B's per-session VM-isolated boundary is a `SOURCE_FACT`, not a local VMM or kern
 
 A's cold and resume-to-answer numbers are component sums, not a single end-to-end client stopwatch: SDK create or resume wall time plus the answer timed inside the sandbox. C's cold number is likewise apply-to-Ready plus first-answer time. Resume starts after suspension has finished; stop and idle waiting are excluded. B's rows use the gateway (APIM) model route; its direct-route results are separate in VALIDATION.
 
+**Do not rank the four products by these seconds.** Clock locations, prompts, reasoning settings, output token counts, image cache and sample sizes were not uniformly controlled or fully recorded across paths. The same model name does not make these a matched latency benchmark. Numerical sanity checks can reject invalid timings; they cannot establish product performance or fill missing instrumentation.
+
 <!-- BEGIN GENERATED: comparison -->
 | Observed or documented | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|

@@ -234,6 +234,8 @@ B 的“每会话一个、VM 级隔离”是 `SOURCE_FACT`，不是本地读回�
 
 A 的冷启动和恢复到回答采用分段相加，不是客户端连续端到端计时：SDK 创建或恢复的耗时，加上沙箱内计时的回答耗时。C 的冷启动同样是 apply 到 Ready 加第一个回答。恢复从挂起完成后开始计时，不含停止和空闲等待。B 的各行使用 gateway（APIM）模型路由；direct 路由的结果在 VALIDATION 单独列出。
 
+**这些秒数不能用来给四种产品做性能排名。** 各路径的计时位置、问题输入、reasoning 设置、输出 token 数、镜像缓存和样本量，并未统一控制或逐次完整记录。模型名相同不代表时延测试条件相同。数值合理性校验能拦住无效耗时，但不能证明产品性能，也不能补齐缺失的打点。
+
 <!-- BEGIN GENERATED: comparison -->
 | 实测或文档项 | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|

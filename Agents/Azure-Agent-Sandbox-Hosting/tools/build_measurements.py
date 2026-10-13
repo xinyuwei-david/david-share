@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import sys
 from datetime import datetime
@@ -24,6 +25,29 @@ OUT = ROOT / "evidence" / "measurements.json"
 
 class BuildError(RuntimeError):
     pass
+
+
+def check_number(value: object, field: str) -> None:
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or value < 0 or value > sys.float_info.max or not math.isfinite(value)):
+        raise BuildError(f"{field}: expected a finite non-negative number")
+
+
+def check_durations(record: dict | list, path: str) -> None:
+    items = record.items() if isinstance(record, dict) else enumerate(record)
+    for key, value in items:
+        if key == "clocks":
+            continue  # This schema field describes the clocks, not their measured values.
+        field = f"{path}.{key}"
+        if isinstance(value, (dict, list)):
+            check_durations(value, field)
+        if (isinstance(key, str)
+                and (re.search(r"(?:^|_)(?:s|seconds(?:_approx)?|minutes|ms)$", key)
+                     or key.startswith("uptime_"))
+                and value is not None):
+            samples = value if isinstance(value, list) else [value]
+            for i, sample in enumerate(samples):
+                check_number(sample, f"{field}[{i}]" if isinstance(value, list) else field)
 
 
 def load_runs(runs_dir: Path = RUNS) -> tuple[dict[str, dict], dict[str, str]]:
@@ -44,6 +68,8 @@ def stat(values: list[float], unit: str = "s") -> dict:
     """Median of an odd sample is a sample value; an even sample keeps its values and has no median."""
     if not values:
         raise BuildError("empty sample")
+    for i, value in enumerate(values):
+        check_number(value, f"sample[{i}] ({unit})")
     vals = sorted(values)
     rec = {"n": len(vals), "unit": unit, "values": list(values), "min": vals[0], "max": vals[-1]}
     if len(vals) % 2:
@@ -52,6 +78,7 @@ def stat(values: list[float], unit: str = "s") -> dict:
 
 
 def single(value: float, unit: str = "s") -> dict:
+    check_number(value, f"single measurement ({unit})")
     return {"n": 1, "unit": unit, "values": [value], "value": value}
 
 
@@ -60,6 +87,8 @@ def utc(ts: str) -> datetime:
 
 
 def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
+    for rel, record in runs.items():
+        check_durations(record, rel)
     m: dict[str, dict] = {}
 
     def put(key: str, run_id: str, label: str, rec: dict, what: str) -> None:
@@ -165,6 +194,10 @@ def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
 
     c = runs["c-aks-agent-sandbox-2026-09-27/run.json"]
     rid = c["run_id"]
+    resume = c["resume"]
+    if not (resume["sandbox_ready_seconds"] <= resume["lb_health_200_seconds"]
+            <= resume["first_answer_seconds"]):
+        raise BuildError("C resume: expected Ready <= LoadBalancer healthy <= first answer")
     put("c.prepare", rid, "LOCAL_MEASUREMENT", single(c["prepare_script_seconds"]),
         "image, AKS, Kata pool, controller, storage")
     put("c.private_link", rid, "LOCAL_MEASUREMENT", single(c["storage_private_link_seconds"]),
@@ -223,6 +256,8 @@ def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
             raise BuildError("D cold pod without kata-vm-isolation")
         if round((utc(pod["ready_at"]) - utc(pod["created"])).total_seconds(), 1) != pod["create_to_ready_s"]:
             raise BuildError("D cold pod create-to-Ready does not match its timestamps")
+        if pod["create_to_ready_s"] > t["wall_s"] + 0.1:
+            raise BuildError("D cold pod create-to-Ready exceeds the paired request wall time")
     put("d.pod_ready", rid, "LOCAL_MEASUREMENT", stat(ready), "session pod created until Ready, image cached")
     put("d.pod_ready_fresh", rid, "LOCAL_MEASUREMENT", stat(bench["pod_create_to_ready_fresh_node_s"]),
         "session pod created until Ready, fresh node")
@@ -234,6 +269,8 @@ def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
     for n in (4, 8):
         lv = levels[n]
         t1 = [s["turn1"] for s in lv["sessions"]]
+        if len(t1) != n:
+            raise BuildError(f"D concurrency {n}: expected {n} session records, got {len(t1)}")
         ok = [t["wall_s"] for t in t1 if t["http"] == 200]
         refused = [t for t in t1 if t["http"] != 200]
         codes = sorted({f"{t['http']} {t['error_code']}" for t in refused})
@@ -312,7 +349,7 @@ def build(runs: dict[str, dict], index: dict[str, str]) -> dict:
 
 
 def render(doc: dict) -> str:
-    return json.dumps(doc, ensure_ascii=False, indent=2) + "\n"
+    return json.dumps(doc, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
 
 
 def main(argv: list[str] | None = None) -> int:

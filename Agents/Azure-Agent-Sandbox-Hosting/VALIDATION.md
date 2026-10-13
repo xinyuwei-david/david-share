@@ -320,7 +320,7 @@ When the refusals began, 12 session pods were alive on 3 `Standard_D4s_v5` nodes
 
 **Boundary.**
 - The concurrency levels ran after earlier sessions had filled the pool, so they measure capacity exhaustion, not latency under load. Latency under true concurrency with free capacity was not measured.
-- The harness acquired one token before cold + warm and refreshed it before each concurrency level; token acquisition happened outside every timed request. The responses' own `created_at` to `completed_at` was <!--v:d.agent_turn.range-->2–5<!--/v--> s per turn (run manifest); the rest of each follow-up is the Foundry endpoint, session routing and the client's network.
+- The harness acquired one token before cold + warm and refreshed it before each concurrency level; token acquisition happened outside every timed request. The responses' own `created_at` to `completed_at` was <!--v:d.agent_turn.range-->2–5<!--/v--> s per turn (run manifest). The remaining client wall time is uninstrumented; the endpoint, session routing, agent execution and client network cannot be separately attributed from these records.
 - The cold set mixes the three early runs and the benchmark; the two early runs on nodes without the image are reported separately.
 
 ### d-2026-09-29-recovery: delete a session pod
@@ -347,6 +347,10 @@ When the refusals began, 12 session pods were alive on 3 `Standard_D4s_v5` nodes
 
 Every published metric above comes from [`evidence/measurements.json`](evidence/measurements.json), which [`tools/build_measurements.py`](tools/build_measurements.py) recomputes from `evidence/runs/` after checking each file's SHA-256 against [`evidence/runs/INDEX.json`](evidence/runs/INDEX.json). It also checks: A's cold equals create plus first answer and recover equals resume plus answer in every run; each D cold pod's create-to-Ready equals its Kubernetes timestamps and runs `kata-vm-isolation`; D's warm session and the different live session used after pod deletion both remembered `LANTERN-7`. Medians are reported only for odd samples; even samples show their values.
 
+Duration fields and published samples must be finite, non-negative numbers, not booleans or numeric strings. An optional timing recorded as null remains unmeasured and cannot enter a published sample. C's resume milestones must satisfy Ready → LoadBalancer healthy → first answer; a paired D pod-ready duration cannot exceed its request wall time beyond timestamp rounding, and concurrency totals require every session record. JSON output rejects NaN and infinity.
+
+These are unit, type, sample-count and timeline checks, not a universal maximum-latency threshold. Small samples, different clock locations and unmatched workloads still prevent a product ranking; values that look plausible are not a substitute for the retained run evidence.
+
 ## Tests and Offline Checks
 
 The offline checks need Python 3.10 or newer and no Azure access:
@@ -366,7 +370,7 @@ Done when every command exits 0 and each check prints `PASS`.
 - **`render_docs.py --check`** fails if a table or inline number in any of the four pages differs from a fresh render.
 - **`build_diagrams.py --check`** compares both architecture figures and every icon with [`images/SOURCES.json`](images/SOURCES.json).
 - **`validate_docs.py`** checks the three README headings in order, the VALIDATION headings, the core claim contract and canonical run order in [`evidence/claims.json`](evidence/claims.json), that every measured-run section has Question, Input, Varied and fixed, Result and Boundary in that order with no table before the input, that every run is in the README's results table and all four pages use the same run order, links and images, figure widths, English/Chinese number parity by generated block and table cell (not just document-wide totals), variable-only commands in Steps, and private-content guards (subscription and tenant IDs, IPv4 addresses, emails, internal resource names, and retired claims).
-- **`pytest`** runs these checks as tests, recomputes the medians from raw values, evaluates `check_isolation.py` on saved pod and node JSON, runs every tool's `--help` without the Azure SDK, and breaks each guard once (a tampered run file, an edited number, an inserted subscription ID, a removed heading, a table before an input, reordered runs) to confirm it fails.
+- **`pytest`** runs these checks as tests, recomputes the medians from raw values, evaluates `check_isolation.py` on saved pod and node JSON, runs every tool's `--help` without the Azure SDK, and breaks each guard (a tampered run file, invalid duration, reversed timeline, incomplete concurrency sample, edited number, inserted subscription ID, removed heading, table before an input, reordered runs) to confirm it fails.
 - Mocked live-tool tests also check that failed concurrency follow-ups, skipped recovery, failed pod reads or deletions, lost history, invalid arguments and missing settings cannot report success. They make no Azure calls.
 
 CI runs the same on Ubuntu and Windows with Python 3.12 ([workflow](https://github.com/david-xinyuwei/david-share/blob/master/.github/workflows/agent-sandbox-hosting-ci.yml)).

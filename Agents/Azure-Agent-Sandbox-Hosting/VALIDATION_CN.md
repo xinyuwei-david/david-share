@@ -320,7 +320,7 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 
 **边界。**
 - 并发测试是在之前的会话已经占满节点池之后跑的，所以测到的是容量耗尽，而不是负载下的时延。在有空闲容量时的真实并发时延没有测。
-- 压测在 cold + warm 前取一次 token，并在每个并发档位前刷新；token 获取发生在每个计时请求之外。响应自身从 `created_at` 到 `completed_at` 每轮 <!--v:d.agent_turn.range-->2–5<!--/v--> s（见运行清单）；后续回答剩下的时间花在 Foundry 端点、会话路由和客户端网络上。
+- 压测在 cold + warm 前取一次 token，并在每个并发档位前刷新；token 获取发生在每个计时请求之外。响应自身从 `created_at` 到 `completed_at` 每轮 <!--v:d.agent_turn.range-->2–5<!--/v--> s（见运行清单）。客户端总耗时中其余部分没有打点，现有记录不能分别归因到端点、会话路由、agent 执行或客户端网络。
 - 冷启动样本合并了早先的三次和压测里的几次；节点上还没有镜像的两次单独列出。
 
 ### d-2026-09-29-recovery：删除一个会话 pod
@@ -347,6 +347,10 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 
 上面每个发布指标都来自 [`evidence/measurements.json`](evidence/measurements.json)。[`tools/build_measurements.py`](tools/build_measurements.py) 会先按 [`evidence/runs/INDEX.json`](evidence/runs/INDEX.json) 校验每个文件的 SHA-256，再从 `evidence/runs/` 重算全部指标。它还检查：A 每次的冷启动等于创建加第一个回答、恢复等于 resume 加回答；D 每个冷启动 pod 的创建到 Ready 与 Kubernetes 时间戳一致，且是 `kata-vm-isolation`；D 的后续会话和删除 pod 后使用的另一个存活会话都记住了 `LANTERN-7`。奇数个样本才给中位数，偶数个样本直接列出数值。
 
+耗时字段和发布样本必须是有限、非负的数值，不能用布尔值或数字字符串代替。可选计时字段中的 null 仍表示未测，不能进入发布样本。C 的恢复里程碑必须满足 Ready → LoadBalancer 健康 → 第一个回答；D 已配对的 pod 就绪耗时不能超过该请求的总耗时（允许时间戳舍入误差），并发统计必须有每个会话的记录。JSON 输出拒绝 NaN 和无穷值。
+
+这些是单位、类型、样本数和时间线校验，不是统一的时延上限。样本少、计时位置不同、工作负载未对齐，仍然不能给产品做性能排名；数字看起来合理，也不能代替保留的实测证据。
+
 ## 测试与离线校验
 
 离线校验需要 Python 3.10 及以上，不需要访问 Azure：
@@ -366,7 +370,7 @@ python -m pytest -q
 - **`render_docs.py --check`** 四个页面里任何一张表或一个行内数字与重新渲染的结果不同，就会失败。
 - **`build_diagrams.py --check`** 把两张架构图和每个图标与 [`images/SOURCES.json`](images/SOURCES.json) 比对。
 - **`validate_docs.py`** 检查：README 的三个标题及顺序、VALIDATION 的标题、[`evidence/claims.json`](evidence/claims.json) 中的核心声明合同和统一实测顺序；每个实测小节按“问题、输入、变量与固定项、结果、边界”的顺序出现，且输入之前没有表格；每次实测都出现在 README 的结果表里，四份文档的实测顺序一致；链接和图片、图片宽度、中英文数字按生成区块和表格单元格对齐（不只比较全文总数）、操作步骤里的命令只用变量；以及私有内容防护（订阅和租户 ID、IPv4 地址、邮箱、内部资源名、已撤回的结论）。
-- **`pytest`** 把上面这些检查作为测试运行，从原始数值重算中位数，用保存的 pod 和节点 JSON 测 `check_isolation.py`，在不装 Azure SDK 的情况下运行每个工具的 `--help`，并把每类防护各故意破坏一次（篡改运行文件、改一个数字、插入订阅 ID、删一个标题、把表格放到输入前面、打乱实测顺序），确认它会失败。
+- **`pytest`** 把上面这些检查作为测试运行，从原始数值重算中位数，用保存的 pod 和节点 JSON 测 `check_isolation.py`，在不装 Azure SDK 的情况下运行每个工具的 `--help`，并逐项破坏输入（篡改运行文件、无效耗时、倒序时间线、缺少并发样本、改一个数字、插入订阅 ID、删一个标题、把表格放到输入前面、打乱实测顺序），确认它会失败。
 - 在线工具的 mock 测试还检查：并发追问失败、跳过恢复、读取或删除 pod 失败、历史丢失、参数无效和配置缺失都不能报成功；这些测试不会调用 Azure。
 
 CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流](https://github.com/david-xinyuwei/david-share/blob/master/.github/workflows/agent-sandbox-hosting-ci.yml)）。

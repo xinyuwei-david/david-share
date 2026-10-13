@@ -89,6 +89,7 @@ def quote(lines: list[str]) -> str:
 
 def b_comparison(c: Ctx) -> str:
     m = c.m
+    claims = json.loads((ROOT / "evidence" / "claims.json").read_text(encoding="utf-8"))
     head = [c.t("Observed or documented", "实测或文档项"), "A · ACA Sandboxes",
             c.t("B · Foundry hosted agent", "B · Foundry hosted agent"),
             "C · AKS + agent-sandbox", "D · BYO-AKS"]
@@ -124,7 +125,7 @@ def b_comparison(c: Ctx) -> str:
              f"LoadBalancer healthy {num(m['c.resume_lb']['value'])} s)",
              f"{num(m['c.resume_answer']['value'])} s（n=1；Ready {num(m['c.resume_ready']['value'])} s，"
              f"LoadBalancer 健康 {num(m['c.resume_lb']['value'])} s）"),
-         c.t("no suspend in the preview", "预览版没有挂起")],
+         claims["paths"]["D"][f"memory_suspend_{c.lang}"]],
         [c.t("**Pod lost → ready again**", "**pod 丢失 → 重新就绪**"),
          c.t("not exercised (service-managed)", "未测（服务托管）"),
          c.t("not exercised (managed)", "未测（平台托管）"),
@@ -132,14 +133,8 @@ def b_comparison(c: Ctx) -> str:
              c.one("c.pod_lost") + "；同一 Sandbox 的状态已恢复"),
          c.t(c.one("d.pod_lost") + "; deleted session continuity not tested",
              c.one("d.pod_lost") + "；未测试被删会话的连续性")],
-        [c.t("**Idle behaviour**", "**空闲时的行为**"),
-         c.t("suspends after the idle time you set (900 s here) with a memory snapshot",
-             "到你设置的空闲时间（本次 900 s）自动挂起，保存内存快照"),
-         c.t("docs: compute released after 2–60 min idle (default 15), $HOME and /files restored",
-             "文档：空闲 2–60 min（默认 15）后释放算力，恢复时还原 $HOME 和 /files"),
-         c.t("none built in; you patch operatingMode", "无内置机制；需要你修改 operatingMode"),
-         c.t(f"oldest pod still Running at least {m['d.idle']['value']} min after creation; idle duration not measured",
-             f"最早的 pod 创建至少 {m['d.idle']['value']} min 后仍是 Running；未测空闲时长")],
+        [c.t("**Idle policy (official docs)**", "**空闲策略（官方说明）**"),
+         *(claims["paths"][letter][f"idle_policy_{c.lang}"] for letter in ("A", "B", "C", "D"))],
         [c.t("**Capacity**", "**容量**"),
          c.t("serverless; quota is concurrent cores (docs)", "无服务器；配额按并发核数计（文档）"),
          c.t("managed, per session", "平台托管，按会话"),
@@ -160,7 +155,16 @@ def b_comparison(c: Ctx) -> str:
          c.t(f"{num(m['d.onboarding']['value'])} s (roles, `azd provision`, `azd deploy`; author's console, not kept)",
              f"{num(m['d.onboarding']['value'])} s（角色、`azd provision`、`azd deploy`；作者控制台记录，原始输出未保留）")],
     ]
-    return table(head, rows)
+    spec = c.runs["a-aca-2026-10-09/agent-runs.json"]["sandbox_spec"]
+    observation = c.t(
+        f"**Local configuration and observation, not official idle policy:** A used "
+        f"{spec['auto_suspend_mode']} mode with a {spec['auto_suspend_seconds']} s auto-suspend setting. "
+        f"D's oldest pod was still Running at least {m['d.idle']['value']} min after creation; "
+        "this is pod age, not idle duration or a reclamation timeout.",
+        f"**本地配置与观察，不是官网空闲策略：** A 本次使用 {spec['auto_suspend_mode']} 模式，"
+        f"自动挂起设置为 {spec['auto_suspend_seconds']} s。D 最早的 pod 在创建至少 "
+        f"{m['d.idle']['value']} min 后仍为 Running；这是 pod 的年龄，不是空闲时长或回收超时。")
+    return table(head, rows) + "\n" + observation + "\n"
 
 
 def b_runs(c: Ctx) -> str:

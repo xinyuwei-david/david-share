@@ -15,11 +15,13 @@
 | 状态 | GA | GA | Pod Sandboxing GA；agent-sandbox v0.5.2 为开源项目 | **私有预览** |
 | 谁负责会话生命周期 | ACA 服务 | Foundry | 你自己：控制器、网关、空闲回收 | Foundry，运行在你的集群上 |
 | 会话的 micro-VM 跑在哪里 | 服务托管的算力 | 微软托管的算力 | 你的 Kata 节点池 | 你的 Kata 节点池 |
-| 带内存快照的挂起 | 支持 | 不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files` | 不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复 | 预览版不挂起 |
-| 单个会话最大规格（文档） | 4 vCPU / 8 GB | 2 vCPU / 4 GiB | 受你选择的节点 VM 限制 | 节点 SKU 由你选择；预览版没有公布单会话上限 |
+| 带内存快照的挂起 | 支持 | 不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files` | 不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复 | 未测；预览版是否支持挂起须向产品组确认 |
+| 可选规格 / 节点 SKU（文档） | XS / S / M / L / XL（0.25–4 vCPU，0.5–8 GB） | 按 CPU / 内存配置；官网未列出可选 VM SKU | 支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化 | 在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认 |
 | 适合的场景 | 要每用户一个 micro-VM、要快照、不想管集群 | 希望 Foundry 托管一切，且它的限制对你没有影响 | 必须自己掌控节点、网络和控制面 | 既要 Foundry 的 agent 平台，**又**要求会话跑在你自己的节点上 |
 
 产品能力和状态来自 Microsoft Learn，实测声明来自我们的运行记录，最后一行是我们的选型建议。一般企业 agent 在 B 的限制可接受时先选 B。对于 Qira 这类需要按用户长期运行、要内存快照又不想管集群的场景，先选 A。只有执行节点必须归你时才选 C 或 D；如果还要求 Foundry 继续运行 agent 平台，选 D。
+
+可选项分三类：[A 的沙箱资源档位](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers)、[B 的 CPU / 内存配置](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)、[C/D 的节点 VM SKU](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)。节点 SKU 不是单会话分配规格；每个 Kata 会话还受 pod 的 requests、limits 和开销限制。节点 SKU 的可用性与配额取决于区域和订阅，D 还须满足预览开通条件。
 
 <img src="images/architecture-zh.png" width="900" alt="A 到 D 四列，每列包含客户端入口、微软托管区和你的订阅。A：ACA Sandboxes 服务和沙箱 micro-VM，你的订阅里有 sandbox group、镜像仓库和 Blob 卷。B：Foundry Agent Service 和每会话沙箱，你的订阅里有项目和 Application Insights。C：AKS 控制面，你的订阅里有控制器、Kata pod VM、Kata 节点池和 Blob PVC。D：Foundry Agent Service，你的订阅里有子网 NSG、foundry-system、每会话 Kata pod VM，以及镜像仓库和存储。">
 
@@ -242,11 +244,13 @@ A 的冷启动和恢复到回答采用分段相加，不是客户端连续端到
 | **新会话 → 第一个回答** | 中位数 28.0 s（27.07–50.41；n=3）；SDK 创建 + 沙箱内回答 | 9.43 s（n=1，经 Foundry 端点；模型路由：gateway（APIM）） | 57.65 s（n=1；apply → Ready 44.9 s + 回答 12.75 s） | 中位数 25.49 s（23.53–26.7；n=5），经 Foundry 端点 |
 | **同一会话的后续回答** | 中位数 1.05 s（1.04–1.54；n=3） | 4.03, 5.54 s（n=2）；模型路由：gateway（APIM） | 1.96 s（n=1） | 中位数 12.9 s（11.17–16.42；n=3） |
 | **沙箱或 pod 就绪** | 中位数 24.25 s（24.12–44.86；n=3），create → Running | 不可见（平台托管） | 44.9 s（n=1），apply → Ready | 镜像已缓存 8–10 s（n=6）；新节点 25 s（n=2） |
-| **发起恢复 → 第一个回答（不含停止）** | 中位数 14.45 s（12.44–17.22；n=3）；恢复本身另行统计的中位数 2.83 s | 未测（平台恢复 $HOME） | 34.2 s（n=1；Ready 17.1 s，LoadBalancer 健康 26.1 s） | 预览版没有挂起 |
+| **发起恢复 → 第一个回答（不含停止）** | 中位数 14.45 s（12.44–17.22；n=3）；恢复本身另行统计的中位数 2.83 s | 未测（平台恢复 $HOME） | 34.2 s（n=1；Ready 17.1 s，LoadBalancer 健康 26.1 s） | 未测；预览版是否支持挂起须向产品组确认 |
 | **pod 丢失 → 重新就绪** | 未测（服务托管） | 未测（平台托管） | 23.4 s（n=1）；同一 Sandbox 的状态已恢复 | 23.9 s（n=1）；未测试被删会话的连续性 |
-| **空闲时的行为** | 到你设置的空闲时间（本次 900 s）自动挂起，保存内存快照 | 文档：空闲 2–60 min（默认 15）后释放算力，恢复时还原 $HOME 和 /files | 无内置机制；需要你修改 operatingMode | 最早的 pod 创建至少 87 min 后仍是 Running；未测空闲时长 |
+| **空闲策略（官方说明）** | [官网](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#lifecycle-states)：可配置空闲自动挂起；可选 Memory 或 Disk 快照模式 | [官网](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions)：空闲超时 2–60 min（默认 15）后释放算力，保留 $HOME 和 /files；30 天不活跃后删除会话 | [官方 API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)：shutdownTime 是定时到期回收，不是按请求检测空闲；空闲回收需自行实现 | 未找到可核实的官方公开空闲策略；须向产品组确认 |
 | **容量** | 无服务器；配额按并发核数计（文档） | 平台托管，按会话 | 你的 Kata 节点池 | 单个 Standard_D4s_v5 节点观察到最多 5 个会话；3 个节点共 12 个；`500 session_creation_failed`、`429 aks_quota_exceeded` |
 | **本次路径部署耗时** | 146.6 s（sandbox group、VNet 连接、磁盘镜像、卷、沙箱） | 161 s（`azd deploy`；模型路由：gateway（APIM）） | 812.9 s（准备脚本、私有链接、apply） | 854 s（角色、`azd provision`、`azd deploy`；作者控制台记录，原始输出未保留） |
+
+**本地配置与观察，不是官网空闲策略：** A 本次使用 Memory 模式，自动挂起设置为 900 s。D 最早的 pod 在创建至少 87 min 后仍为 Running；这是 pod 的年龄，不是空闲时长或回收超时。
 <!-- END GENERATED: comparison -->
 
 值得注意的几点：

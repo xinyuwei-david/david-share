@@ -61,6 +61,36 @@ def test_upstream_letter_drift_fails_information_alignment():
     assert vd.check_information_alignment(p)
 
 
+@pytest.mark.parametrize("name,lang", (("README.md", "en"), ("README_CN.md", "zh")))
+def test_selectable_compute_drift_fails_information_alignment(name, lang):
+    p = pages()
+    claims = json.loads(vd.read("evidence/claims.json"))
+    value = claims["paths"]["B"][f"selectable_compute_{lang}"]
+    assert value in p[name]
+    p[name] = p[name].replace(value, "Choose any Azure VM SKU", 1)
+    assert any("selectable_compute" in error for error in vd.check_information_alignment(p))
+
+
+@pytest.mark.parametrize("name,lang", (("README.md", "en"), ("README_CN.md", "zh")))
+def test_scheduled_expiry_cannot_be_renamed_request_idle_timeout(name, lang):
+    p = pages()
+    claims = json.loads(vd.read("evidence/claims.json"))
+    value = claims["paths"]["C"][f"idle_policy_{lang}"]
+    assert value in p[name]
+    p[name] = p[name].replace(value, value.replace("shutdownTime", "idleTimeout"), 1)
+    assert any("official idle-policy" in error for error in vd.check_information_alignment(p))
+
+
+@pytest.mark.parametrize("name,lang", (("README.md", "en"), ("README_CN.md", "zh")))
+def test_byoaks_unverified_idle_policy_cannot_become_a_timeout(name, lang):
+    p = pages()
+    claims = json.loads(vd.read("evidence/claims.json"))
+    value = claims["paths"]["D"][f"idle_policy_{lang}"]
+    assert value in p[name]
+    p[name] = p[name].replace(value, "87 min idle reclamation timeout", 1)
+    assert any("official idle-policy" in error for error in vd.check_information_alignment(p))
+
+
 def test_table_before_input_fails():
     p = pages()
     p["VALIDATION.md"] = p["VALIDATION.md"].replace(

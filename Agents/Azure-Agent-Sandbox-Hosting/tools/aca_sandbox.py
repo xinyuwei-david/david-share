@@ -188,8 +188,12 @@ def ask(sandbox, question: str) -> dict:
     if getattr(result, "exit_code", 0):
         raise RuntimeError(f"reflect exit {result.exit_code}: {getattr(result, 'stderr', '') or result.stdout}")
     parsed = json.loads((result.stdout or "").strip().splitlines()[-1])
+    body = parsed["body"]
+    response = body.get("response") if isinstance(body, dict) else None
+    if not isinstance(response, str) or not response.strip():
+        raise RuntimeError(f"reflect did not return a non-empty answer: {body}")
     return {"guest_s": round(parsed["seconds"], 2), "exec_wall_s": round(wall, 2),
-            "response": parsed["body"].get("response"), "history_length": parsed["body"].get("history_length")}
+            "response": response, "history_length": body.get("history_length")}
 
 
 def step_vnet(cfg: dict, state: dict, _args) -> None:

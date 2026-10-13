@@ -410,8 +410,18 @@ def check_commands(pages: dict[str, str]) -> list[str]:
     errors = []
     for name, heading in (("README.md", "Steps"), ("README_CN.md", "操作步骤")):
         blocks = re.findall(r"(?ms)^```bash\n(.*?)^```", steps_section(pages[name], heading))
-        if len(blocks) < 10:
-            errors.append(f"{name}: only {len(blocks)} command blocks in {heading}")
+        commands = "\n".join(blocks)
+        for required in ("./setup.sh", "./prepare-agent-sandbox.sh", "kubectl apply -f agent-sandbox.yaml",
+                         "./sandbox-deploy.sh", "python tools/aca_sandbox.py create", "azd ai agent init",
+                         "azd provision", "azd deploy", "azd ai agent invoke", '"$C_AGENT_URL/reflect"'):
+            if required not in commands:
+                errors.append(f"{name}: missing deployment or real invocation command {required}")
+        if 'export HOSTING_REPO="$PWD"' not in commands:
+            errors.append(f"{name}: missing stable repository return directory")
+        if re.search(r"tools/(?:measure_aca|measure_responses|check_isolation|build_measurements|render_docs|validate_docs)\.py", commands):
+            errors.append(f"{name}: measurement or evidence check used in deployment Steps")
+        if "set -euo pipefail" not in commands or "C invocation failed: non-empty response missing" not in commands:
+            errors.append(f"{name}: C invocation does not reject a missing application answer")
         for code in blocks:
             for bad, why in ((r"/subscriptions/[0-9a-f-]{8}", "literal subscription ID"),
                              (PRIVATE_PATTERNS["guid"], "GUID"),

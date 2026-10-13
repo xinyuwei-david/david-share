@@ -111,6 +111,21 @@ def test_reflect_code_quotes_the_question_and_times_inside():
     assert "127.0.0.1:8080/reflect" in code and "time.time()" in code
 
 
+@pytest.mark.parametrize("body", ({"error": "model unavailable"}, {"response": ""}, {"response": None}, []))
+def test_aca_request_without_an_answer_cannot_report_success(body):
+    sandbox = SimpleNamespace(exec=lambda _: SimpleNamespace(
+        exit_code=0, stdout=json.dumps({"seconds": 0.1, "body": body})))
+    with pytest.raises(RuntimeError, match="non-empty answer"):
+        aca_sandbox.ask(sandbox, "Hi")
+
+
+def test_aca_request_returns_the_real_answer():
+    sandbox = SimpleNamespace(exec=lambda _: SimpleNamespace(
+        exit_code=0, stdout=json.dumps({"seconds": 0.1, "body": {"response": "Hello", "history_length": 1}})))
+    answer = aca_sandbox.ask(sandbox, "Hi")
+    assert answer["response"] == "Hello" and answer["history_length"] == 1
+
+
 def test_builtin_config_needs_no_sdk_and_full_needs_an_image():
     cfg = {"vnet_connection": "aca-vnet", "volume": "v", "allow_cidr": ""}
     kw = aca_sandbox.config_kwargs("builtin", cfg, None, None)

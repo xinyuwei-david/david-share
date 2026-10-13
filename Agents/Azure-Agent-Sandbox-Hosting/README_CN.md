@@ -41,71 +41,96 @@
 
 ## 操作步骤
 
-**部署顺序。** A、B、C 复用 agenthost workshop（[`oxcp/ainotes`，固定在 `905f2c2`](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost)）的同一套基础资源；本仓库补充了 A 的 SDK 自动化、四条路径通用的测量和隔离检查，以及 D 的 BYO-AKS 步骤。只需执行你用得到的路径：
+**先部署，再使用 agent。** 主线按[同事的固定版本 workshop](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost)组织：创建共享底座 → 部署所选方案 → 打开或调用应用。压测和历史结果重算是可选项，不属于部署步骤。
 
-| 顺序 | 在哪里 | 做什么 | 脚本 |
+**执行边界：** 原始部署产生了仓库保留的历史结果，但下面这套参数化步骤尚未在全新订阅逐条重跑。D 还依赖产品组的私有示例和开通；离线 CI 不能证明云端部署成功。
+
+| 顺序 | 在哪里 | 做什么 | 入口 |
 |---|---|---|---|
-| 1 | 你的工作站 | 克隆两个仓库，填写一个配置文件 | `config/.env.example` |
-| 2 | Azure 订阅 | 共享基础资源：Foundry 项目和模型、APIM、ACR、Storage、托管身份 | workshop `module-01/setup.sh` |
-| 3 | C | 带 Kata 节点池的 AKS，以及 agent-sandbox 控制器 | workshop `module-03/prepare-agent-sandbox.sh` |
-| 4 | A | Sandbox group，然后是 VNet 连接、磁盘镜像、Blob 卷、沙箱 | workshop `module-04/sandbox-deploy.sh`，然后 [`tools/aca_sandbox.py`](tools/aca_sandbox.py) |
-| 5 | B | 用 `azd` 部署 hosted agent | workshop `module-02` |
-| 6 | D | 把你的 AKS 绑定到 Foundry，并把 agent 部署上去 | 私有预览示例 + 下文 D1–D5 |
-| 7 | 每条路径 | 测量，检查 micro-VM | [`tools/measure_aca.py`](tools/measure_aca.py)、[`tools/measure_responses.py`](tools/measure_responses.py)、[`tools/check_isolation.py`](tools/check_isolation.py) |
+| 1 | 工作站 | 克隆、填写配置、登录 | `config/.env.example` |
+| 2 | Azure 订阅 | 创建共享底座 | workshop `module-01/setup.sh` |
+| 3 | C | 构建镜像、创建 AKS、部署 Sandbox 并打开应用 | workshop `module-03` |
+| 4 | A | 创建 sandbox group 并部署 agent 沙箱 | workshop `module-04` + `tools/aca_sandbox.py` |
+| 5 | B | 部署 hosted agent 并调用 | workshop `module-02` |
+| 6 | D | 绑定现有 AKS，部署并调用私有预览 agent | 产品组示例 |
 
-本仓库的字母是统一口径：**A = ACA Sandboxes，B = Foundry hosted agent，C = AKS + agent-sandbox，D = BYO-AKS**。固定版本的上游 workshop 早于这次字母重映射，它把 module-02 叫 Solution A、module-03 叫 Solution B、module-04 叫 Solution C。执行上游步骤时请看 module 编号，不要沿用它的 Solution 字母。
+**A = ACA Sandboxes，B = Foundry hosted agent，C = AKS + agent-sandbox，D = BYO-AKS**。上游把 module-02 叫 Solution A、module-03 叫 Solution B、module-04 叫 Solution C；看它时以模块编号为准。只执行所选方案：B 的前置是第 1–2 步；这里 A 的完整示例复用第 3 步创建的镜像和网络，但 ACA 产品本身不依赖 AKS。D 使用已有集群和单独开通的示例，本页不会自动替你新建 D 的集群。
 
-下面 A 的示例复用 C 的镜像、VNet 和 Blob 私有终结点，因此这个示例需要第 3 步。ACA 本身不依赖 AKS：只部署 A 时，可自行提供已委派的 `ACA_SUBNET_ID`、可访问的 Blob 私有终结点和 agent 镜像，替代下文读取 AKS VNet 的命令。
+**前提。** Bash、Git、curl、Python 3.10+、Azure CLI 2.80+、kubectl、azd 1.34+；执行 `azd ext install microsoft.foundry` 安装扩展。订阅权限需 Owner，或 Contributor 加 Role Based Access Control Administrator，所选区域需有模型配额。使用非生产订阅。C 需要填写实际公网出口 CIDR；这个 HTTP workshop 应用不是生产级 HTTPS/登录部署。
 
-**前提条件。**
-- Bash 环境（Azure Cloud Shell、Linux、macOS 或 Git Bash），装好 Azure CLI 2.80 及以上、`kubectl`、`azd` 1.34 及以上并安装 `microsoft.foundry` 扩展（`azd ext install microsoft.foundry`），以及 Python 3.10 及以上；
-- 订阅的 Owner，或 Contributor 加 Role Based Access Control Administrator：workshop 会创建角色分配；
-- 所在区域有 `gpt-5.4-mini` GlobalStandard 配额（我们用的是 East US 2）；
-- 仅 D 需要：产品组已为该订阅开通 BYO-AKS 私有预览，并给了示例代码的访问权限。
-
-**1. 克隆并填写配置。** 订阅、区域和资源名只在 `.env` 里填一次，后面所有命令都从这里读取：
+**1. 克隆并填写配置。** 克隆到新目录后编辑 `.env`：填写 `SUBSCRIPTION_ID`、`LOCATION`、`RESOURCE_GROUP`；部署 C 时填写 `C_ALLOW_CIDR`。`SN` 在第 2 步拿到后再填。
 
 ```bash
+set -euo pipefail
 git clone --filter=blob:none --sparse --depth=1 https://github.com/david-xinyuwei/david-share.git
 git -C david-share sparse-checkout set Agents/Azure-Agent-Sandbox-Hosting
 cd david-share/Agents/Azure-Agent-Sandbox-Hosting
-git clone https://github.com/oxcp/ainotes.git "$HOME/ainotes" && git -C "$HOME/ainotes" checkout 905f2c2
-cp config/.env.example .env            # 先填 SUBSCRIPTION_ID 和 LOCATION；SN 在第 2 步之后填
+export HOSTING_REPO="$PWD"
+git clone https://github.com/oxcp/ainotes.git "$HOME/ainotes"
+git -C "$HOME/ainotes" checkout 905f2c2
+cp config/.env.example .env
 python -m pip install -r requirements.txt
-set -a && . ./.env && set +a && az account set --subscription "$SUBSCRIPTION_ID"
 ```
 
-`az account show --query id -o tsv` 会打印你的订阅 ID。每开一个新 shell、每次修改 `.env` 之后，都要重新执行 `set -a && . ./.env && set +a`。
+编辑完成后登录，运行上游前置检查。工具、权限或配额未满足时先解决，不要继续创建资源。后续在同一个 shell 中操作；`HOSTING_REPO` 用来回到本仓库。
 
-**2. 部署共享基础资源。** 它会创建 Foundry 账户和项目、`gpt-5.4-mini` 部署、APIM、ACR、Storage 和一个用户分配的托管身份，并给资源组打上部署后缀标签：
+```bash
+az login
+set -a && . "$HOSTING_REPO/.env" && set +a
+az account set --subscription "$SUBSCRIPTION_ID"
+(cd "$WORKSHOP_DIR/agenthost" && chmod +x check-prerequisites.sh && ./check-prerequisites.sh)
+```
+
+**2. 创建共享底座。** [Module 1](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-01/README.md)创建 Foundry 项目和模型、APIM、ACR、Storage 与托管身份。
 
 ```bash
 (cd "$WORKSHOP_DIR/agenthost/module-01" && chmod +x setup.sh && ./setup.sh)
-az group show -g "$RESOURCE_GROUP" --query tags.deploymentSN -o tsv     # 把输出填到 .env 的 SN
+az group show -g "$RESOURCE_GROUP" --query tags.deploymentSN -o tsv
 ```
 
-我们这次用了 <!--v:f.deploy.value-->3<!--/v--> 分钟，结束时会打印部署输出。然后重新加载 `.env`。
+成功标志：脚本输出 `Template deployed successfully.`，第二条命令返回非空后缀。把后缀填到 `.env` 的 `SN`，重新加载，让所有派生资源名一起更新；不能保留 `YOUR-DEPLOYMENT-SUFFIX` 继续执行。
 
-**3. 路径 C：AKS + agent-sandbox。** workshop 脚本会构建 agent 镜像，创建带 Kata 节点池的 AKS（`--workload-runtime KataVmIsolation`、Azure Linux、支持嵌套虚拟化的 Gen2 规格），并安装 agent-sandbox `v0.5.2`。如果 Storage 账户禁用了公网访问，还要运行它的私有链接脚本：
+```bash
+set -a && . "$HOSTING_REPO/.env" && set +a
+```
+
+**3. C — 部署 AKS 上的应用。** 按 [Module 3](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/README.md)执行。准备脚本创建 AKS/Kata、控制器、镜像和 PVC，并不部署应用；后面的 `kubectl apply` 才创建 Sandbox 和 Service。
 
 ```bash
 cd "$WORKSHOP_DIR/agenthost/module-03"
-chmod +x prepare-agent-sandbox.sh deploy-storage-private-link.sh && ./prepare-agent-sandbox.sh
-./deploy-storage-private-link.sh        # 仅在 Storage 账户禁用公网访问时需要
+chmod +x prepare-agent-sandbox.sh deploy-storage-private-link.sh
+./prepare-agent-sandbox.sh
+if [ "$(az storage account show -g "$RESOURCE_GROUP" -n "$ACA_STORAGE_ACCOUNT" --query publicNetworkAccess -o tsv)" = "Disabled" ]; then
+  ./deploy-storage-private-link.sh
+fi
 kubectl apply -f agent-sandbox.yaml
-kubectl wait --for=condition=Ready pod -l app=agent-host -n "$NAMESPACE" --timeout=3m
-cd - && python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
+kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=5m
 ```
 
-成功的标志：`prepare-agent-sandbox.sh` 最后输出 `Solution B infrastructure prepared`（workshop 里这条路径叫 Solution B），wait 输出 `condition met`，检查输出 `CHECK isolation PASS … runtimeClass=kata-vm-isolation`。PASS 只检查配置的 runtime 和 Running 状态，不是硬件证明。guest 与节点的内核版本字符串可以不同，也可以相同；相同只表示无法据此判断，不算失败。要求执行的 `--exec-uname` 读取失败时退出码为 1。挂起和恢复各是一条 patch 命令；生产环境里由你的网关来执行：
+成功标志：Sandbox 到达 `Ready`。接下来只允许配置的出口 CIDR，取出真正的应用地址并发起请求：
 
 ```bash
-kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
-kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Running"}}'
-kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=180s
+if [ -z "$C_ALLOW_CIDR" ] || [[ "$C_ALLOW_CIDR" == YOUR-* ]]; then
+  echo "Set C_ALLOW_CIDR in .env and reload it before exposing the application" >&2
+  exit 1
+fi
+kubectl patch service agent-host-lb -n "$NAMESPACE" --type merge \
+  -p "{\"spec\":{\"loadBalancerSourceRanges\":[\"$C_ALLOW_CIDR\"]}}"
+kubectl wait service agent-host-lb -n "$NAMESPACE" --for=jsonpath='{.status.loadBalancer.ingress[0].ip}' --timeout=5m
+C_AGENT_HOST=$(kubectl get service agent-host-lb -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+C_AGENT_URL="http://${C_AGENT_HOST}"
+printf 'C application: %s\n' "$C_AGENT_URL"
+curl --fail-with-body --show-error --max-time 30 "$C_AGENT_URL/ready"
+curl --fail-with-body --show-error --max-time 180 \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"Where is Bangkok? Answer in one short sentence."}' "$C_AGENT_URL/reflect" | \
+  python -c 'import json,sys; body=json.load(sys.stdin); answer=body.get("response"); print(json.dumps(body,ensure_ascii=False)); sys.exit(0 if isinstance(answer,str) and answer.strip() else "C invocation failed: non-empty response missing")'
+cd "$HOSTING_REPO"
 ```
 
-**4. 路径 A：ACA Sandboxes。** workshop 脚本创建 sandbox group；剩下的工作由 [`tools/aca_sandbox.py`](tools/aca_sandbox.py) 用 Python SDK 完成，替代 workshop 里的门户操作。沙箱复用第 3 步构建的镜像；如果没做第 3 步，先用 `az acr build -r "$ACA_ACR_NAME" -t agent-host:latest "$WORKSHOP_DIR/agenthost/module-03/agent-src"` 构建。VNet 连接用的子网必须委派给 `Microsoft.App/environments`；下面和 workshop 一样，把它加在第 3 步的 AKS 托管 VNet 里：
+浏览器打开打印出的地址即可使用聊天页面。`/ready` 应成功，`/reflect` 应返回非空 `response`；pod Ready 不等于应用已能回答。失败时在 `NAMESPACE` 查看 `kubectl get pods`、`kubectl describe pod`、`kubectl logs`；HTTP 不通还要检查出口 CIDR、Service 地址和网络规则。
+
+**4. A — 部署 ACA 沙箱里的 agent。** [Module 4](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-04/README.md)创建 sandbox group；磁盘镜像和沙箱需要继续创建。下方 SDK 命令实际执行这些操作，不是重放测量记录。这里的完整示例复用第 3 步的镜像和网络；`ACA_SUBNET_PREFIX` 必须是该 VNet 内尚未占用的地址段。
 
 ```bash
 (cd "$WORKSHOP_DIR/agenthost/module-04" && chmod +x sandbox-deploy.sh && ./sandbox-deploy.sh)
@@ -113,112 +138,97 @@ NODE_RG=$(az aks show -g "$RESOURCE_GROUP" -n "$AKS_NAME" --query nodeResourceGr
 VNET=$(az network vnet list -g "$NODE_RG" --query "[0].name" -o tsv)
 az network vnet subnet create -g "$NODE_RG" --vnet-name "$VNET" -n aca-subnet \
   --address-prefixes "$ACA_SUBNET_PREFIX" --delegations Microsoft.App/environments --query id -o tsv
-# 把打印出的 ID 填到 .env 的 ACA_SUBNET_ID，重新加载后执行：
-python tools/aca_sandbox.py vnet && python tools/aca_sandbox.py image && python tools/aca_sandbox.py volume
+```
+
+把打印出的子网 ID 填到 `.env` 的 `ACA_SUBNET_ID`，再回本仓库执行：
+
+```bash
+cd "$HOSTING_REPO"
+set -a && . ./.env && set +a
+python tools/aca_sandbox.py vnet
+python tools/aca_sandbox.py image
+python tools/aca_sandbox.py volume
 python tools/aca_sandbox.py create
 python tools/aca_sandbox.py ask "Where is Bangkok? Answer in one short sentence."
 ```
 
-每一步都会打印一行 JSON，带上耗时秒数。成功的标志：`create` 输出 `"state": "Running"` 和 `"vmm_type": "cloudhypervisor"`，`ask` 输出 agent 的回答并带 `"history_length": 1`。`stop`、`resume`、`delete` 用法相同。退出码 2 表示缺少某个配置项（会打印名字）；退出码 1 会打印 Azure 返回的错误。
+成功标志：`create` 返回 Running，`ask` 返回真实回答。这里通过沙箱 exec 调用应用，不代表浏览器入口已开放；需要浏览器入口时按 Module 4 配置端口和 IP。缺配置先补齐再重试；镜像访问失败检查 ACR 权限，私有 Blob 访问依赖 VNet 和私有终结点。
 
-| 现象 | 处理 |
-|---|---|
-| `image` 报 `RegistryAuthFailed` | 用 SDK 0.1.0b4 时托管身份拉取镜像返回过 401，所以脚本改用短期 ACR token；确认你能执行 `az acr login -n "$ACA_ACR_NAME" --expose-token` |
-| 带 Blob 卷时 `create` 一直到不了 Running | Storage 禁用公网时，需要 VNet 连接和第 3 步的私有终结点；我们只挂卷不连 VNet 时请求一直没有返回 |
-| `ask` 报 `exit` | agent 还在启动，10 s 后再执行一次 `ask` |
-
-**5. 路径 B：Foundry hosted agent。** 按 workshop 的 module-02 在克隆目录之外的工作目录里执行。下面是代入本仓库变量后的命令：
+**5. B — 部署并调用 hosted agent。** 在源代码克隆目录之外的新工作目录执行 [Module 2](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/README.md)。绑定已有项目后直接部署，B 不执行 `azd provision`。
 
 ```bash
-mkdir -p "$HOME/workshop-b" && cd "$HOME/workshop-b" && azd auth login
+mkdir -p "$HOME/workshop-b" && cd "$HOME/workshop-b"
+azd auth login
 azd ai agent init -m "$WORKSHOP_DIR/agenthost/module-02/azure.yaml" --project-id "$PROJECT_ID"
-cd maf-agent && sed -i "s/<SN>/$SN/g" azure.yaml
-azd env set AZURE_SUBSCRIPTION_ID "$SUBSCRIPTION_ID" && azd env set AZURE_LOCATION "$LOCATION"
-azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP" && azd env set AZURE_AI_PROJECT_ID "$PROJECT_ID"
-azd env set FOUNDRY_PROJECT_ENDPOINT "$PROJECT_ENDPOINT" && azd env set AI_MODEL_DEPLOYMENT_NAME gpt-5.4-mini
+cd maf-agent
+sed -i "s/<SN>/$SN/g" azure.yaml
+azd env set AZURE_SUBSCRIPTION_ID "$SUBSCRIPTION_ID"
+azd env set AZURE_LOCATION "$LOCATION"
+azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP"
+azd env set AZURE_AI_PROJECT_ID "$PROJECT_ID"
+azd env set FOUNDRY_PROJECT_ENDPOINT "$PROJECT_ENDPOINT"
+azd env set AI_MODEL_DEPLOYMENT_NAME gpt-5.4-mini
 azd env set AZURE_TENANT_ID "$(az account show --query tenantId -o tsv)"
-azd deploy && azd ai agent invoke "Hi"
+azd deploy
+azd ai agent invoke "Hi"
+azd ai agent show
+cd "$HOSTING_REPO"
 ```
 
-成功的标志：`azd deploy` 报告 agent 部署完成（本次 gateway 路由 <!--v:b.deploy.value-->161<!--/v--> s），`invoke` 打印出回答。`azure.yaml` 里的 `MODEL_ROUTING` 用来选 `gateway`（经 APIM）还是 `direct`；结果总表使用 gateway 路由的观察值，不是 direct 路由。第 7 步测 B 之前，把 `azd ai agent show` 中它的 Responses 端点填到 `AGENT_RESPONSES_URL`，并重新加载本仓库的 `.env`。如果 `azd deploy` 以 `last status: creating` 超时，到 Foundry 门户里看这个 agent；如果它不是 Running，在门户里删除后重新 `azd deploy`。
+成功标志：部署结束且 `invoke` 返回真实回答。`show` 提供已部署的端点，可供 API 客户端调用，也可进入 Foundry agent playground 使用。默认保持 gateway 路由；只有明确需要时才改变。若部署一直 creating，查看 `azd ai agent monitor` 和门户状态，不能把超时当成功，也不要自动删除 agent。
 
-**6. 路径 D：BYO-AKS（私有预览）。** 请使用非生产订阅，并先和产品组确认哪些内容可以对外分享。下面三项检查失败时不会有明确报错，所以要在产生费用之前做：
+**6. D — 私有预览部署。** 没有产品组示例和订阅开通就不能执行这条路径。先填写 `.env` 的 BYOAKS 配置，包括 `BYOAKS_SAMPLE_DIR`，并按示例当前指南配置 `AKS_RESOURCE_ID`、`HOSTING_IDENTITY_RESOURCE_ID`、`WORKLOAD_IDENTITY_RESOURCE_ID`、`STORAGE_ACCOUNT_RESOURCE_ID`、`ACR_RESOURCE_ID`、`APPLICATIONINSIGHTS_RESOURCE_ID`。只有功能标志 Registered 不代表已开通。
 
-| 检查项 | 命令 | 期望结果 |
-|---|---|---|
-| 订阅已开通 | 找产品组确认；`FoundryComputePreview` 功能标志显示 `Registered` 并不代表已开通 | `azd provision` 不报 `BringOwnFeatureNotEnabled` |
-| 该区域提供这个 VM 规格 | `az vm list-skus -l "$LOCATION" --size "$BYOAKS_KATA_VM_SIZE" --query "[].restrictions" -o json` | 输出 `[[]]`，而不是 `NotAvailableForSubscription`（这个问题提配额工单解决不了） |
-| 同一区域有模型配额 | `az cognitiveservices usage list -l "$LOCATION" --query "[?contains(name.value,'gpt-5.4-mini')]" -o table` | GlobalStandard 还有剩余容量 |
-
-**D1. 在你的集群上加一个 Kata 节点池。** 运行时必须写 `KataVmIsolation`；`az` 也接受 `KataMshvVmIsolation`，但 Foundry 之后会拒绝，而且这个字段创建后不能修改：
+**D1. 准备现有集群的 Kata 节点池。** 先确认该节点 SKU 在订阅和区域可用，并符合当前开通要求；已有同名节点池时不要重复创建。
 
 ```bash
 az aks nodepool add -g "$BYOAKS_RESOURCE_GROUP" --cluster-name "$BYOAKS_CLUSTER" -n "$BYOAKS_KATA_POOL" \
   --os-sku AzureLinux --workload-runtime KataVmIsolation --node-vm-size "$BYOAKS_KATA_VM_SIZE" --node-count 1
 ```
 
-**D2. 绑定集群。** 使用产品组提供的示例（只能用 `azd`，门户里没有这个步骤）。`azd` 需要两次登录：`azd config set auth.useAzCliAuth true` 供 provision 使用，`azd auth login` 供 `azure.ai.agents` 扩展使用。在示例目录里按它的指南用 `azd env set` 设置 `AKS_RESOURCE_ID`、`HOSTING_IDENTITY_RESOURCE_ID`、`WORKLOAD_IDENTITY_RESOURCE_ID`、`STORAGE_ACCOUNT_RESOURCE_ID`、`ACR_RESOURCE_ID` 和 `APPLICATIONINSIGHTS_RESOURCE_ID`，然后：
+**D2. 在已配置的示例目录执行绑定。** 成功条件是 provision 完成、foundry-system 组件就绪，不是 pod 数量等于某个历史值。
 
 ```bash
-azd config set auth.useAzCliAuth true && azd auth login
+cd "$BYOAKS_SAMPLE_DIR"
+azd config set auth.useAzCliAuth true
+azd auth login
 azd provision
 az aks get-credentials -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER" --overwrite-existing
-kubectl get pods -n foundry-system                  # 全部 Ready；我们单 Kata 节点接入时共 13 个
+kubectl get pods -n foundry-system
 ```
 
-我们这次 `azd provision` 用了 <!--v:d.azd_provision.value-->522<!--/v--> s。到这一步，Foundry 已经装好它的运行时，其中包括你 VNet 里一个监听 `:443` 的 `foundry-router` LoadBalancer。
-
-**D3. 让 Foundry 能访问 router，然后部署 agent。** 如果 AKS 子网自己绑了 NSG，它默认的 `DenyAllInBound` 会丢弃 Foundry 发往 router 的请求，即使 AKS 托管的网卡 NSG 已经放行；我们的会话因此失败了一整天，直到加上这条规则：
+**D3. 仅在需要时配置 router 网络路径。** 下方子网 NSG 规则是保留的 workshop 接法，不是通用生产规则。只有产品组确认该入口和来源适用于当前预览版本、且子网 NSG 阻断此路径时才执行；否则采用获准的网络配置。
 
 ```bash
 ROUTER_IP=$(kubectl get svc foundry-router -n foundry-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+if [ -z "$ROUTER_IP" ]; then
+  echo "foundry-router has no LoadBalancer address; resolve provisioning before deploying the agent" >&2
+  exit 1
+fi
 az network nsg rule create -g "$BYOAKS_SUBNET_NSG_RG" --nsg-name "$BYOAKS_SUBNET_NSG" \
   -n Allow-AzureCloud-FoundryRouter-443 --priority 500 --direction Inbound --access Allow --protocol Tcp \
   --source-address-prefixes AzureCloud --destination-address-prefixes "$ROUTER_IP" --destination-port-ranges 443 \
   --query provisioningState -o tsv
+```
+
+**D4. 部署并调用应用。** 仍在示例目录运行。成功条件：部署结束、invoke 返回回答、show 显示端点。失败时检查示例和控制器日志以及获准的存储、身份、网络配置；不要自动 purge 资源。
+
+```bash
 azd deploy
+azd ai agent invoke "Hi"
+azd ai agent show
+cd "$HOSTING_REPO"
 ```
 
-成功的标志：规则命令输出 `Succeeded`，`azd deploy` 正常结束（我们这次 <!--v:d.azd_deploy.value-->212<!--/v--> s）。把 `azd ai agent show` 里 agent 的 Responses 端点填到 `AGENT_RESPONSES_URL`，把会话所在的命名空间（`kubectl get ns | grep foundry-`）填到 `SESSION_NAMESPACE`。
+**完成。** 所选方案应已有能回答的应用及可用入口，而不是仅完成了一条测量命令。冷暖启动压测、隔离检查、历史数字重算见 [VALIDATION_CN.md](VALIDATION_CN.md#测试与离线校验)。
 
-**D4. 确认会话跑在你的节点上。**
-
-```bash
-python tools/measure_responses.py --cold 1 --warm-turns 1 --observe
-python tools/check_isolation.py -n "$SESSION_NAMESPACE"
-```
-
-成功的标志：输出 `MEASURE PASS … remembered=True`，并且每个会话 pod 输出一行 `CHECK isolation PASS … runtimeClass=kata-vm-isolation`。我们这次没有在会话 pod 内读取内核；只有你的角色允许 exec 进会话 pod 时才加 `--container agent --exec-uname`，读取被拒绝时退出码为 1。如果输出 `CHECK isolation BLOCKED no pod matched`，说明没有会话 pod 到达你的集群：先检查 D3 的 NSG 规则，再问产品组该订阅是否已开通会话落地。
-
-**D5. 按“开过的会话数”规划节点池。** 最早的会话 pod 在创建至少 <!--v:d.idle.value-->87<!--/v--> 分钟后仍是 Running。这是 pod 的年龄，不是空闲时长：没有保留它最后一次请求的时间戳，所以未测出空闲回收超时。在你的预览 build 证实有回收超时之前，应保守地假设每个开过的会话都会一直占着一个 pod（500m CPU / 1 Gi，外加 600 Mi Kata 开销），直到服务端结束它。每个 `Standard_D4s_v5` 节点最多按 <!--v:d.capacity.per_node-->5<!--/v--> 个会话规划（同时跑系统 pod 的节点更少）；容量耗尽实测既返回过 HTTP 500 `session_creation_failed`，也返回过 HTTP 429 `aks_quota_exceeded`。删除会话 pod 不会释放容量：它的 Deployment 会把它重新创建出来。
-
-| 报错 | 原因 | 处理 |
-|---|---|---|
-| `already bound to another Foundry account` | 失败的 Foundry 账户仍占着集群绑定 | 删除**并清除（purge）**该账户 |
-| `foundry-controller` 处于 `CrashLoopBackOff`，Blob 报 `not authorized` | Storage 禁用了公网访问 | 添加一个 AKS 子网能访问到的 blob 私有终结点 |
-| provision 失败后出现 `capabilityHosts: []`、`InternalServerError` | 回滚过的账户无法复用 | 删除并清除，然后换一个**新的** `azd` 环境名 |
-| `CannotDeleteResource … nested resources exist` | 存在一个看不见的子项目 | 通过 ARM REST 列出并先删除子项目 |
-| `azd deploy` 报 `AzureCLICredential: exit status 1` | agents 扩展不认 `auth.useAzCliAuth` | 再执行一次 `azd auth login` |
-| `HTTP 429 aks_quota_exceeded` | 已有会话 pod 占用 Kata 节点池 | 加节点（从 1 个扩到 3 个用了 <!--v:d.node_scale.value-->143<!--/v--> s） |
-| `HTTP 500 session_creation_failed` | 会话创建失败；节点池满时也观察到过 | 检查 Kata 节点池和控制器日志；不要假设每次容量拒绝都返回 HTTP 429 |
-
-**7. 测量。** 从 workshop 或私有预览示例目录返回本仓库根目录，重新加载 `.env`；每次运行前选好 B 或 D 的 `AGENT_RESPONSES_URL`。每个工具都把记录写到 `evidence-local/`，这个目录被 Git 忽略：
-
-```bash
-python tools/measure_aca.py agent --runs 3                           # A：完整 agent 流程
-python tools/measure_responses.py --cold 3 --warm-turns 3            # B（或 D）
-python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery --observe   # D
-```
-
-退出码 0 表示每个请求的阶段都通过：A 检查对话历史长度在恢复前后持续增长；B 和 D 检查响应完成和口令精确匹配，包括要求执行的每个并发追问和恢复。跳过恢复、读取 pod 失败或删除失败都不算通过。节点池满时的预期拒绝仍会保存为测量记录，但返回退出码 1。
-
-**下线与删除，仅在资源所有者明确批准后执行。** 沙箱停止后不收取 CPU 和内存费用。[停止 AKS 可以节省计算费用](https://learn.microsoft.com/azure/aks/start-stop-cluster)，但保留的磁盘、公网 IP、Storage 和其他资源仍可能计费；停止不等于总费用归零：
+**下线仅在资源所有者明确批准后执行，不属于部署必做项。** 只选择你明确要释放的资源对应命令；停止 AKS 只节省计算费，不会让保留资源费用归零。删除资源组会移除共享底座和 A/B/C。
 
 ```bash
 python tools/aca_sandbox.py delete
-az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"                       # C；或 az aks delete
-az aks stop -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER"         # D：停止节点计费；Foundry 账户和 agent 保留
-az group delete -n "$RESOURCE_GROUP" --yes --no-wait                  # 删除基础资源以及 A、B、C
+az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"
+az aks stop -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER"
+az group delete -n "$RESOURCE_GROUP" --yes --no-wait
 ```
 
 ## 实现效果
@@ -277,7 +287,7 @@ A 的冷启动和恢复到回答采用分段相加，不是客户端连续端到
 <!-- END GENERATED: runs -->
 
 **边界。**
-- 只测了一个区域（East US 2）和一个客户端位置。A 的完整 agent 时延 n=3；B 和 C 各是一轮端到端实测；D 是一轮压测，其中镜像已缓存的冷启动 n=5、后续回答 n=3，会话落地和恢复各一次。在依赖某个数字之前，请用第 7 步重新测。
+- 只测了一个区域（East US 2）和一个客户端位置。A 的完整 agent 时延 n=3；B 和 C 各是一轮端到端实测；D 是一轮压测，其中镜像已缓存的冷启动 n=5、后续回答 n=3，会话落地和恢复各一次。在依赖某个数字之前，请按 VALIDATION_CN 中的在线测量命令重新测。
 - 这些是实施过程中的观察，不是产品基准测试，也不是 SLA。文档说 A 可以从预热池实现亚秒级启动；我们带私有 Blob 卷的完整配置没有达到。
 - D 是私有预览，它的行为（会话落地、空闲回收、各项限制）可能变化，接入需要产品组的示例和开通。
 - 没有测的：B 的恢复，A 和 B 的 pod 或宿主机丢失，由 Foundry 治理的 agent 按任务调用 ACA 沙箱（微软在 GA 后介绍的模式），以及 E2B 或其他第三方沙箱。

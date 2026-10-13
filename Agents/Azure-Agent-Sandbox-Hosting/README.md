@@ -41,71 +41,96 @@ Words used in the results:
 
 ## Steps
 
-**Deployment order.** Path A, B and C reuse one foundation from the agenthost workshop ([`oxcp/ainotes` at `905f2c2`](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost)); this repository adds the SDK automation for A, the measurement and isolation checks for all four, and the BYO-AKS steps for D. Run only the paths you need:
+**Deploy first, then use the agent.** These steps follow the [pinned colleague workshop](https://github.com/oxcp/ainotes/tree/905f2c2/agenthost): shared foundation, the selected hosting path, and an actual application call. Benchmarking and evidence replay are optional and live in VALIDATION, not on the deployment path.
 
-| Order | Where | What | Script |
+**Execution boundary:** the original deployments produced the retained historical results, but this parameterized sequence has not been re-run end to end in a fresh subscription. D also requires the product group's private sample and approval. Offline CI does not certify a successful cloud deployment.
+
+| Order | Where | Action | Entry |
 |---|---|---|---|
-| 1 | Your workstation | Clone both repositories, fill one settings file | `config/.env.example` |
-| 2 | Azure subscription | Shared foundation: Foundry project and model, APIM, ACR, Storage, managed identity | workshop `module-01/setup.sh` |
-| 3 | C | AKS with a Kata node pool and the agent-sandbox controller | workshop `module-03/prepare-agent-sandbox.sh` |
-| 4 | A | Sandbox group, then VNet connection, disk image, Blob volume, sandbox | workshop `module-04/sandbox-deploy.sh`, then [`tools/aca_sandbox.py`](tools/aca_sandbox.py) |
-| 5 | B | Hosted agent with `azd` | workshop `module-02` |
-| 6 | D | Your AKS bound to Foundry, the agent deployed onto it | private-preview sample + steps D1–D5 below |
-| 7 | Each path | Measure, check the micro-VM | [`tools/measure_aca.py`](tools/measure_aca.py), [`tools/measure_responses.py`](tools/measure_responses.py), [`tools/check_isolation.py`](tools/check_isolation.py) |
+| 1 | Workstation | Clone, configure and sign in | `config/.env.example` |
+| 2 | Azure subscription | Create the shared foundation | workshop `module-01/setup.sh` |
+| 3 | C | Build the image, create AKS, deploy the Sandbox and open the app | workshop `module-03` |
+| 4 | A | Create the sandbox group and deploy the agent sandbox | workshop `module-04` + `tools/aca_sandbox.py` |
+| 5 | B | Deploy the hosted agent and invoke it | workshop `module-02` |
+| 6 | D | Bind an existing AKS, deploy and invoke the private-preview agent | product-group sample |
 
-The letters in this repository are canonical: **A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS**. The pinned upstream workshop predates this mapping and calls module-02 Solution A, module-03 Solution B and module-04 Solution C. Use its module numbers, not its solution letters, when following the upstream steps.
+**A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS**. Upstream calls module-02 Solution A, module-03 Solution B and module-04 Solution C. Use module numbers when reading it. Run only the path you need: B needs steps 1–2; the full A example reuses the image and network created in step 3. ACA itself does not require AKS. D uses an existing cluster and its own approved sample, not an automatically created cluster from this page.
 
-The example for A reuses C's image, VNet and Blob private endpoint, so that example requires step 3. ACA itself does not require AKS: for an A-only deployment, supply your own delegated `ACA_SUBNET_ID`, a reachable Blob private endpoint and the agent image instead of the AKS VNet commands below.
+**Prerequisites.** Bash, Git, curl, Python 3.10+, Azure CLI 2.80+, kubectl and azd 1.34+; install the Foundry extension with `azd ext install microsoft.foundry`. You need subscription Owner, or Contributor plus Role Based Access Control Administrator, and model quota in your selected region. Use a non-production subscription. For C, provide your actual public egress CIDR; this HTTP workshop app is not a production HTTPS/login deployment.
 
-**Prerequisites.**
-- Bash (Azure Cloud Shell, Linux, macOS or Git Bash) with Azure CLI 2.80 or newer, `kubectl`, `azd` 1.34 or newer with the `microsoft.foundry` extension (`azd ext install microsoft.foundry`), and Python 3.10 or newer;
-- Owner on the subscription, or Contributor plus Role Based Access Control Administrator: the workshop creates role assignments;
-- `gpt-5.4-mini` GlobalStandard quota in the region (we used East US 2);
-- D only: the subscription enabled for the BYO-AKS private preview by the product group, and access to its sample.
-
-**1. Clone and fill in the settings.** Subscription, region and names are typed once, in `.env`; every later command reads them:
+**1. Clone and configure.** Clone into new directories, then edit `.env`: set `SUBSCRIPTION_ID`, `LOCATION` and `RESOURCE_GROUP`; set `C_ALLOW_CIDR` if using C. Leave `SN` until step 2.
 
 ```bash
+set -euo pipefail
 git clone --filter=blob:none --sparse --depth=1 https://github.com/david-xinyuwei/david-share.git
 git -C david-share sparse-checkout set Agents/Azure-Agent-Sandbox-Hosting
 cd david-share/Agents/Azure-Agent-Sandbox-Hosting
-git clone https://github.com/oxcp/ainotes.git "$HOME/ainotes" && git -C "$HOME/ainotes" checkout 905f2c2
-cp config/.env.example .env            # fill SUBSCRIPTION_ID and LOCATION now; SN after step 2
+export HOSTING_REPO="$PWD"
+git clone https://github.com/oxcp/ainotes.git "$HOME/ainotes"
+git -C "$HOME/ainotes" checkout 905f2c2
+cp config/.env.example .env
 python -m pip install -r requirements.txt
-set -a && . ./.env && set +a && az account set --subscription "$SUBSCRIPTION_ID"
 ```
 
-`az account show --query id -o tsv` prints your subscription ID. Run `set -a && . ./.env && set +a` again in every new shell and after each edit of `.env`.
+After editing `.env`, sign in and run the upstream prerequisite checker. Resolve failed tool, permission or quota prerequisites before creating resources. Keep this shell open; `HOSTING_REPO` is the stable return directory.
 
-**2. Deploy the shared foundation.** It creates the Foundry account and project, the `gpt-5.4-mini` deployment, APIM, ACR, Storage and a user-assigned identity, and tags the resource group with a deployment suffix:
+```bash
+az login
+set -a && . "$HOSTING_REPO/.env" && set +a
+az account set --subscription "$SUBSCRIPTION_ID"
+(cd "$WORKSHOP_DIR/agenthost" && chmod +x check-prerequisites.sh && ./check-prerequisites.sh)
+```
+
+**2. Create the shared foundation.** [Module 1](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-01/README.md) creates the Foundry project/model, APIM, ACR, Storage and identity.
 
 ```bash
 (cd "$WORKSHOP_DIR/agenthost/module-01" && chmod +x setup.sh && ./setup.sh)
-az group show -g "$RESOURCE_GROUP" --query tags.deploymentSN -o tsv     # paste the value into SN in .env
+az group show -g "$RESOURCE_GROUP" --query tags.deploymentSN -o tsv
 ```
 
-It took <!--v:f.deploy.value-->3<!--/v--> minutes in our run and prints the deployment outputs. Then reload `.env`.
+Success: `Template deployed successfully.` and a non-empty suffix from the second command. Paste that suffix into `SN` in `.env`, then reload it so the derived resource names change together. Do not continue with `YOUR-DEPLOYMENT-SUFFIX`.
 
-**3. Path C: AKS + agent-sandbox.** The workshop script builds the agent image, creates AKS with a Kata node pool (`--workload-runtime KataVmIsolation`, Azure Linux, a Gen2 VM size with nested virtualization) and installs agent-sandbox `v0.5.2`. If your Storage account has public network access disabled, run its private-link script as well:
+```bash
+set -a && . "$HOSTING_REPO/.env" && set +a
+```
+
+**3. C — Deploy the AKS application.** Follow [Module 3](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/README.md). Preparation creates AKS/Kata, controller, image and PVC; it does not deploy the application. The separate `kubectl apply` creates the Sandbox and its Service.
 
 ```bash
 cd "$WORKSHOP_DIR/agenthost/module-03"
-chmod +x prepare-agent-sandbox.sh deploy-storage-private-link.sh && ./prepare-agent-sandbox.sh
-./deploy-storage-private-link.sh        # only when public network access is disabled on the Storage account
+chmod +x prepare-agent-sandbox.sh deploy-storage-private-link.sh
+./prepare-agent-sandbox.sh
+if [ "$(az storage account show -g "$RESOURCE_GROUP" -n "$ACA_STORAGE_ACCOUNT" --query publicNetworkAccess -o tsv)" = "Disabled" ]; then
+  ./deploy-storage-private-link.sh
+fi
 kubectl apply -f agent-sandbox.yaml
-kubectl wait --for=condition=Ready pod -l app=agent-host -n "$NAMESPACE" --timeout=3m
-cd - && python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
+kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=5m
 ```
 
-Success: `prepare-agent-sandbox.sh` ends with `Solution B infrastructure prepared` (the workshop's letter for this path), the wait prints `condition met`, and the check prints `CHECK isolation PASS … runtimeClass=kata-vm-isolation`. PASS checks the configured runtime and Running phase, not hardware attestation. Kernel versions may differ or be identical; an identical version is inconclusive, not failure. A failed requested `--exec-uname` read exits 1. Suspend and resume are one patch each; your gateway does this in production:
+Success: the Sandbox reaches `Ready`. Now allow only your configured egress CIDR, obtain the actual application URL, and make a real request:
 
 ```bash
-kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
-kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Running"}}'
-kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=180s
+if [ -z "$C_ALLOW_CIDR" ] || [[ "$C_ALLOW_CIDR" == YOUR-* ]]; then
+  echo "Set C_ALLOW_CIDR in .env and reload it before exposing the application" >&2
+  exit 1
+fi
+kubectl patch service agent-host-lb -n "$NAMESPACE" --type merge \
+  -p "{\"spec\":{\"loadBalancerSourceRanges\":[\"$C_ALLOW_CIDR\"]}}"
+kubectl wait service agent-host-lb -n "$NAMESPACE" --for=jsonpath='{.status.loadBalancer.ingress[0].ip}' --timeout=5m
+C_AGENT_HOST=$(kubectl get service agent-host-lb -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+C_AGENT_URL="http://${C_AGENT_HOST}"
+printf 'C application: %s\n' "$C_AGENT_URL"
+curl --fail-with-body --show-error --max-time 30 "$C_AGENT_URL/ready"
+curl --fail-with-body --show-error --max-time 180 \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"Where is Bangkok? Answer in one short sentence."}' "$C_AGENT_URL/reflect" | \
+  python -c 'import json,sys; body=json.load(sys.stdin); answer=body.get("response"); print(json.dumps(body,ensure_ascii=False)); sys.exit(0 if isinstance(answer,str) and answer.strip() else "C invocation failed: non-empty response missing")'
+cd "$HOSTING_REPO"
 ```
 
-**4. Path A: ACA Sandboxes.** The workshop script creates the sandbox group; [`tools/aca_sandbox.py`](tools/aca_sandbox.py) does the rest with the Python SDK, replacing the workshop's portal steps. The sandbox reuses the image built in step 3; without step 3, build it first with `az acr build -r "$ACA_ACR_NAME" -t agent-host:latest "$WORKSHOP_DIR/agenthost/module-03/agent-src"`. The subnet for the VNet connection must be delegated to `Microsoft.App/environments`; this example adds it to the AKS-managed VNet from step 3, as the workshop does:
+Open the printed URL in a browser to use the chat page. `/ready` must succeed and `/reflect` must return a non-empty `response`; a Ready pod alone is not an answering application. On failure inspect `kubectl get pods`, `kubectl describe pod` and `kubectl logs` in `NAMESPACE`; for unreachable HTTP also check the egress CIDR, Service address and network rules.
+
+**4. A — Deploy the ACA sandbox agent.** [Module 4](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-04/README.md) creates the sandbox group. Its disk-image and sandbox steps are separate; the SDK commands below perform those operations rather than replay measurements. This full example reuses step 3's image/network. Choose a free `ACA_SUBNET_PREFIX` inside that VNet.
 
 ```bash
 (cd "$WORKSHOP_DIR/agenthost/module-04" && chmod +x sandbox-deploy.sh && ./sandbox-deploy.sh)
@@ -113,112 +138,97 @@ NODE_RG=$(az aks show -g "$RESOURCE_GROUP" -n "$AKS_NAME" --query nodeResourceGr
 VNET=$(az network vnet list -g "$NODE_RG" --query "[0].name" -o tsv)
 az network vnet subnet create -g "$NODE_RG" --vnet-name "$VNET" -n aca-subnet \
   --address-prefixes "$ACA_SUBNET_PREFIX" --delegations Microsoft.App/environments --query id -o tsv
-# paste the printed ID into ACA_SUBNET_ID in .env, reload it, then:
-python tools/aca_sandbox.py vnet && python tools/aca_sandbox.py image && python tools/aca_sandbox.py volume
+```
+
+Paste the printed subnet ID into `ACA_SUBNET_ID` in `.env`, then run from this repository:
+
+```bash
+cd "$HOSTING_REPO"
+set -a && . ./.env && set +a
+python tools/aca_sandbox.py vnet
+python tools/aca_sandbox.py image
+python tools/aca_sandbox.py volume
 python tools/aca_sandbox.py create
 python tools/aca_sandbox.py ask "Where is Bangkok? Answer in one short sentence."
 ```
 
-Each step prints one JSON line with its seconds. Success: `create` prints `"state": "Running"` and `"vmm_type": "cloudhypervisor"`, and `ask` prints the agent's answer with `"history_length": 1`. `stop`, `resume` and `delete` work the same way. Exit 2 names a missing setting; exit 1 prints the Azure error.
+Success: `create` reports Running and `ask` returns an actual answer. The answer is requested through sandbox exec; direct browser ingress is not implied. For the browser-port deployment use Module 4's port/IP configuration. If a setting is missing, fill it before retrying; image access failures require ACR permission, and private Blob access requires the VNet and private endpoint.
 
-| If | Do |
-|---|---|
-| `image` fails with `RegistryAuthFailed` | The script uses a short-lived ACR token because a managed-identity pull returned 401 with SDK 0.1.0b4; check you can run `az acr login -n "$ACA_ACR_NAME" --expose-token` |
-| `create` never reaches Running with the Blob volume | Storage with public access disabled needs the VNet connection and the private endpoint from step 3; the volume alone hung in our run |
-| `ask` fails with `exit` | The agent is still starting; run `ask` again after 10 s |
-
-**5. Path B: Foundry hosted agent.** Follow the workshop's module-02 from a working folder outside the clone. The commands, with this repository's variables:
+**5. B — Deploy and call the hosted agent.** Use [Module 2](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/README.md) from a new working directory outside the source clone. Bind the existing project, then deploy; do not run `azd provision` for B.
 
 ```bash
-mkdir -p "$HOME/workshop-b" && cd "$HOME/workshop-b" && azd auth login
+mkdir -p "$HOME/workshop-b" && cd "$HOME/workshop-b"
+azd auth login
 azd ai agent init -m "$WORKSHOP_DIR/agenthost/module-02/azure.yaml" --project-id "$PROJECT_ID"
-cd maf-agent && sed -i "s/<SN>/$SN/g" azure.yaml
-azd env set AZURE_SUBSCRIPTION_ID "$SUBSCRIPTION_ID" && azd env set AZURE_LOCATION "$LOCATION"
-azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP" && azd env set AZURE_AI_PROJECT_ID "$PROJECT_ID"
-azd env set FOUNDRY_PROJECT_ENDPOINT "$PROJECT_ENDPOINT" && azd env set AI_MODEL_DEPLOYMENT_NAME gpt-5.4-mini
+cd maf-agent
+sed -i "s/<SN>/$SN/g" azure.yaml
+azd env set AZURE_SUBSCRIPTION_ID "$SUBSCRIPTION_ID"
+azd env set AZURE_LOCATION "$LOCATION"
+azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP"
+azd env set AZURE_AI_PROJECT_ID "$PROJECT_ID"
+azd env set FOUNDRY_PROJECT_ENDPOINT "$PROJECT_ENDPOINT"
+azd env set AI_MODEL_DEPLOYMENT_NAME gpt-5.4-mini
 azd env set AZURE_TENANT_ID "$(az account show --query tenantId -o tsv)"
-azd deploy && azd ai agent invoke "Hi"
+azd deploy
+azd ai agent invoke "Hi"
+azd ai agent show
+cd "$HOSTING_REPO"
 ```
 
-Success: `azd deploy` reports the agent deployed (<!--v:b.deploy.value-->161<!--/v--> s in our gateway-route run) and `invoke` prints a reply. `MODEL_ROUTING` in `azure.yaml` chooses `gateway` (through APIM) or `direct`; the Results comparison uses the gateway-route observations, not the direct route. Before measuring B in step 7, copy its Responses endpoint from `azd ai agent show` into `AGENT_RESPONSES_URL` and reload this repository's `.env`. If `azd deploy` times out with `last status: creating`, open the agent in the Foundry portal; if it is not Running, delete it there and run `azd deploy` again.
+Success: deployment finishes and `invoke` returns a real answer. `show` provides the deployed endpoint for API clients; the Foundry agent playground can also invoke it. Keep the default gateway route unless intentionally changing it. If deployment remains creating, inspect `azd ai agent monitor` and the portal status rather than treating timeout as success or automatically deleting the agent.
 
-**6. Path D: BYO-AKS (private preview).** Use a non-production subscription and confirm what you may share with the product group first. Three checks fail silently, so do them before anything bills:
+**6. D — Private-preview deployment.** This path is blocked without the product group's sample and subscription approval. Before running it, fill the BYOAKS values in `.env`, including `BYOAKS_SAMPLE_DIR`, and configure the sample's `AKS_RESOURCE_ID`, `HOSTING_IDENTITY_RESOURCE_ID`, `WORKLOAD_IDENTITY_RESOURCE_ID`, `STORAGE_ACCOUNT_RESOURCE_ID`, `ACR_RESOURCE_ID` and `APPLICATIONINSIGHTS_RESOURCE_ID` using its current guide. Feature registration alone is not approval.
 
-| Check | Command | Expected |
-|---|---|---|
-| Subscription enabled | ask the product group; a `Registered` `FoundryComputePreview` feature flag is not enough | `azd provision` does not fail with `BringOwnFeatureNotEnabled` |
-| VM size offered in the region | `az vm list-skus -l "$LOCATION" --size "$BYOAKS_KATA_VM_SIZE" --query "[].restrictions" -o json` | `[[]]`, not `NotAvailableForSubscription` (a quota ticket does not fix this) |
-| Model quota in the same region | `az cognitiveservices usage list -l "$LOCATION" --query "[?contains(name.value,'gpt-5.4-mini')]" -o table` | capacity left for GlobalStandard |
-
-**D1. A Kata node pool on your cluster.** The runtime must be exactly `KataVmIsolation`; `az` also accepts `KataMshvVmIsolation`, Foundry rejects it later, and the field cannot be changed:
+**D1. Prepare the existing cluster's Kata pool.** Confirm this node SKU is available for your subscription/region and meets the approved preview requirements; do not recreate an existing pool of the same name.
 
 ```bash
 az aks nodepool add -g "$BYOAKS_RESOURCE_GROUP" --cluster-name "$BYOAKS_CLUSTER" -n "$BYOAKS_KATA_POOL" \
   --os-sku AzureLinux --workload-runtime KataVmIsolation --node-vm-size "$BYOAKS_KATA_VM_SIZE" --node-count 1
 ```
 
-**D2. Bind the cluster** with the product group's sample (`azd` only; there is no portal step). `azd` needs two sign-ins: `azd config set auth.useAzCliAuth true` for provision, and `azd auth login` for the `azure.ai.agents` extension. In the sample's folder, set `AKS_RESOURCE_ID`, `HOSTING_IDENTITY_RESOURCE_ID`, `WORKLOAD_IDENTITY_RESOURCE_ID`, `STORAGE_ACCOUNT_RESOURCE_ID`, `ACR_RESOURCE_ID` and `APPLICATIONINSIGHTS_RESOURCE_ID` with `azd env set` as its guide describes, then:
+**D2. Provision the binding from the approved sample directory.** Success means provision completes and foundry-system components become Ready; their count is not a success contract.
 
 ```bash
-azd config set auth.useAzCliAuth true && azd auth login
+cd "$BYOAKS_SAMPLE_DIR"
+azd config set auth.useAzCliAuth true
+azd auth login
 azd provision
 az aks get-credentials -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER" --overwrite-existing
-kubectl get pods -n foundry-system                  # all Ready; 13 total in our one-Kata-node onboarding
+kubectl get pods -n foundry-system
 ```
 
-`azd provision` took <!--v:d.azd_provision.value-->522<!--/v--> s in our run. Foundry has now installed its runtime, including a `foundry-router` LoadBalancer on `:443` in your VNet.
-
-**D3. Let Foundry reach the router, then deploy the agent.** If the AKS subnet has its own NSG, its default `DenyAllInBound` drops Foundry's calls to the router even though the AKS-managed NIC NSG allows them; our sessions failed for a day until we added this rule:
+**D3. Configure the router network path only when needed.** The following subnet-NSG rule is the retained workshop recipe, not a universal production rule. Run it only if the product group confirms this ingress/source applies to your preview build and your subnet NSG blocks that route; otherwise use the approved network configuration.
 
 ```bash
 ROUTER_IP=$(kubectl get svc foundry-router -n foundry-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+if [ -z "$ROUTER_IP" ]; then
+  echo "foundry-router has no LoadBalancer address; resolve provisioning before deploying the agent" >&2
+  exit 1
+fi
 az network nsg rule create -g "$BYOAKS_SUBNET_NSG_RG" --nsg-name "$BYOAKS_SUBNET_NSG" \
   -n Allow-AzureCloud-FoundryRouter-443 --priority 500 --direction Inbound --access Allow --protocol Tcp \
   --source-address-prefixes AzureCloud --destination-address-prefixes "$ROUTER_IP" --destination-port-ranges 443 \
   --query provisioningState -o tsv
+```
+
+**D4. Deploy and invoke the application.** These commands remain in the sample directory. Success: deployment completes, invoke answers, and show displays the endpoint. On failures inspect the sample/controller logs and the approved storage, identity and network settings; do not automatically purge resources.
+
+```bash
 azd deploy
+azd ai agent invoke "Hi"
+azd ai agent show
+cd "$HOSTING_REPO"
 ```
 
-Success: the rule prints `Succeeded`, and `azd deploy` finishes (<!--v:d.azd_deploy.value-->212<!--/v--> s in our run). Copy the agent's Responses endpoint from `azd ai agent show` into `AGENT_RESPONSES_URL`, and the session namespace (`kubectl get ns | grep foundry-`) into `SESSION_NAMESPACE`.
+**Done.** The selected path has an actual answering application and its usable entry, not merely a completed measurement command. Optional cold/warm tests, isolation checks and historical-number replay are in [VALIDATION.md](VALIDATION.md#tests-and-offline-checks).
 
-**D4. Check that sessions run on your nodes.**
-
-```bash
-python tools/measure_responses.py --cold 1 --warm-turns 1 --observe
-python tools/check_isolation.py -n "$SESSION_NAMESPACE"
-```
-
-Success: `MEASURE PASS … remembered=True`, and one `CHECK isolation PASS … runtimeClass=kata-vm-isolation` line per session pod. Our run did not read the kernel inside a session pod; add `--container agent --exec-uname` only if your role may exec into session pods, and a refused read exits 1. `CHECK isolation BLOCKED no pod matched` means no session pod reached your cluster: check the NSG rule in D3, then ask the product group whether the subscription is enabled for placement.
-
-**D5. Size the pool by sessions opened.** The oldest session pod was still Running at least <!--v:d.idle.value-->87<!--/v--> minutes after creation. This is pod age, not idle duration: its last-request timestamp was not retained, so we did not measure an idle eviction timeout. Until your preview build proves an eviction timeout, conservatively assume every opened session keeps a pod (500m CPU / 1 Gi plus 600 Mi Kata overhead) until the service ends it. Plan at most <!--v:d.capacity.per_node-->5<!--/v--> sessions per `Standard_D4s_v5` node (fewer on a node that also hosts system pods); the capacity-exhaustion runs returned both HTTP 500 `session_creation_failed` and HTTP 429 `aks_quota_exceeded`. Deleting a session pod does not free capacity: its Deployment recreates it.
-
-| Error | Cause | What to do |
-|---|---|---|
-| `already bound to another Foundry account` | A failed Foundry account keeps the cluster binding | Delete **and purge** that account |
-| `foundry-controller` in `CrashLoopBackOff`, Blob `not authorized` | Storage has public access disabled | Add a blob private endpoint reachable from the AKS subnet |
-| `capabilityHosts: []`, `InternalServerError` after a failed provision | A rolled-back account cannot be reused | Delete and purge, then use a **new** `azd` environment name |
-| `CannotDeleteResource … nested resources exist` | A hidden child project | List projects over ARM REST and delete them first |
-| `AzureCLICredential: exit status 1` in `azd deploy` | The agents extension ignores `auth.useAzCliAuth` | Run `azd auth login` as well |
-| `HTTP 429 aks_quota_exceeded` | Existing session pods occupy the Kata pool | Add nodes (scaling 1 → 3 took <!--v:d.node_scale.value-->143<!--/v--> s) |
-| `HTTP 500 session_creation_failed` | Session creation failed; also observed during the full-pool run | Inspect the Kata pool and controller logs; do not assume every capacity refusal is HTTP 429 |
-
-**7. Measure.** Return to this repository's root from the workshop or private-preview sample folder and reload `.env`; select B's or D's `AGENT_RESPONSES_URL` before each run. Each tool writes its record to `evidence-local/`, which Git ignores:
-
-```bash
-python tools/measure_aca.py agent --runs 3                           # A: the full agent path
-python tools/measure_responses.py --cold 3 --warm-turns 3            # B (or D)
-python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery --observe   # D
-```
-
-Exit 0 means every requested phase passed: A checks growing conversation-history lengths across resume; B and D check completed responses and exact code-word recall, including each concurrency follow-up and recovery when requested. A skipped recovery, failed pod observation or failed deletion is not a pass. Expected full-pool refusals are saved as measurements but still return exit 1.
-
-**Offboard and remove, only after explicit owner approval.** Stopped sandboxes do not bill CPU or memory. [Stopping AKS saves compute costs](https://learn.microsoft.com/azure/aks/start-stop-cluster), but retained disks, public IPs, storage and other resources can still incur charges; stopping is not zero total cost:
+**Offboard only after explicit owner approval; not part of deployment.** Choose only the command for resources you intend to remove. Stopping AKS saves compute charges, not all retained-resource charges; the resource-group delete removes the shared foundation and A/B/C.
 
 ```bash
 python tools/aca_sandbox.py delete
-az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"                       # C; or az aks delete
-az aks stop -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER"         # D: ends node billing; the Foundry account and agent stay
-az group delete -n "$RESOURCE_GROUP" --yes --no-wait                  # removes the foundation, A, B and C
+az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"
+az aks stop -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER"
+az group delete -n "$RESOURCE_GROUP" --yes --no-wait
 ```
 
 ## Results
@@ -277,7 +287,7 @@ What stands out:
 <!-- END GENERATED: runs -->
 
 **Limits.**
-- One region (East US 2) and one client location. A full-agent latency has n=3. B and C are one end-to-end run each. D is one benchmark campaign: cached-image cold n=5, warm n=3, and one placement and one recovery observation. Repeat them with step 7 before you rely on a number.
+- One region (East US 2) and one client location. A full-agent latency has n=3. B and C are one end-to-end run each. D is one benchmark campaign: cached-image cold n=5, warm n=3, and one placement and one recovery observation. Repeat them with the live measurement commands in VALIDATION before you rely on a number.
 - These are implementation observations, not product benchmarks or SLAs. The docs state sub-second sandbox start for A from prewarmed pools; our full specification with a private Blob volume did not get there.
 - D is a private preview. Its behaviour (placement, idle reclaim, limits) may change, and its onboarding needs the product group's sample and enablement.
 - Not measured: B's resume, A's and B's pod or host loss, the Foundry-governed agent calling an ACA sandbox per task (the pattern Microsoft describes since GA), and E2B or any other third-party sandbox.

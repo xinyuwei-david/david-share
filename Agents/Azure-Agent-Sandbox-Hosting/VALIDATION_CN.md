@@ -353,6 +353,36 @@ workshop 的脚本（`module-01/setup.sh`、`module-03/prepare-agent-sandbox.sh`
 
 ## 测试与离线校验
 
+**部署证据边界。** 本节是在应用部署后执行的可选检查，不能代替应用创建。README 的完整参数化流程尚未在全新订阅逐条重跑；历史运行成功不能证明每条改写后的部署命令都成功过。保留的 Module 1 共享底座部署用时 <!--v:f.deploy.value-->3<!--/v--> 分钟。
+
+**在线测量。** 回到 `HOSTING_REPO`、加载 `.env`，把已部署的 B 或 D 端点填到 `AGENT_RESPONSES_URL`，只运行对应方案的测量。D 的恢复命令会删除会话 pod；A 的测量会停止并删除它新建的沙箱。这些生命周期操作需事先得到明确授权。
+
+```bash
+cd "$HOSTING_REPO"
+set -a && . ./.env && set +a
+python tools/measure_aca.py agent --runs 3
+python tools/measure_responses.py --cold 3 --warm-turns 3
+python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery --observe
+```
+
+退出码 0 要求每个请求阶段都通过；容量耗尽的拒绝会保存，但仍退出 1。历史工作负载和时钟不一致，不能用它给产品排名。
+
+**可选隔离观察。** C 或 D 使用各自命名空间。基础检查读取配置的 runtime 和 pod 状态；D 只有获准 exec 时才加 `--container agent --exec-uname`。要求执行的读取失败时退出 1。
+
+```bash
+python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
+python tools/check_isolation.py -n "$SESSION_NAMESPACE"
+```
+
+**可选 C 生命周期演练。** 下方命令会主动挂起应用，只能在资源所有者批准后运行；部署和获得回答不需要执行它们。
+
+```bash
+kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
+kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Running"}}'
+kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=180s
+```
+
+
 离线校验需要 Python 3.10 及以上，不需要访问 Azure：
 
 ```bash
@@ -383,7 +413,7 @@ CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流]
 
 **边界。**
 
-- `LOCAL_MEASUREMENT`：A 的完整 agent 时延 n=3；B 和 C 各是一轮端到端实测；D 是一轮压测，其中镜像已缓存的冷启动 n=5、后续回答 n=3，会话落地和恢复各一次。依赖某个数字之前，请按 README 第 7 步重新测。
+- `LOCAL_MEASUREMENT`：A 的完整 agent 时延 n=3；B 和 C 各是一轮端到端实测；D 是一轮压测，其中镜像已缓存的冷启动 n=5、后续回答 n=3，会话落地和恢复各一次。依赖某个数字之前，请按本页在线测量命令重新测。
 - `LOCAL_MEASUREMENT`：A 和 C 使用 workshop reflection agent；B 使用 Agent Framework 和 ResponsesHostServer；D 使用私有预览 sample。B 和 D 包含 Foundry 端点和位于中国的客户端（往返 <!--v:d.client_rtt.range-->320–800<!--/v--> ms）；A 的回答在沙箱内计时；C 在它的 LoadBalancer 处计时。表中每一行比较的是现场实现，不是相同容器或相同网络链路。
 - `LOCAL_MEASUREMENT`：A 加上私有 Blob 卷后创建耗时为 <!--v:a.attr.vnetvolume.range-->15.79–25.12<!--/v--> s；只加镜像、VNet 或端口时为 <!--v:a.attr.small.range-->1.6–2.7<!--/v--> s。
 - `LOCAL_MEASUREMENT`：最早的 D 会话 pod 在创建至少 <!--v:d.idle.value-->87<!--/v--> 分钟后仍是 Running。这是 pod 的年龄，不是空闲时长：没有保留最后一次请求的时间戳。它不能证明配置的空闲超时，也不能证明期间始终空闲。

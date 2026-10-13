@@ -209,6 +209,20 @@ def test_literal_subscription_in_steps_fails():
     assert vd.check_commands(p)
 
 
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+def test_deployment_steps_cannot_reintroduce_measurement_as_acceptance(name):
+    p = pages()
+    p[name] = p[name].replace('python tools/aca_sandbox.py ask', 'python tools/measure_aca.py ask', 1)
+    assert any("measurement or evidence" in error for error in vd.check_commands(p))
+
+
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+def test_c_deployment_requires_a_real_application_request(name):
+    p = pages()
+    p[name] = p[name].replace('"$C_AGENT_URL/reflect"', '"$C_AGENT_URL/ready"', 1)
+    assert any("real invocation" in error for error in vd.check_commands(p))
+
+
 def test_private_content_fails(tmp_path):
     for leak in ("subscription 12345678-1234-1234-1234-123456789abc", "router at 20.242.33.10",
                  "mail someone@contoso.com", "cluster aks-byoaks", "sessions were not observed on the cluster"):

@@ -353,6 +353,36 @@ These are unit, type, sample-count and timeline checks, not a universal maximum-
 
 ## Tests and Offline Checks
 
+**Deployment evidence boundary.** These are optional checks after deployment, not commands that replace creation of the application. The full parameterized README sequence has not been re-run in a fresh subscription. Original historical runs do not prove every modified deployment command. Module 1 foundation took <!--v:f.deploy.value-->3<!--/v--> minutes in the retained run.
+
+**Live measurement.** Return to `HOSTING_REPO`, load `.env`, and select the deployed B or D endpoint in `AGENT_RESPONSES_URL`. Run only the measurement for that path. The D recovery command deletes a session pod; the A measurement stops and deletes the sandboxes it creates. Obtain explicit approval for those lifecycle operations before running them.
+
+```bash
+cd "$HOSTING_REPO"
+set -a && . ./.env && set +a
+python tools/measure_aca.py agent --runs 3
+python tools/measure_responses.py --cold 3 --warm-turns 3
+python tools/measure_responses.py --cold 3 --warm-turns 3 --scale 4,8 --recovery --observe
+```
+
+Exit 0 requires every requested phase to pass; full-pool refusals are saved but still exit 1. The different historical workloads and clocks do not make this a product ranking.
+
+**Optional isolation observation.** Use the correct namespace for C or D. The base check reads configured runtime and pod state; for D add `--container agent --exec-uname` only when exec is authorized. Requested read failure exits 1.
+
+```bash
+python tools/check_isolation.py -n "$NAMESPACE" -l app=agent-host --exec-uname
+python tools/check_isolation.py -n "$SESSION_NAMESPACE"
+```
+
+**Optional C lifecycle exercise.** These commands intentionally suspend the application. Run only after the owner approves that operation; they are not required to deploy or answer.
+
+```bash
+kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Suspended"}}'
+kubectl patch sandbox agent-host -n "$NAMESPACE" --type merge -p '{"spec":{"operatingMode":"Running"}}'
+kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=180s
+```
+
+
 The offline checks need Python 3.10 or newer and no Azure access:
 
 ```bash
@@ -383,7 +413,7 @@ Not tested here: the tools against a fresh subscription end to end after this re
 
 **Limits.**
 
-- `LOCAL_MEASUREMENT`: A full-agent latency has n=3. B and C are one end-to-end run each. D is one benchmark campaign: cached-image cold n=5, warm n=3, and one placement and one recovery observation. Repeat with README step 7 before relying on a number.
+- `LOCAL_MEASUREMENT`: A full-agent latency has n=3. B and C are one end-to-end run each. D is one benchmark campaign: cached-image cold n=5, warm n=3, and one placement and one recovery observation. Repeat with the live measurement commands in this page before relying on a number.
 - `LOCAL_MEASUREMENT`: A and C use the workshop reflection agent; B uses its Agent Framework agent with ResponsesHostServer; D uses the private-preview sample. B and D include the Foundry endpoint and a client in China (round trip <!--v:d.client_rtt.range-->320–800<!--/v--> ms); A's answers were timed inside the sandbox; C's at its LoadBalancer. The rows compare field implementations, not identical containers or network paths.
 - `LOCAL_MEASUREMENT`: in A, the private Blob volume put create at <!--v:a.attr.vnetvolume.range-->15.79–25.12<!--/v--> s; image, VNet and port alone stayed at <!--v:a.attr.small.range-->1.6–2.7<!--/v--> s.
 - `LOCAL_MEASUREMENT`: the oldest D session pod was still Running at least <!--v:d.idle.value-->87<!--/v--> minutes after it was created. This is pod age, not idle duration: no last-request timestamp was retained. It establishes neither a configured idle timeout nor a continuously idle interval.

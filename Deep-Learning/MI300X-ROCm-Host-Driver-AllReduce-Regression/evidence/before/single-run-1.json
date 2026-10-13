@@ -1,0 +1,358 @@
+{
+  "version": 3,
+  "start_time": "2026-10-12 14:05:00",
+  "args": [
+    "CASE_RESULTS_ROOT/source-before/build/all_reduce_perf",
+    "-g",
+    "8",
+    "-b",
+    "1M",
+    "-e",
+    "1G",
+    "-f",
+    "2",
+    "-t",
+    "1",
+    "-n",
+    "100",
+    "-w",
+    "20",
+    "-c",
+    "1",
+    "-d",
+    "float",
+    "-o",
+    "sum",
+    "-J",
+    "CASE_RESULTS_ROOT/before/single-run-1.json"
+  ],
+  "env": [
+    "SHELL=/bin/bash",
+    "EXPECTED_RCCL=22203",
+    "NATIVE_BINARY=CASE_RESULTS_ROOT/source-before/build/all_reduce_perf",
+    "NATIVE_ROOT=CASE_RESULTS_ROOT",
+    "PWD=/root",
+    "LOGNAME=root",
+    "XDG_SESSION_TYPE=tty",
+    "NCCL_DEBUG=WARN",
+    "HOME=/root",
+    "LANG=C.UTF-8",
+    "HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7",
+    "SSH_CONNECTION=REDACTED_IPV4 25671 REDACTED_PRIVATE_IP 33901",
+    "NATIVE_PHASE=before",
+    "XDG_SESSION_CLASS=user",
+    "USER=root",
+    "SHLVL=1",
+    "XDG_SESSION_ID=116",
+    "LD_LIBRARY_PATH=/opt/rocm-6.4.4/lib:/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hpcx-rebuild/lib",
+    "XDG_RUNTIME_DIR=/run/user/0",
+    "SSH_CLIENT=REDACTED_IPV4 25671 33901",
+    "PATH=/opt/rocm-6.4.4/bin:/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hpcx-rebuild/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+    "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus",
+    "_=/usr/bin/timeout",
+    "IPATH_NO_BACKTRACE=1",
+    "HFI_NO_BACKTRACE=1",
+    "OMPI_COMMAND=CASE_RESULTS_ROOT/source-before/build/all_reduce_perf",
+    "OMPI_ARGV=-g 8 -b 1M -e 1G -f 2 -t 1 -n 100 -w 20 -c 1 -d float -o sum -J CASE_RESULTS_ROOT/before/single-run-1.json",
+    "OMPI_MCA_ess=singleton",
+    "ORTE_SCHIZO_DETECTION=ORTE",
+    "OMPI_MCA_orte_launch=1",
+    "PMIX_NAMESPACE=306315265",
+    "PMIX_RANK=0",
+    "PMIX_SERVER_URI41=306315264.0;tcp4://REDACTED_IPV4:41343",
+    "PMIX_SERVER_URI4=306315264.0;tcp4://REDACTED_IPV4:41343",
+    "PMIX_SERVER_URI3=306315264.0;tcp4://REDACTED_IPV4:41343",
+    "PMIX_SERVER_URI2=306315264.0;tcp4://REDACTED_IPV4:41343",
+    "PMIX_SERVER_URI21=306315264.0;tcp4://REDACTED_IPV4:41343",
+    "PMIX_SECURITY_MODE=native",
+    "PMIX_BFROP_BUFFER_TYPE=PMIX_BFROP_BUFFER_NON_DESC",
+    "PMIX_GDS_MODULE=ds21,ds12,hash",
+    "PMIX_SERVER_TMPDIR=/tmp/ompi.redacted-mi300x-node.0/pid.212345",
+    "PMIX_SYSTEM_TMPDIR=/tmp",
+    "PMIX_DSTORE_21_BASE_PATH=/tmp/ompi.redacted-mi300x-node.0/pid.212345/pmix_dstor_ds21_212345",
+    "PMIX_DSTORE_ESH_BASE_PATH=/tmp/ompi.redacted-mi300x-node.0/pid.212345/pmix_dstor_ds12_212345",
+    "PMIX_HOSTNAME=redacted-mi300x-node",
+    "PMIX_VERSION=4.2.9",
+    "OMPI_MCA_orte_precondition_transports=2a0977d19dcf0b14-1cd89d66fb9aca56",
+    "OMPI_MCA_pmix=^s1,s2,cray,isolated",
+    "PMIX_MCA_mca_base_component_show_load_errors=0",
+    "PMIX_MCA_psec=native",
+    "OMPI_MCA_orte_ess_num_procs=1",
+    "OMPI_APP_CTX_NUM_PROCS=1",
+    "HCOLL_HOME_DIR=/opt/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64/hcoll/lib/.."
+  ],
+  "nccl_version": 22203,
+  "rccl_version": 22203,
+  "config": {
+    "nthreads": 1,
+    "ngpus": 8,
+    "minimum_bytes": 1048576,
+    "maximum_bytes": 1073741824,
+    "step_factor": 2,
+    "warmup_iters": 20,
+    "iterations": 100,
+    "aggregated_iterations": 1,
+    "validation": 1,
+    "graph": 0,
+    "blocking_collectives": "false",
+    "per_iter_timing": "false",
+    "per_iter_skip": 0,
+    "parallel_init": "false",
+    "devices": [
+      {
+        "rank": 0,
+        "group": 0,
+        "pid": 212342,
+        "hostname": "redacted-mi300x-node",
+        "device": 0,
+        "device_hex": "0002:00:00",
+        "device_info": "AMD Instinct MI300X VF"
+      }
+    ]
+  },
+  "results": [
+    {
+      "size": 1048576,
+      "count": 262144,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 57.86603,
+        "alg_bw": 18.120752,
+        "bus_bw": 31.711317,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.93712,
+        "alg_bw": 18.098518,
+        "bus_bw": 31.672406,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 2097152,
+      "count": 524288,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 58.48398,
+        "alg_bw": 35.858572,
+        "bus_bw": 62.752501,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.35753,
+        "alg_bw": 36.562802,
+        "bus_bw": 63.984903,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 4194304,
+      "count": 1048576,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 58.95543,
+        "alg_bw": 71.143642,
+        "bus_bw": 124.501373,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.6518,
+        "alg_bw": 72.752351,
+        "bus_bw": 127.316615,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 8388608,
+      "count": 2097152,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 85.53155,
+        "alg_bw": 98.076184,
+        "bus_bw": 171.633321,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 88.27604,
+        "alg_bw": 95.027008,
+        "bus_bw": 166.297265,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 16777216,
+      "count": 4194304,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 150.68541,
+        "alg_bw": 111.339353,
+        "bus_bw": 194.843867,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 156.73038,
+        "alg_bw": 107.04508,
+        "bus_bw": 187.328889,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 33554432,
+      "count": 8388608,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 242.95515,
+        "alg_bw": 138.109573,
+        "bus_bw": 241.691753,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 254.95342,
+        "alg_bw": 131.610049,
+        "bus_bw": 230.317585,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 67108864,
+      "count": 16777216,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 428.99725,
+        "alg_bw": 156.431921,
+        "bus_bw": 273.755862,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 439.19117,
+        "alg_bw": 152.801032,
+        "bus_bw": 267.401806,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 134217728,
+      "count": 33554432,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 797.80514,
+        "alg_bw": 168.233722,
+        "bus_bw": 294.409013,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 807.36011,
+        "alg_bw": 166.242704,
+        "bus_bw": 290.924732,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 268435456,
+      "count": 67108864,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 1537.79477,
+        "alg_bw": 174.5587,
+        "bus_bw": 305.477725,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 1546.65103,
+        "alg_bw": 173.559162,
+        "bus_bw": 303.728533,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 536870912,
+      "count": 134217728,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 3026.83591,
+        "alg_bw": 177.370339,
+        "bus_bw": 310.398094,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 3036.73733,
+        "alg_bw": 176.792015,
+        "bus_bw": 309.386026,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 1073741824,
+      "count": 268435456,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 5972.87083,
+        "alg_bw": 179.769805,
+        "bus_bw": 314.597159,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 5981.05594,
+        "alg_bw": 179.523789,
+        "bus_bw": 314.166631,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    }
+  ],
+  "out_of_bounds": {
+    "count": 0,
+    "okay": "true"
+  },
+  "average_bus_bandwidth": {
+    "bandwidth": 209.922608,
+    "okay": "unchecked"
+  },
+  "errors": [
+    ""
+  ],
+  "end_time": "2026-10-12 14:06:06"
+}

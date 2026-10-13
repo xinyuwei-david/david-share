@@ -1,0 +1,441 @@
+# Redacted excerpt of the original kernel journal; omitted lines are not reproduced.
+Oct 12 14:36:10 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:10 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:10 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:10 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:10 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: XGMI: Add node 2, hive REDACTED_HIVE_ID.
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:11 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:11 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:11 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:11 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:11 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:11 redacted-mi300x-node kernel: amdgpu 0002:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:15 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:15 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:15 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:15 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:15 redacted-mi300x-node kernel: ------------[ cut here ]------------
+Oct 12 14:36:15 redacted-mi300x-node kernel: UBSAN: array-index-out-of-bounds in /tmp/amd.Uq0Z2gwz/amd/amdgpu/amdgpu_psp.c:1954:25
+Oct 12 14:36:15 redacted-mi300x-node kernel: index 8 is out of range for type 'xgmi_connected_port_num [8]'
+Oct 12 14:36:15 redacted-mi300x-node kernel: CPU: 0 PID: 10 Comm: kworker/0:1 Tainted: G     U     OE      6.8.0-1067-azure #75-Ubuntu
+Oct 12 14:36:15 redacted-mi300x-node kernel: Hardware name: Microsoft Corporation Virtual Machine/Virtual Machine, BIOS Hyper-V UEFI Release v4.1 01/14/2026
+Oct 12 14:36:15 redacted-mi300x-node kernel: Workqueue: events work_for_cpu_fn
+Oct 12 14:36:15 redacted-mi300x-node kernel: Call Trace:
+Oct 12 14:36:15 redacted-mi300x-node kernel:  <TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack_lvl+0x76/0xa0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack+0x10/0x20
+Oct 12 14:36:15 redacted-mi300x-node kernel:  __ubsan_handle_out_of_bounds+0xc6/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  psp_xgmi_get_topology_info+0xc37/0x13a0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? amdgpu_hdp_invalidate+0x49/0x50 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_xgmi_add_device+0x5b2/0x870 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_sdma_v4_4_2_hw_init+0x10/0x10 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_device_init+0x2a2a/0x3860 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? pci_read_config_byte+0x27/0x50
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? do_pci_enable_device+0xcf/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_driver_load_kms+0x14/0xd0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_pci_probe+0x307/0x760 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  local_pci_probe+0x47/0xb0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  work_for_cpu_fn+0x1a/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  process_one_work+0x178/0x350
+Oct 12 14:36:15 redacted-mi300x-node kernel:  worker_thread+0x192/0x340
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_worker_thread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  kthread+0xda/0x100
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork+0x47/0x70
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork_asm+0x1b/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  </TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel: ---[ end trace ]---
+Oct 12 14:36:15 redacted-mi300x-node kernel: ------------[ cut here ]------------
+Oct 12 14:36:15 redacted-mi300x-node kernel: UBSAN: array-index-out-of-bounds in /tmp/amd.Uq0Z2gwz/amd/amdgpu/amdgpu_psp.c:1953:40
+Oct 12 14:36:15 redacted-mi300x-node kernel: index 8 is out of range for type 'xgmi_connected_port_num [8]'
+Oct 12 14:36:15 redacted-mi300x-node kernel: CPU: 0 PID: 10 Comm: kworker/0:1 Tainted: G     U     OE      6.8.0-1067-azure #75-Ubuntu
+Oct 12 14:36:15 redacted-mi300x-node kernel: Hardware name: Microsoft Corporation Virtual Machine/Virtual Machine, BIOS Hyper-V UEFI Release v4.1 01/14/2026
+Oct 12 14:36:15 redacted-mi300x-node kernel: Workqueue: events work_for_cpu_fn
+Oct 12 14:36:15 redacted-mi300x-node kernel: Call Trace:
+Oct 12 14:36:15 redacted-mi300x-node kernel:  <TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack_lvl+0x76/0xa0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack+0x10/0x20
+Oct 12 14:36:15 redacted-mi300x-node kernel:  __ubsan_handle_out_of_bounds+0xc6/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  psp_xgmi_get_topology_info+0xcd1/0x13a0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? amdgpu_hdp_invalidate+0x49/0x50 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_xgmi_add_device+0x5b2/0x870 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_sdma_v4_4_2_hw_init+0x10/0x10 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_device_init+0x2a2a/0x3860 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? pci_read_config_byte+0x27/0x50
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? do_pci_enable_device+0xcf/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_driver_load_kms+0x14/0xd0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_pci_probe+0x307/0x760 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  local_pci_probe+0x47/0xb0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  work_for_cpu_fn+0x1a/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  process_one_work+0x178/0x350
+Oct 12 14:36:15 redacted-mi300x-node kernel:  worker_thread+0x192/0x340
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_worker_thread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  kthread+0xda/0x100
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork+0x47/0x70
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork_asm+0x1b/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  </TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel: ---[ end trace ]---
+Oct 12 14:36:15 redacted-mi300x-node kernel: ------------[ cut here ]------------
+Oct 12 14:36:15 redacted-mi300x-node kernel: UBSAN: array-index-out-of-bounds in /tmp/amd.Uq0Z2gwz/amd/amdgpu/amdgpu_psp.c:1956:25
+Oct 12 14:36:15 redacted-mi300x-node kernel: index 8 is out of range for type 'xgmi_connected_port_num [8]'
+Oct 12 14:36:15 redacted-mi300x-node kernel: CPU: 0 PID: 10 Comm: kworker/0:1 Tainted: G     U     OE      6.8.0-1067-azure #75-Ubuntu
+Oct 12 14:36:15 redacted-mi300x-node kernel: Hardware name: Microsoft Corporation Virtual Machine/Virtual Machine, BIOS Hyper-V UEFI Release v4.1 01/14/2026
+Oct 12 14:36:15 redacted-mi300x-node kernel: Workqueue: events work_for_cpu_fn
+Oct 12 14:36:15 redacted-mi300x-node kernel: Call Trace:
+Oct 12 14:36:15 redacted-mi300x-node kernel:  <TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack_lvl+0x76/0xa0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack+0x10/0x20
+Oct 12 14:36:15 redacted-mi300x-node kernel:  __ubsan_handle_out_of_bounds+0xc6/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  psp_xgmi_get_topology_info+0xb49/0x13a0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? amdgpu_hdp_invalidate+0x49/0x50 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_xgmi_add_device+0x5b2/0x870 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_sdma_v4_4_2_hw_init+0x10/0x10 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_device_init+0x2a2a/0x3860 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? pci_read_config_byte+0x27/0x50
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? do_pci_enable_device+0xcf/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_driver_load_kms+0x14/0xd0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_pci_probe+0x307/0x760 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  local_pci_probe+0x47/0xb0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  work_for_cpu_fn+0x1a/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  process_one_work+0x178/0x350
+Oct 12 14:36:15 redacted-mi300x-node kernel:  worker_thread+0x192/0x340
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_worker_thread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  kthread+0xda/0x100
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork+0x47/0x70
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork_asm+0x1b/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  </TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel: ---[ end trace ]---
+Oct 12 14:36:15 redacted-mi300x-node kernel: ------------[ cut here ]------------
+Oct 12 14:36:15 redacted-mi300x-node kernel: UBSAN: array-index-out-of-bounds in /tmp/amd.Uq0Z2gwz/amd/amdgpu/amdgpu_psp.c:1955:40
+Oct 12 14:36:15 redacted-mi300x-node kernel: index 8 is out of range for type 'xgmi_connected_port_num [8]'
+Oct 12 14:36:15 redacted-mi300x-node kernel: CPU: 0 PID: 10 Comm: kworker/0:1 Tainted: G     U     OE      6.8.0-1067-azure #75-Ubuntu
+Oct 12 14:36:15 redacted-mi300x-node kernel: Hardware name: Microsoft Corporation Virtual Machine/Virtual Machine, BIOS Hyper-V UEFI Release v4.1 01/14/2026
+Oct 12 14:36:15 redacted-mi300x-node kernel: Workqueue: events work_for_cpu_fn
+Oct 12 14:36:15 redacted-mi300x-node kernel: Call Trace:
+Oct 12 14:36:15 redacted-mi300x-node kernel:  <TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack_lvl+0x76/0xa0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  dump_stack+0x10/0x20
+Oct 12 14:36:15 redacted-mi300x-node kernel:  __ubsan_handle_out_of_bounds+0xc6/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  psp_xgmi_get_topology_info+0xb03/0x13a0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? amdgpu_hdp_invalidate+0x49/0x50 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_xgmi_add_device+0x5b2/0x870 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_sdma_v4_4_2_hw_init+0x10/0x10 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_device_init+0x2a2a/0x3860 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? pci_read_config_byte+0x27/0x50
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? do_pci_enable_device+0xcf/0x110
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_driver_load_kms+0x14/0xd0 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  amdgpu_pci_probe+0x307/0x760 [amdgpu]
+Oct 12 14:36:15 redacted-mi300x-node kernel:  local_pci_probe+0x47/0xb0
+Oct 12 14:36:15 redacted-mi300x-node kernel:  work_for_cpu_fn+0x1a/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  process_one_work+0x178/0x350
+Oct 12 14:36:15 redacted-mi300x-node kernel:  worker_thread+0x192/0x340
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_worker_thread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  kthread+0xda/0x100
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork+0x47/0x70
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ? __pfx_kthread+0x10/0x10
+Oct 12 14:36:15 redacted-mi300x-node kernel:  ret_from_fork_asm+0x1b/0x30
+Oct 12 14:36:15 redacted-mi300x-node kernel:  </TASK>
+Oct 12 14:36:15 redacted-mi300x-node kernel: ---[ end trace ]---
+Oct 12 14:36:15 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: XGMI: Add node 1, hive REDACTED_HIVE_ID.
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:16 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:16 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:16 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:16 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:16 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:16 redacted-mi300x-node kernel: amdgpu 0003:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:20 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:20 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:20 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:20 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:20 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: XGMI: Add node 0, hive REDACTED_HIVE_ID.
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:21 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:21 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:21 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:21 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:21 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:21 redacted-mi300x-node kernel: amdgpu 0004:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:25 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:25 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:25 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:25 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:25 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: XGMI: Add node 3, hive REDACTED_HIVE_ID.
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:26 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:26 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:26 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:26 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:26 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:26 redacted-mi300x-node kernel: amdgpu 0005:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:30 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:30 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:30 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:30 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:30 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: XGMI: Add node 7, hive REDACTED_HIVE_ID.
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:31 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:31 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:31 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:31 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:31 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:31 redacted-mi300x-node kernel: amdgpu 0006:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:35 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:35 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:35 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:35 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:35 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: XGMI: Add node 5, hive REDACTED_HIVE_ID.
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:36 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:36 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:36 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:36 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:36 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:36 redacted-mi300x-node kernel: amdgpu 0007:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:40 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:40 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:40 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:40 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:40 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: XGMI: Add node 4, hive REDACTED_HIVE_ID.
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:41 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:41 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:41 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:41 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:41 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:41 redacted-mi300x-node kernel: amdgpu 0008:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8
+Oct 12 14:36:45 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:45 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:45 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: kiq ring mec 2 pipe 1 q 0
+Oct 12 14:36:45 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: psp gfx command INVOKE_CMD(0x3) failed and response status is (0xFFFF000F)
+Oct 12 14:36:45 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: XGMI: Add node 6, hive REDACTED_HIVE_ID.
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu: HMM registered 196048MB device memory
+Oct 12 14:36:46 redacted-mi300x-node kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Oct 12 14:36:46 redacted-mi300x-node kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Oct 12 14:36:46 redacted-mi300x-node kernel: kfd kfd: amdgpu: KFD node 0 partition 0 size 196048M
+Oct 12 14:36:46 redacted-mi300x-node kernel: kfd kfd: amdgpu: Node: 0, interrupt_bitmap: 7777
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu: Virtual CRAT table created for GPU
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu: Topology: Add dGPU node [0x74b5:0x1002]
+Oct 12 14:36:46 redacted-mi300x-node kernel: kfd kfd: amdgpu: added device 1002:74b5
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: SE 4, SH per SE 1, CU per SH 10, active_cu_number 304
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_0.1.0.0 uses VM inv eng 0 on hub 0
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_0.1.1.0 uses VM inv eng 1 on hub 0
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 4 on hub 0
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_1.1.0.0 uses VM inv eng 0 on hub 1
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_1.1.1.0 uses VM inv eng 1 on hub 1
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_1.2.1.0 uses VM inv eng 4 on hub 1
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_2.1.0.0 uses VM inv eng 0 on hub 2
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_2.1.1.0 uses VM inv eng 1 on hub 2
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_2.2.1.0 uses VM inv eng 4 on hub 2
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_3.1.0.0 uses VM inv eng 0 on hub 3
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_3.1.1.0 uses VM inv eng 1 on hub 3
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_3.2.1.0 uses VM inv eng 4 on hub 3
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_4.1.0.0 uses VM inv eng 0 on hub 4
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_4.1.1.0 uses VM inv eng 1 on hub 4
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_4.2.1.0 uses VM inv eng 4 on hub 4
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_5.1.0.0 uses VM inv eng 0 on hub 5
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_5.1.1.0 uses VM inv eng 1 on hub 5
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_5.2.1.0 uses VM inv eng 4 on hub 5
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_6.1.0.0 uses VM inv eng 0 on hub 6
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_6.1.1.0 uses VM inv eng 1 on hub 6
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_6.2.1.0 uses VM inv eng 4 on hub 6
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_7.1.0.0 uses VM inv eng 0 on hub 7
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring comp_7.1.1.0 uses VM inv eng 1 on hub 7
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring kiq_7.2.1.0 uses VM inv eng 4 on hub 7
+Oct 12 14:36:46 redacted-mi300x-node kernel: amdgpu 0009:00:00.0: amdgpu: ring sdma0.0 uses VM inv eng 0 on hub 8

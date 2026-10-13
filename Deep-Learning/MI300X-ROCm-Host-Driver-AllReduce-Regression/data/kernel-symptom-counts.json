@@ -1,0 +1,12 @@
+{
+  "before": {
+    "xgmi_connected_port_num": 0,
+    "psp_xgmi_get_topology_info": 0,
+    "INVOKE_CMD(0x3) failed": 0
+  },
+  "after": {
+    "xgmi_connected_port_num": 4,
+    "psp_xgmi_get_topology_info": 4,
+    "INVOKE_CMD(0x3) failed": 8
+  }
+}

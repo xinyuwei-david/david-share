@@ -1,0 +1,39 @@
+# Writing JSON output to /results/rocm-6.4.4-run-2.json
+# rccl-tests version 2.19.6-pinned:1284e5da11f7904e8a6efd902b9de52253785bd0 rccl-headers=22203 rccl-library=22203
+# Collective test starting: all_reduce_perf
+# nThread 1 nGpus 8 minBytes 1048576 maxBytes 1073741824 step: 2(factor) warmup iters: 20 iters: 100 agg iters: 1 validation: 1 graph: 0 unalign: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid      1 on redacted-mi300x-node device  0 [0002:00:00] AMD Instinct MI300X VF
+#  Rank  1 Group  0 Pid      1 on redacted-mi300x-node device  1 [0003:00:00] AMD Instinct MI300X VF
+#  Rank  2 Group  0 Pid      1 on redacted-mi300x-node device  2 [0004:00:00] AMD Instinct MI300X VF
+#  Rank  3 Group  0 Pid      1 on redacted-mi300x-node device  3 [0005:00:00] AMD Instinct MI300X VF
+#  Rank  4 Group  0 Pid      1 on redacted-mi300x-node device  4 [0006:00:00] AMD Instinct MI300X VF
+#  Rank  5 Group  0 Pid      1 on redacted-mi300x-node device  5 [0007:00:00] AMD Instinct MI300X VF
+#  Rank  6 Group  0 Pid      1 on redacted-mi300x-node device  6 [0008:00:00] AMD Instinct MI300X VF
+#  Rank  7 Group  0 Pid      1 on redacted-mi300x-node device  7 [0009:00:00] AMD Instinct MI300X VF
+RCCL version : 2.22.3-HEAD:7d8d67c
+HIP version  : 6.4.43484-123eb5128
+ROCm version : REDACTED_IPV4-129-e7d83f5
+Hostname     : redacted-mi300x-node
+Librccl path : /opt/rocm-6.4.4/lib/librccl.so.1
+#
+#                                                                          out-of-place                           in-place
+#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+     1048576        262144     float     sum      -1    57.78   18.15   31.76       0    57.77   18.15   31.76       0
+     2097152        524288     float     sum      -1    58.91   35.60   62.29       0    57.87   36.24   63.42       0
+     4194304       1048576     float     sum      -1    58.52   71.67  125.42       0    58.31   71.93  125.88       0
+     8388608       2097152     float     sum      -1    85.31   98.33  172.07       0    87.95   95.37  166.91       0
+    16777216       4194304     float     sum      -1   150.36  111.58  195.27       0   156.29  107.34  187.85       0
+    33554432       8388608     float     sum      -1   243.19  137.97  241.46       0   255.17  131.50  230.12       0
+    67108864      16777216     float     sum      -1   428.40  156.65  274.14       0   439.33  152.75  267.32       0
+   134217728      33554432     float     sum      -1   797.19  168.36  294.64       0   805.80  166.56  291.49       0
+   268435456      67108864     float     sum      -1  1536.78  174.67  305.68       0  1546.86  173.54  303.69       0
+   536870912     134217728     float     sum      -1  3027.46  177.33  310.33       0  3036.66  176.80  309.39       0
+  1073741824     268435456     float     sum      -1  5966.96  179.95  314.91       0  5977.86  179.62  314.33       0
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 210.006
+#
+# Collective test concluded: all_reduce_perf
+#

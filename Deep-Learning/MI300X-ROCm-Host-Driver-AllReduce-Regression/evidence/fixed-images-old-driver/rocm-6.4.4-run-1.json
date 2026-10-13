@@ -1,0 +1,310 @@
+{
+  "version": 3,
+  "start_time": "2026-10-12 11:08:15",
+  "args": [
+    "/opt/rccl-tests/build/all_reduce_perf",
+    "-b",
+    "1M",
+    "-e",
+    "1G",
+    "-f",
+    "2",
+    "-t",
+    "1",
+    "-g",
+    "8",
+    "-n",
+    "100",
+    "-w",
+    "20",
+    "-c",
+    "1",
+    "-d",
+    "float",
+    "-o",
+    "sum",
+    "-J",
+    "/results/rocm-6.4.4-run-1.json"
+  ],
+  "env": [
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "HOSTNAME=redacted-mi300x-node",
+    "NCCL_DEBUG=WARN",
+    "HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7",
+    "HOME=/root"
+  ],
+  "nccl_version": 22203,
+  "rccl_version": 22203,
+  "config": {
+    "nthreads": 1,
+    "ngpus": 8,
+    "minimum_bytes": 1048576,
+    "maximum_bytes": 1073741824,
+    "step_factor": 2,
+    "warmup_iters": 20,
+    "iterations": 100,
+    "aggregated_iterations": 1,
+    "validation": 1,
+    "graph": 0,
+    "blocking_collectives": "false",
+    "per_iter_timing": "false",
+    "per_iter_skip": 0,
+    "parallel_init": "false",
+    "devices": [
+      {
+        "rank": 0,
+        "group": 0,
+        "pid": 1,
+        "hostname": "redacted-mi300x-node",
+        "device": 0,
+        "device_hex": "0002:00:00",
+        "device_info": "AMD Instinct MI300X VF"
+      }
+    ]
+  },
+  "results": [
+    {
+      "size": 1048576,
+      "count": 262144,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 57.24238,
+        "alg_bw": 18.318176,
+        "bus_bw": 32.056808,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.4652,
+        "alg_bw": 18.247148,
+        "bus_bw": 31.932509,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 2097152,
+      "count": 524288,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 58.67501,
+        "alg_bw": 35.741826,
+        "bus_bw": 62.548196,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.53862,
+        "alg_bw": 36.447728,
+        "bus_bw": 63.783525,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 4194304,
+      "count": 1048576,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 58.39636,
+        "alg_bw": 71.824751,
+        "bus_bw": 125.693314,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 57.95915,
+        "alg_bw": 72.366555,
+        "bus_bw": 126.641471,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 8388608,
+      "count": 2097152,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 85.3512,
+        "alg_bw": 98.283422,
+        "bus_bw": 171.995988,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 88.1189,
+        "alg_bw": 95.196468,
+        "bus_bw": 166.593818,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 16777216,
+      "count": 4194304,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 150.50733,
+        "alg_bw": 111.471089,
+        "bus_bw": 195.074406,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 156.61682,
+        "alg_bw": 107.122696,
+        "bus_bw": 187.464718,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 33554432,
+      "count": 8388608,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 243.19494,
+        "alg_bw": 137.973397,
+        "bus_bw": 241.453445,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 255.00041,
+        "alg_bw": 131.585796,
+        "bus_bw": 230.275143,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 67108864,
+      "count": 16777216,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 429.35133,
+        "alg_bw": 156.302914,
+        "bus_bw": 273.530099,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 439.45613,
+        "alg_bw": 152.708904,
+        "bus_bw": 267.240582,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 134217728,
+      "count": 33554432,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 797.52192,
+        "alg_bw": 168.293466,
+        "bus_bw": 294.513565,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 805.96691,
+        "alg_bw": 166.530073,
+        "bus_bw": 291.427627,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 268435456,
+      "count": 67108864,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 1537.49501,
+        "alg_bw": 174.592733,
+        "bus_bw": 305.537283,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 1546.67839,
+        "alg_bw": 173.556091,
+        "bus_bw": 303.72316,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 536870912,
+      "count": 134217728,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 3029.84517,
+        "alg_bw": 177.194174,
+        "bus_bw": 310.089804,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 3039.07754,
+        "alg_bw": 176.655878,
+        "bus_bw": 309.147787,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    },
+    {
+      "size": 1073741824,
+      "count": 268435456,
+      "type": "float",
+      "redop": "sum",
+      "root": "    -1",
+      "out_of_place": {
+        "time": 5969.69897,
+        "alg_bw": 179.865321,
+        "bus_bw": 314.764312,
+        "nwrong": 0.0
+      },
+      "in_place": {
+        "time": 5980.0648,
+        "alg_bw": 179.553543,
+        "bus_bw": 314.218701,
+        "nwrong": 0.0
+      },
+      "actual_iterations": 100,
+      "experiment_name": ""
+    }
+  ],
+  "out_of_bounds": {
+    "count": 0,
+    "okay": "true"
+  },
+  "average_bus_bandwidth": {
+    "bandwidth": 209.986648,
+    "okay": "unchecked"
+  },
+  "errors": [
+    ""
+  ],
+  "end_time": "2026-10-12 11:08:35"
+}

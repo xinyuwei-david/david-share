@@ -1,0 +1,10 @@
+local-runs/
+rollback/
+staging/
+private/
+*.deb
+*.tar
+*.tar.gz
+*.tgz
+__pycache__/
+*.pyc

@@ -120,6 +120,15 @@ class EvidenceTests(unittest.TestCase):
     def test_public_readme_links_and_three_section_contract(self) -> None:
         module.validate_publication()
 
+    def test_bilingual_version_facts_are_aligned(self) -> None:
+        facts = ("2.22.3", "2.26.6", "2.27.3", "2.27.7", "22703", "6.12.12", "6.16.13",
+                 "amdgpu/6.4.4", "6.4.x", "30.30.x", "6.2.x", "7.0.x", "7.2.x", "nvidia-nccl-cu12",
+                 "c1faf5053567d0fb97ba5825f51bfd6874ac9527", "AITER")
+        for name in ("README.md", "README_CN.md"):
+            text = (ROOT / name).read_text(encoding="utf-8")
+            for fact in facts:
+                self.assertIn(fact, text, f"{name} lacks {fact}")
+
     def test_container_build_is_pinned_and_does_not_install_host_driver(self) -> None:
         dockerfile = (ROOT / "docker/Dockerfile.rccl-tests").read_text(encoding="utf-8")
         self.assertIn("7.2.4-complete@sha256:92f309", dockerfile)

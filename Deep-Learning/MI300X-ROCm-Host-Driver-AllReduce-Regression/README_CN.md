@@ -69,7 +69,9 @@ VM 内安装的用户态：     ROCm 6.4.4 / RCCL 2.22.3
 它使用的内核驱动：      VM 已加载的 AMDGPU 模块 6.12.12
 ```
 
-这不是容器的 ROCm 回退或降级成了“ROCm 6.12.12”。[真实初始化输出](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt)明确记录 `rccl-library=22707`、RCCL `2.27.7`、ROCm `7.2.4.0-93` 和 `/opt/rocm-7.2.4/lib/librccl.so.1`。在容器里看到驱动 `6.12.12` 是预期行为。兼容性要对照官方[用户态与内核驱动矩阵](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html)及 GPU/虚拟化/固件要求，不能仅凭两类版本号不同就判断有问题。
+这不是容器的 ROCm 回退或降级成了“ROCm 6.12.12”。[真实初始化输出](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt)明确记录 `rccl-library=22707`、RCCL `2.27.7`、ROCm `7.2.4.0-93` 和 `/opt/rocm-7.2.4/lib/librccl.so.1`。在容器里看到驱动 `6.12.12` 是预期行为。
+
+对照 AMD 官方[用户态与内核驱动兼容矩阵](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html)：模块 `6.12.12` 来自 AMD 的 `amdgpu/6.4.4` 软件源（[驱动包目录](https://repo.radeon.com/amdgpu/6.4.4/ubuntu/pool/main/a/amdgpu-dkms/)，对应矩阵 `6.4.x` 行），`6.16.13` 就是 AMDGPU 30.30.4（[驱动包目录](https://repo.radeon.com/amdgpu/30.30.4/ubuntu/pool/main/a/amdgpu-dkms/)，对应 `30.30.x` 行）。这两行都支持 ROCm 6.4.x 和 7.2.x 用户态，所以**四种实测组合都在官方支持范围内，变慢的配置 3、4 也不例外**。兼容矩阵只规定哪些组合受支持，解释不了、也预测不了这次的 AllReduce 结果；GPU、虚拟化和固件方面的要求仍然要满足。如果打算在较旧的 VM 驱动上跑较新的容器镜像，先查这个驱动所在的行：例如 `6.2.x` 行只支持到 7.0.x 用户态，在这类驱动上跑 ROCm 7.2 容器就不在官方支持范围内。
 
 **客户配置尚未确认。**如果客户确实使用配置 2，本案例在该配置下没有复现其低带宽，不能直接把配置 3 的原生升级回归当作客户根因。应先取得客户 VM 实际加载的驱动、容器实际库路径与构建版本、分区/拓扑、原始测试命令和通信初始化日志。“VM 用默认镜像”“容器标签是高版本”都不足以证明环境与本案例相同。
 
@@ -100,6 +102,8 @@ flowchart TB
 
 两条应用路径都使用 **VM 已经加载的同一个内核模块**。容器不会升级这个模块；容器内 ROCm/HIP/RCCL 用户态则可以与 VM 内安装的用户态是不同版本。
 
+这条规则适用于容器里的所有 ROCm 用户态库，不只是 RCCL。推理镜像里 AITER、Composable Kernel 等库自带的 GPU 计算 kernel 从容器镜像加载，也通过 VM 的这个内核驱动提交到 GPU；这里的“kernel”是在 GPU 上执行的设备代码，不是 AMDGPU 内核态驱动。换容器，换掉的是实际执行的用户态代码（包括这些计算 kernel），内核驱动不会变；换 VM 驱动，则这台 VM 上的所有容器都会受影响，所以驱动升级必须单独验证。本案例只测了 RCCL AllReduce，没有测计算 kernel 的性能。
+
 ### 驱动隔离诊断，不替代原生主实验
 
 三个实验的边界不同：
@@ -116,6 +120,14 @@ flowchart TB
 <!-- END GENERATED: driver-isolation -->
 
 保留了[不可变镜像 ID 和诊断测量](data/native-summary.json)及[原始输出](evidence/fixed-images-new-driver/)。这些结果支持优先排查**宿主机驱动变化及其固件、虚拟化和互连交互**，不能据此说 RCCL 2.27.7 单独必然慢。
+
+### 如果看到其他 RCCL 版本，例如 2.27.3
+
+本案例中，带宽跟着 VM 实际加载的 AMDGPU 驱动走，不跟着 RCCL 版本走：驱动 `6.12.12` 上，RCCL 2.22.3 和 2.27.7 都快；驱动 `6.16.13` 上，两者都慢。
+
+没有任何官方 ROCm 发布版附带 RCCL 2.27.3。官方 ROCm APT 软件源中，ROCm 6.4～6.4.4 配 RCCL 2.22.3，7.0～7.0.3 配 2.26.6，7.1～7.2.4 配 2.27.7（[7.2.4 软件包目录](https://repo.radeon.com/rocm/apt/7.2.4/pool/main/r/rccl/)）；[RCCL 更新日志](https://github.com/ROCm/rocm-systems/blob/c1faf5053567d0fb97ba5825f51bfd6874ac9527/projects/rccl/CHANGELOG.md)里也没有 2.27.3。不过 2.27.3 是 NVIDIA NCCL 的版本号，例如 [`nvidia-nccl-cu12` 2.27.3](https://pypi.org/project/nvidia-nccl-cu12/2.27.3/)，它不能在 MI300X 上运行。所以看到 2.27.3，要么是自行编译的 RCCL，要么是 NVIDIA NCCL，而不是某个 ROCm 发布版。
+
+日志里出现 2.27.3（版本码 `22703`）时，先按[低带宽采集第 2 步](#再次出现低带宽时先采集再改版本)，用 `ldd`、解析后的 `librccl.so.1` 路径和 `ncclGetVersion` 确认实际加载的是哪个库，同时记录 VM 实际加载的驱动。本案例没有测过 2.27.3。两个 RCCL 版本在同一驱动上表现一致，所以在驱动 `6.16.13` 上遇到其他 RCCL 版本时，同样先排查驱动；但它的带宽必须实测，不能直接套用本案例的数字。
 
 ### 新内核异常是线索，还不是已证明的代码根因
 

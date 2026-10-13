@@ -69,7 +69,9 @@ Container-executed userspace: ROCm 7.2.4 / RCCL 2.27.7
 Kernel driver used by it:     VM's loaded AMDGPU module 6.12.12
 ```
 
-The container's ROCm did **not** fall back or downgrade to “ROCm 6.12.12”. [The real startup output](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt) reports `rccl-library=22707`, RCCL `2.27.7`, ROCm `7.2.4.0-93`, and `/opt/rocm-7.2.4/lib/librccl.so.1`. Observing driver `6.12.12` from inside that container is expected. Check the producer [userspace/kernel compatibility matrix](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html), along with GPU/virtualization/firmware requirements; do not infer incompatibility from the different version numbers alone.
+The container's ROCm did **not** fall back or downgrade to “ROCm 6.12.12”. [The real startup output](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt) reports `rccl-library=22707`, RCCL `2.27.7`, ROCm `7.2.4.0-93`, and `/opt/rocm-7.2.4/lib/librccl.so.1`. Observing driver `6.12.12` from inside that container is expected.
+
+In AMD's [userspace/kernel compatibility matrix](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html), module `6.12.12` is the driver in AMD's `amdgpu/6.4.4` repository ([package pool](https://repo.radeon.com/amdgpu/6.4.4/ubuntu/pool/main/a/amdgpu-dkms/), matrix row `6.4.x`), and `6.16.13` is AMDGPU 30.30.4 ([package pool](https://repo.radeon.com/amdgpu/30.30.4/ubuntu/pool/main/a/amdgpu-dkms/), row `30.30.x`). Both rows list ROCm 6.4.x and 7.2.x userspace, so **all four tested combinations, including the slow configurations 3 and 4, are inside the published support matrix**. The matrix defines supported combinations; it neither explains nor predicts this AllReduce result, and GPU, virtualization and firmware requirements still apply. Before pairing an older VM driver with a newer container image, look up that driver's row: for example, the `6.2.x` row lists userspace only up to 7.0.x, so a ROCm 7.2 container on such a driver is outside the published matrix.
 
 **Customer applicability is still conditional.** If a customer's deployment really matches configuration 2, this case did not reproduce their low bandwidth under that configuration. The native configuration-3 regression does not establish their root cause. First obtain their actually loaded VM driver, actual container library paths/build versions, partition/topology, test command and communication initialization logs. “Default VM image” and a container tag alone do not prove a matched deployment.
 
@@ -100,6 +102,8 @@ flowchart TB
 
 Both application paths use the **same kernel module already loaded by the VM**. The container does not upgrade that module. Its ROCm/HIP/RCCL userspace can still be a different version from the VM-installed userspace.
 
+The same rule covers every ROCm userspace library in a container, not only RCCL. GPU compute kernels shipped by libraries such as AITER or Composable Kernel in an inference image are loaded from the container image and submitted through the same VM kernel driver; "kernel" there means device code that runs on the GPU, not the AMDGPU kernel-mode driver. Replacing a container changes the executed userspace code, including those compute kernels, but never the kernel driver. Changing the VM driver changes it for every container on that VM, so a driver upgrade needs its own validation. This case measured RCCL AllReduce only, not compute-kernel performance.
+
 ### Driver isolation, not a replacement for native measurements
 
 Three experiments answer different questions:
@@ -116,6 +120,14 @@ Three experiments answer different questions:
 <!-- END GENERATED: driver-isolation -->
 
 [The immutable image IDs and diagnostic measurements](data/native-summary.json) and [their raw output](evidence/fixed-images-new-driver/) are retained. This supports investigating the **host-driver transition and its firmware/virtualization/interconnect interaction**, rather than asserting that RCCL 2.27.7 alone must be slow.
+
+### If another RCCL version is reported, for example 2.27.3
+
+In this case, bandwidth followed the loaded AMDGPU driver rather than the RCCL version: on driver `6.12.12`, RCCL 2.22.3 and 2.27.7 were both fast; on driver `6.16.13`, both were slow.
+
+No official ROCm release ships RCCL 2.27.3. The official ROCm APT repositories ship RCCL 2.22.3 for ROCm 6.4–6.4.4, 2.26.6 for 7.0–7.0.3 and 2.27.7 for 7.1–7.2.4 ([7.2.4 package pool](https://repo.radeon.com/rocm/apt/7.2.4/pool/main/r/rccl/)), and the [RCCL changelog](https://github.com/ROCm/rocm-systems/blob/c1faf5053567d0fb97ba5825f51bfd6874ac9527/projects/rccl/CHANGELOG.md) has no 2.27.3 entry. 2.27.3 is, however, an NVIDIA NCCL version, for example [`nvidia-nccl-cu12` 2.27.3](https://pypi.org/project/nvidia-nccl-cu12/2.27.3/), which does not run on MI300X. A reported 2.27.3 therefore points to a custom RCCL build or to NVIDIA NCCL, not to a ROCm release.
+
+When a log reports 2.27.3 (version code `22703`), first identify the library that was actually loaded, using `ldd`, the resolved `librccl.so.1` path and `ncclGetVersion` as in [step 2 of the low-bandwidth collection](#if-low-bandwidth-appears-again-collect-before-changing-versions), and record the VM's loaded driver. This case did not measure 2.27.3. Two RCCL releases behaved the same on each driver, so a different RCCL version on driver `6.16.13` calls for the same driver investigation, but its bandwidth must be measured rather than assumed from this case.
 
 ### New kernel symptoms, not yet a proven code root cause
 

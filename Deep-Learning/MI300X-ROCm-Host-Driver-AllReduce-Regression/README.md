@@ -33,6 +33,33 @@ Both stacks used [the same official rccl-tests source](https://github.com/ROCm/r
 
 The primary evidence comprises **12 native runs, 264 phase measurements and 44 before/after comparison rows**. [comparison.csv](data/comparison.csv) contains every message-size comparison. Do not compare the mixed-size `Avg bus bandwidth` with a large-message plateau, or treat normalized AllReduce `busbw` as raw XGMI link throughput.
 
+## Four configurations: VM, container and the actually used driver
+
+The following table explicitly describes **both the VM-installed userspace and the container-installed userspace**. All four values use one process with eight GPUs, a 1 GiB message, and out-of-place AllReduce `busbw`.
+
+<!-- BEGIN GENERATED: execution-configurations -->
+| Configuration | Userspace installed in the VM | Userspace installed in the container | Test location | Actually used AMDGPU kernel driver | busbw GB/s | Statistic |
+|---|---|---|---|---|---:|---|
+| 1 | ROCm `6.4.4` / RCCL `2.22.3` | **No container** | Native VM OS | `6.12.12` (VM) | 314.60 | Median of 3 runs |
+| 2 | ROCm `6.4.4` / RCCL `2.22.3` | ROCm `7.2.4` / RCCL `2.27.7` | Inside container | `6.12.12` (shared VM driver) | 321.67 | Median of 3 runs |
+| 3 | ROCm `7.2.4` / RCCL `2.27.7` | **No container** | Native VM OS | `6.16.13` (VM) | 41.78 | Median of 3 runs |
+| 4 | ROCm `7.2.4` / RCCL `2.27.7` | ROCm `6.4.4` / RCCL `2.22.3` | Inside container | `6.16.13` (shared VM driver) | 37.44 | One extra diagnostic run |
+<!-- END GENERATED: execution-configurations -->
+
+**AMDGPU module version `6.12.12` and ROCm release `7.2.4` are different components, not competing versions of the same component.** ROCm/HIP/HSA/RCCL are userspace libraries. The AMDGPU kernel module is loaded in the VM OS. In these Docker tests, a container shares that already loaded module; it does not supply an independent kernel driver.
+
+For configuration **2**, the actual combination is:
+
+```text
+VM-installed userspace:       ROCm 6.4.4 / RCCL 2.22.3
+Container-executed userspace: ROCm 7.2.4 / RCCL 2.27.7
+Kernel driver used by it:     VM's loaded AMDGPU module 6.12.12
+```
+
+The container's ROCm did **not** fall back or downgrade to “ROCm 6.12.12”. [The real startup output](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt) reports `rccl-library=22707`, RCCL `2.27.7`, ROCm `7.2.4.0-93`, and `/opt/rocm-7.2.4/lib/librccl.so.1`. Observing driver `6.12.12` from inside that container is expected. Check the producer [userspace/kernel compatibility matrix](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html), along with GPU/virtualization/firmware requirements; do not infer incompatibility from the different version numbers alone.
+
+**Customer applicability is still conditional.** If a customer's deployment really matches configuration 2, this case did not reproduce their low bandwidth under that configuration. The native configuration-3 regression does not establish their root cause. First obtain their actually loaded VM driver, actual container library paths/build versions, partition/topology, test command and communication initialization logs. “Default VM image” and a container tag alone do not prove a matched deployment.
+
 ## Why the container-only result was misleading
 
 Three experiments answer different questions:

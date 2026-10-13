@@ -55,6 +55,26 @@ class EvidenceTests(unittest.TestCase):
         self.assertIn("314.60 | 41.78 | 86.72%", table)
         self.assertIn("314.81 | 41.74 | 86.74%", table)
 
+    def test_configurations_explicitly_describe_vm_and_container(self) -> None:
+        summary = json.loads((ROOT / "data/native-summary.json").read_text())
+        table = module.render_configurations(summary, True)
+        self.assertEqual(table.count("**没有容器**"), 2)
+        case2 = next(line for line in table.splitlines() if line.startswith("| 2 |"))
+        self.assertIn("ROCm `6.4.4` / RCCL `2.22.3`", case2)
+        self.assertIn("ROCm `7.2.4` / RCCL `2.27.7`", case2)
+        self.assertIn("`6.12.12`（共享 VM 驱动）", case2)
+        self.assertIn("321.67", case2)
+        case4 = next(line for line in table.splitlines() if line.startswith("| 4 |"))
+        self.assertIn("`6.16.13`（共享 VM 驱动）", case4)
+        self.assertIn("单轮额外诊断", case4)
+        self.assertIn("37.44", case4)
+
+    def test_english_configurations_have_explicit_no_container(self) -> None:
+        summary = json.loads((ROOT / "data/native-summary.json").read_text())
+        table = module.render_configurations(summary, False)
+        self.assertEqual(table.count("**No container**"), 2)
+        self.assertIn("shared VM driver", table)
+
     def test_empty_generated_block_can_be_populated(self) -> None:
         text = "<!-- BEGIN GENERATED: native-results -->\n<!-- END GENERATED: native-results -->"
         updated = module.replace_generated_block(text, "native-results", "table")

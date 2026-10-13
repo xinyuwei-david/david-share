@@ -145,6 +145,44 @@ def render_isolation(summary: dict, chinese: bool) -> str:
     return "\n".join(lines)
 
 
+def render_configurations(summary: dict, chinese: bool) -> str:
+    before, after = summary["before"], summary["after"]
+    native = next(row for row in summary["native_comparison"]
+                  if row["layout"] == "single" and row["size_bytes"] == 1 << 30
+                  and row["phase"] == "out_of_place")
+    old_image = next(row for row in summary["driver_isolation_diagnostics"]
+                     if row["userspace_rocm"] == "6.4.4" and row["phase"] == "out_of_place")
+    new_image = next(row for row in summary["driver_isolation_diagnostics"]
+                     if row["userspace_rocm"] == "7.2.4" and row["phase"] == "out_of_place")
+    cases = (
+        (1, before, None, native["before_bus_bw_gb_s"], True),
+        (2, before, ("7.2.4", "2.27.7"), new_image["old_driver_6_12_12_bus_bw_gb_s"], True),
+        (3, after, None, native["after_bus_bw_gb_s"], True),
+        (4, after, ("6.4.4", "2.22.3"), old_image["new_driver_6_16_13_bus_bw_gb_s"], False),
+    )
+    if chinese:
+        lines = ["| 配置 | VM 内安装的用户态 | 容器内安装的用户态 | 测试位置 | 实际使用的 AMDGPU 内核驱动 | busbw GB/s | 统计口径 |",
+                 "|---|---|---|---|---|---:|---|"]
+    else:
+        lines = ["| Configuration | Userspace installed in the VM | Userspace installed in the container | Test location | Actually used AMDGPU kernel driver | busbw GB/s | Statistic |",
+                 "|---|---|---|---|---|---:|---|"]
+    for number, host, container, bandwidth, repeated in cases:
+        host_rocm = host["rocm_default_version"].split("-")[0]
+        host_rccl = "2.22.3" if host["rccl_runtime_code"] == 22203 else "2.27.7"
+        vm = f"ROCm `{host_rocm}` / RCCL `{host_rccl}`"
+        if container is None:
+            image = "**没有容器**" if chinese else "**No container**"
+            location = "VM 操作系统原生" if chinese else "Native VM OS"
+            driver = f'`{host["loaded_amdgpu_version"]}`（VM）' if chinese else f'`{host["loaded_amdgpu_version"]}` (VM)'
+        else:
+            image = f"ROCm `{container[0]}` / RCCL `{container[1]}`"
+            location = "容器内" if chinese else "Inside container"
+            driver = f'`{host["loaded_amdgpu_version"]}`（共享 VM 驱动）' if chinese else f'`{host["loaded_amdgpu_version"]}` (shared VM driver)'
+        statistic = ("三轮中位数" if repeated else "单轮额外诊断") if chinese else ("Median of 3 runs" if repeated else "One extra diagnostic run")
+        lines.append(f"| {number} | {vm} | {image} | {location} | {driver} | {bandwidth:.2f} | {statistic} |")
+    return "\n".join(lines)
+
+
 def render_kernel_counts(summary: dict, chinese: bool) -> str:
     heading = (
         "| 在完整私有启动日志中检索的模式 | 旧驱动启动 | 新驱动启动 |"
@@ -211,6 +249,7 @@ def main() -> None:
         updated = text
         for section, table in (
             ("native-results", render_table(rows, chinese)),
+            ("execution-configurations", render_configurations(summary, chinese)),
             ("driver-isolation", render_isolation(summary, chinese)),
             ("kernel-symptoms", render_kernel_counts(summary, chinese)),
         ):

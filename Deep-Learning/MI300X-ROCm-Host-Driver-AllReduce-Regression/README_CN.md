@@ -33,6 +33,33 @@
 
 主实验包含 **12 轮原生运行、264 条分阶段测量、44 行前后对照**。[comparison.csv](data/comparison.csv) 保存每个消息大小的对比。不要把混合消息大小的 `Avg bus bandwidth` 与大消息平台值直接比较，也不要把归一化的 AllReduce `busbw` 当作原始 XGMI 链路吞吐。
 
+## 四种配置：VM、容器和实际使用的驱动
+
+下表把**VM 内安装的用户态、容器内安装的用户态**分别列出，不能只写测试时用的版本。四行均为单进程 8 卡、1 GiB 消息、AllReduce out-of-place `busbw`。
+
+<!-- BEGIN GENERATED: execution-configurations -->
+| 配置 | VM 内安装的用户态 | 容器内安装的用户态 | 测试位置 | 实际使用的 AMDGPU 内核驱动 | busbw GB/s | 统计口径 |
+|---|---|---|---|---|---:|---|
+| 1 | ROCm `6.4.4` / RCCL `2.22.3` | **没有容器** | VM 操作系统原生 | `6.12.12`（VM） | 314.60 | 三轮中位数 |
+| 2 | ROCm `6.4.4` / RCCL `2.22.3` | ROCm `7.2.4` / RCCL `2.27.7` | 容器内 | `6.12.12`（共享 VM 驱动） | 321.67 | 三轮中位数 |
+| 3 | ROCm `7.2.4` / RCCL `2.27.7` | **没有容器** | VM 操作系统原生 | `6.16.13`（VM） | 41.78 | 三轮中位数 |
+| 4 | ROCm `7.2.4` / RCCL `2.27.7` | ROCm `6.4.4` / RCCL `2.22.3` | 容器内 | `6.16.13`（共享 VM 驱动） | 37.44 | 单轮额外诊断 |
+<!-- END GENERATED: execution-configurations -->
+
+**AMDGPU 模块版本 `6.12.12` 与 ROCm 发布版本 `7.2.4` 是不同组件的版本，不能直接作大小比较。**ROCm/HIP/HSA/RCCL 是用户态库；AMDGPU 内核模块由 VM 操作系统加载。在这些 Docker 测试中，容器共享 VM 已加载的模块，不提供一套独立的内核驱动。
+
+配置 **2** 的实际运行组合是：
+
+```text
+VM 内安装的用户态：     ROCm 6.4.4 / RCCL 2.22.3
+容器实际执行的用户态：  ROCm 7.2.4 / RCCL 2.27.7
+它使用的内核驱动：      VM 已加载的 AMDGPU 模块 6.12.12
+```
+
+这不是容器的 ROCm 回退或降级成了“ROCm 6.12.12”。[真实初始化输出](evidence/fixed-images-old-driver/rocm-7.2.4-run-1.txt)明确记录 `rccl-library=22707`、RCCL `2.27.7`、ROCm `7.2.4.0-93` 和 `/opt/rocm-7.2.4/lib/librccl.so.1`。在容器里看到驱动 `6.12.12` 是预期行为。兼容性要对照官方[用户态与内核驱动矩阵](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.4/reference/user-kernel-space-compat-matrix.html)及 GPU/虚拟化/固件要求，不能仅凭两类版本号不同就判断有问题。
+
+**客户配置尚未确认。**如果客户确实使用配置 2，本案例在该配置下没有复现其低带宽，不能直接把配置 3 的原生升级回归当作客户根因。应先取得客户 VM 实际加载的驱动、容器实际库路径与构建版本、分区/拓扑、原始测试命令和通信初始化日志。“VM 用默认镜像”“容器标签是高版本”都不足以证明环境与本案例相同。
+
 ## 为什么只测容器会漏掉这个问题
 
 三个实验的边界不同：

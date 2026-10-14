@@ -386,6 +386,8 @@ kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=
 The offline checks need Python 3.10 or newer and no Azure access:
 
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python tools/build_measurements.py --check
 python tools/render_docs.py --check
@@ -394,12 +396,12 @@ python tools/validate_docs.py
 python -m pytest -q
 ```
 
-Done when every command exits 0 and each check prints `PASS`.
+On Windows, activate with `.venv\Scripts\activate` instead of `. .venv/bin/activate`. Done when every command exits 0 and each check prints `PASS`.
 
 - **`build_measurements.py --check`** rebuilds every metric and fails if a run file's hash, a field or a cross-check is wrong, or if the committed `measurements.json` differs.
 - **`render_docs.py --check`** fails if a table or inline number in any of the four pages differs from a fresh render.
 - **`build_diagrams.py --check`** compares both architecture figures and every icon with [`images/SOURCES.json`](images/SOURCES.json).
-- **`validate_docs.py`** checks the three README headings in order, the VALIDATION headings, the core claim contract and canonical run order in [`evidence/claims.json`](evidence/claims.json), that every measured-run section has Question, Input, Varied and fixed, Result and Boundary in that order with no table before the input, that every run is in the README's results table and all four pages use the same run order, links and images, figure widths, English/Chinese number parity by generated block and table cell (not just document-wide totals), variable-only commands in Steps, and private-content guards (subscription and tenant IDs, IPv4 addresses, emails, internal resource names, and retired claims).
+- **`validate_docs.py`** checks the three README headings in order, the VALIDATION headings, the core claim contract and canonical run order in [`evidence/claims.json`](evidence/claims.json), that every measured-run section has Question, Input, Varied and fixed, Result and Boundary in that order with no table before the input, that every run is in the README's results table and all four pages use the same run order, links and images, figure widths, English/Chinese number parity by generated block and table cell (not just document-wide totals), Steps commands that use only variables, keep the reader's shell open (no `set -e` or `exit`), install into a virtual environment and keep `az group delete` alone with its confirmation prompt, and private-content guards (subscription and tenant IDs, IPv4 addresses, emails, internal resource names, and retired claims).
 - **`pytest`** runs these checks as tests, recomputes the medians from raw values, evaluates `check_isolation.py` on saved pod and node JSON, runs every tool's `--help` without the Azure SDK, and breaks each guard (a tampered run file, invalid duration, reversed timeline, incomplete concurrency sample, edited number, inserted subscription ID, removed heading, table before an input, reordered runs) to confirm it fails.
 - Mocked live-tool tests also check that failed concurrency follow-ups, skipped recovery, failed pod reads or deletions, lost history, invalid arguments and missing settings cannot report success. They make no Azure calls.
 
@@ -428,7 +430,7 @@ Not tested here: the tools against a fresh subscription end to end after this re
 - `SOURCE_FACT`: [ACA's official quota documentation](https://sandboxes.azure.com/docs/sandboxes/limits) measures concurrent active cores; stopped sandboxes do not consume this quota. This is not a fixed session-count limit.
 - `SOURCE_FACT`: [AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) isolates compute, not the control plane, storage/data paths or cluster-admin actions. The isolation tool checks runtime configuration; requested kernel reads must succeed, and a version string is not hardware attestation.
 - `SOURCE_FACT`: the [fixed module-02 implementation](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) makes `MODEL_ROUTING=direct` call the Foundry project endpoint. A project with a registered native AI Gateway may still forward those calls through APIM; the mode name alone does not prove a gateway bypass.
-- `SOURCE_FACT`: status sources: A [GA on 2026-09-23](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125); B [public preview](https://devblogs.microsoft.com/foundry/hosted-agents-build26/) ("Hosted agents are in public preview today", 2026-06-02; no later GA announcement was found); C [Pod Sandboxing GA on 2025-11-18](https://azure.microsoft.com/updates?id=526237), with agent-sandbox v0.5.2 as an open-source project.
+- `SOURCE_FACT`: status sources: A [GA on 2026-09-23](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125); B [GA in 2026-06](https://azure.microsoft.com/updates?id=563596) (Azure Update "Generally Available: Hosted agents in Foundry Agent Service"; the earlier [Build post of 2026-06-02](https://devblogs.microsoft.com/foundry/hosted-agents-build26/) described the public preview before GA); C [Pod Sandboxing GA on 2025-11-18](https://azure.microsoft.com/updates?id=526237), with agent-sandbox v0.5.2 as an open-source project.
 - `LOCAL_MEASUREMENT`: A's history length continued increasing in the saved run. This checks history continuity, not exact answer correctness or preservation of arbitrary process memory.
 - `SOURCE_FACT`: D's cost floor of <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h is two `Standard_D4s_v5` nodes at 0.192 USD/h each plus the AKS Standard tier at 0.10 USD/h, East US 2 retail prices queried 2026-09-21; no discounts or tax. This is not the cost of the three-Kata-node benchmark pool.
 - D's onboarding durations (role assignments about <!--v:d.role_assignments.value-->120<!--/v--> s, `azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s, `azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s) come from the author's console recorded in the earlier field record; the console itself was not kept.

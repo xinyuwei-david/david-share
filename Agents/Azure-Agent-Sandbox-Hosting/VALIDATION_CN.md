@@ -386,6 +386,8 @@ kubectl wait sandbox agent-host -n "$NAMESPACE" --for=condition=Ready --timeout=
 离线校验需要 Python 3.10 及以上，不需要访问 Azure：
 
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python tools/build_measurements.py --check
 python tools/render_docs.py --check
@@ -394,12 +396,12 @@ python tools/validate_docs.py
 python -m pytest -q
 ```
 
-每条命令都退出 0、每个检查都打印 `PASS`，就算通过。
+在 Windows 上用 `.venv\Scripts\activate` 代替 `. .venv/bin/activate` 激活。每条命令都退出 0、每个检查都打印 `PASS`，就算通过。
 
 - **`build_measurements.py --check`** 重建全部指标；任何运行文件的哈希、字段或交叉校验出错，或者已提交的 `measurements.json` 与重建结果不同，都会失败。
 - **`render_docs.py --check`** 四个页面里任何一张表或一个行内数字与重新渲染的结果不同，就会失败。
 - **`build_diagrams.py --check`** 把两张架构图和每个图标与 [`images/SOURCES.json`](images/SOURCES.json) 比对。
-- **`validate_docs.py`** 检查：README 的三个标题及顺序、VALIDATION 的标题、[`evidence/claims.json`](evidence/claims.json) 中的核心声明合同和统一实测顺序；每个实测小节按“问题、输入、变量与固定项、结果、边界”的顺序出现，且输入之前没有表格；每次实测都出现在 README 的结果表里，四份文档的实测顺序一致；链接和图片、图片宽度、中英文数字按生成区块和表格单元格对齐（不只比较全文总数）、操作步骤里的命令只用变量；以及私有内容防护（订阅和租户 ID、IPv4 地址、邮箱、内部资源名、已撤回的结论）。
+- **`validate_docs.py`** 检查：README 的三个标题及顺序、VALIDATION 的标题、[`evidence/claims.json`](evidence/claims.json) 中的核心声明合同和统一实测顺序；每个实测小节按“问题、输入、变量与固定项、结果、边界”的顺序出现，且输入之前没有表格；每次实测都出现在 README 的结果表里，四份文档的实测顺序一致；链接和图片、图片宽度、中英文数字按生成区块和表格单元格对齐（不只比较全文总数）、操作步骤里的命令只用变量、不会关闭读者的 shell（不用 `set -e` 或 `exit`）、在虚拟环境里安装依赖，且 `az group delete` 单独成块并保留确认提示；以及私有内容防护（订阅和租户 ID、IPv4 地址、邮箱、内部资源名、已撤回的结论）。
 - **`pytest`** 把上面这些检查作为测试运行，从原始数值重算中位数，用保存的 pod 和节点 JSON 测 `check_isolation.py`，在不装 Azure SDK 的情况下运行每个工具的 `--help`，并逐项破坏输入（篡改运行文件、无效耗时、倒序时间线、缺少并发样本、改一个数字、插入订阅 ID、删一个标题、把表格放到输入前面、打乱实测顺序），确认它会失败。
 - 在线工具的 mock 测试还检查：并发追问失败、跳过恢复、读取或删除 pod 失败、历史丢失、参数无效和配置缺失都不能报成功；这些测试不会调用 Azure。
 
@@ -428,7 +430,7 @@ CI 在 Ubuntu 和 Windows 上用 Python 3.12 运行同样的检查（[工作流]
 - `SOURCE_FACT`：[ACA 官方配额说明](https://sandboxes.azure.com/docs/sandboxes/limits) 按并发 active cores 计量，停止的沙箱不占该配额；这不是固定会话数上限。
 - `SOURCE_FACT`：[AKS Pod Sandboxing](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing) 只隔离计算，不隔离控制面、存储与数据路径，也不限制 cluster-admin 的权限。隔离工具检查 runtime 配置；要求执行的内核读取必须成功，版本字符串不是硬件证明。
 - `SOURCE_FACT`：[固定版本 module-02 的实现](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py) 中，`MODEL_ROUTING=direct` 调用 Foundry project endpoint。如果项目注册了原生 AI Gateway，该请求仍可能经 APIM；不能只凭模式名判断它绕过了网关。
-- `SOURCE_FACT`：状态来源：A [2026-09-23 GA](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)；B [公开预览](https://devblogs.microsoft.com/foundry/hosted-agents-build26/)（2026-06-02 原文 “Hosted agents are in public preview today”，此后未找到 GA 公告）；C [Pod Sandboxing 于 2025-11-18 GA](https://azure.microsoft.com/updates?id=526237)，agent-sandbox v0.5.2 为开源项目。
+- `SOURCE_FACT`：状态来源：A [2026-09-23 GA](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125)；B [2026-06 GA](https://azure.microsoft.com/updates?id=563596)（Azure Update 标题 “Generally Available: Hosted agents in Foundry Agent Service”；更早的 [2026-06-02 Build 博客](https://devblogs.microsoft.com/foundry/hosted-agents-build26/)写的是 GA 前的公开预览）；C [Pod Sandboxing 于 2025-11-18 GA](https://azure.microsoft.com/updates?id=526237)，agent-sandbox v0.5.2 为开源项目。
 - `LOCAL_MEASUREMENT`：A 的保存记录显示对话历史长度继续增长。这检查历史连续性，不证明答案精确正确，也不证明任意进程内存都被保留。
 - `SOURCE_FACT`：D 的保底费用 <!--v:d.cost_floor.value-->0.484<!--/v--> USD/h，是两个 `Standard_D4s_v5` 节点各 0.192 USD/h 加 AKS Standard 层 0.10 USD/h，按 2026-09-21 查询的 East US 2 零售价；不含折扣和税。这不是三个 Kata 节点压测池的费用。
 - D 的接入耗时（角色分配约 <!--v:d.role_assignments.value-->120<!--/v--> s、`azd provision` <!--v:d.azd_provision.value-->522<!--/v--> s、`azd deploy` <!--v:d.azd_deploy.value-->212<!--/v--> s）来自更早那份现场记录里的作者控制台；控制台原始输出没有保留。

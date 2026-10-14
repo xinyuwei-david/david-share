@@ -12,18 +12,18 @@ You want each agent session to run in its own micro-VM on Azure, and you have to
 
 | Question | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |
 |---|---|---|---|---|
-| Status | GA (2026-09-23) | Public preview | Pod Sandboxing GA (2025-11-18); agent-sandbox v0.5.2 is open source | **Private preview** |
+| Status | GA (2026-09-23) | GA (2026-06) | Pod Sandboxing GA (2025-11-18); agent-sandbox v0.5.2 is open source | **Private preview** |
 | Who runs the session lifecycle | The ACA service | Foundry | You: controller, gateway, idle sweeper | Foundry, on your cluster |
 | Where the session's micro-VM runs | Service-managed compute | Microsoft-managed compute | Your Kata node pool | Your Kata node pool |
 | Suspend with memory snapshot | Yes | No: idle releases compute, `$HOME` and `/files` are restored | No memory snapshot: you patch `operatingMode`; the pod goes, file state comes back from Blob | Not exercised; confirm preview suspend support with the product group |
 | Selectable size / node SKU (docs) | XS: 0.25 vCPU / 0.5 GB<br>S: 0.5 vCPU / 1 GB<br>M (default): 1 vCPU / 2 GB<br>L: 2 vCPU / 4 GB<br>XL: 4 vCPU / 8 GB | 0.5 vCPU / 1 GiB<br>1 vCPU / 2 GiB<br>2 vCPU / 4 GiB<br>No VM SKU to choose | Kata-compatible Gen2 VM SKUs, such as the Dsv3 series; Azure Linux and nested virtualization required | Kata node SKUs within the approved preview requirements; confirm the selectable list with the product group |
 | Choose it when | You want per-user micro-VMs, snapshots and no cluster | You want Foundry to run everything and its limits do not bite | You must own the node, the network and the control plane | You need Foundry's agent platform **and** sessions on nodes you own |
 
-Product capabilities come from Microsoft Learn and status from the official announcements linked below; measured claims come from our runs; the last row is our selection guidance. Start with B for a general managed enterprise agent when its limits fit and a public preview is acceptable. For a Qira-like long-running, per-user workload that needs memory snapshots without a cluster, start with A. Use C or D only when owning the execution nodes is non-negotiable; choose D when Foundry must still run the agent platform.
+Product capabilities come from Microsoft Learn and status from the official announcements linked below; measured claims come from our runs; the last row is our selection guidance. Start with B for a general managed enterprise agent when its limits fit. For a long-running, per-user workload that needs memory snapshots without a cluster, start with A. Use C or D only when owning the execution nodes is non-negotiable; choose D when Foundry must still run the agent platform.
 
 The selectable row separates [A's sandbox resource tiers](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#resource-tiers), [B's sandbox sizes](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes), and [C/D's node VM SKUs](https://learn.microsoft.com/azure/aks/use-pod-sandboxing). A node SKU is not a per-session allocation; Kata pod requests, limits and overhead also constrain each session. Node availability and quota vary by region and subscription, and D has additional preview requirements.
 
-Status sources: [A GA announcement](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125), [B public preview](https://devblogs.microsoft.com/foundry/hosted-agents-build26/), [C Pod Sandboxing GA](https://azure.microsoft.com/updates?id=526237); agent-sandbox itself is an open-source project, not an Azure service. For C/D, [Kata provides compute isolation only](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing), not isolation of the control plane, storage/data paths or cluster-admin actions.
+Status sources: [A GA announcement](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125), [B GA announcement](https://azure.microsoft.com/updates?id=563596), [C Pod Sandboxing GA](https://azure.microsoft.com/updates?id=526237); agent-sandbox itself is an open-source project, not an Azure service. For C/D, [Kata provides compute isolation only](https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing), not isolation of the control plane, storage/data paths or cluster-admin actions.
 
 <img src="images/architecture-en.png" width="900" alt="Four columns A to D. Each shows the client entry, the Microsoft-managed zone and your subscription. A: ACA Sandboxes service and a sandbox micro-VM, with sandbox group, registry and Blob volume in your subscription. B: Foundry Agent Service and a per-session sandbox, with project and Application Insights in your subscription. C: AKS control plane, then controller, Kata pod VM, Kata node pool and Blob PVC in your subscription. D: Foundry Agent Service, then subnet NSG, foundry-system, Kata pod VM per session and registry and storage in your subscription.">
 
@@ -56,12 +56,11 @@ Words used in the results:
 
 **A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS**. Upstream calls module-02 Solution A, module-03 Solution B and module-04 Solution C. Use module numbers when reading it. Run only the path you need: B needs steps 1–2; the full A example reuses the image and network created in step 3. ACA itself does not require AKS. D uses an existing cluster and its own approved sample, not an automatically created cluster from this page.
 
-**Prerequisites.** Bash, Git, curl, Python 3.10+, Azure CLI 2.80+, kubectl and azd 1.34+; install the Foundry extension with `azd ext install microsoft.foundry`. You need subscription Owner, or Contributor plus Role Based Access Control Administrator, and model quota in your selected region. Use a non-production subscription. For C, provide your actual public egress CIDR; this HTTP workshop app is not a production HTTPS/login deployment.
+**Prerequisites.** Bash, Git, curl, Python 3.10+ with the venv module (on Ubuntu/Debian install `python3-venv`), Azure CLI 2.80+, kubectl and azd 1.34+; install the Foundry extension with `azd ext install microsoft.foundry`. You need subscription Owner, or Contributor plus Role Based Access Control Administrator, and model quota in your selected region. For A, your identity also needs the `Container Apps SandboxGroup Data Owner` role ([Learn](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#prerequisites)); the workshop's `sandbox-deploy.sh` assigns it when it can resolve your signed-in user and otherwise only prints a warning. Use a non-production subscription. For C, provide your actual public egress CIDR; this HTTP workshop app is not a production HTTPS/login deployment.
 
 **1. Clone and configure.** Clone into new directories, then edit `.env`: set `SUBSCRIPTION_ID`, `LOCATION` and `RESOURCE_GROUP`; set `C_ALLOW_CIDR` if using C. Leave `SN` until step 2.
 
 ```bash
-set -euo pipefail
 git clone --filter=blob:none --sparse --depth=1 https://github.com/david-xinyuwei/david-share.git
 git -C david-share sparse-checkout set Agents/Azure-Agent-Sandbox-Hosting
 cd david-share/Agents/Azure-Agent-Sandbox-Hosting
@@ -69,10 +68,12 @@ export HOSTING_REPO="$PWD"
 git clone https://github.com/oxcp/ainotes.git "$HOME/ainotes"
 git -C "$HOME/ainotes" checkout 905f2c2
 cp config/.env.example .env
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-After editing `.env`, sign in and run the upstream prerequisite checker. Resolve failed tool, permission or quota prerequisites before creating resources. Keep this shell open; `HOSTING_REPO` is the stable return directory.
+After editing `.env`, sign in and run the upstream prerequisite checker. Resolve failed tool, permission or quota prerequisites before creating resources. Keep this shell open: it holds `HOSTING_REPO`, the stable return directory, and the activated `.venv`.
 
 ```bash
 az login
@@ -111,25 +112,25 @@ Success: the Sandbox reaches `Ready`. Now allow only your configured egress CIDR
 
 ```bash
 if [ -z "$C_ALLOW_CIDR" ] || [[ "$C_ALLOW_CIDR" == YOUR-* ]]; then
-  echo "Set C_ALLOW_CIDR in .env and reload it before exposing the application" >&2
-  exit 1
+else
+  kubectl patch service agent-host-lb -n "$NAMESPACE" --type merge \
+    -p "{\"spec\":{\"loadBalancerSourceRanges\":[\"$C_ALLOW_CIDR\"]}}"
+  kubectl wait service agent-host-lb -n "$NAMESPACE" --for=jsonpath='{.status.loadBalancer.ingress[0].ip}' --timeout=5m
+  C_AGENT_HOST=$(kubectl get service agent-host-lb -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  C_AGENT_URL="http://${C_AGENT_HOST}"
+  printf 'C application: %s\n' "$C_AGENT_URL"
+  curl --fail-with-body --show-error --max-time 30 "$C_AGENT_URL/ready"
+  curl --fail-with-body --show-error --max-time 180 \
+    -H 'Content-Type: application/json' \
+    -d '{"query":"Where is Bangkok? Answer in one short sentence."}' "$C_AGENT_URL/reflect" | \
+    python -c 'import json,sys; body=json.load(sys.stdin); answer=body.get("response"); print(json.dumps(body,ensure_ascii=False)); sys.exit(0 if isinstance(answer,str) and answer.strip() else "C invocation failed: non-empty response missing")'
 fi
-kubectl patch service agent-host-lb -n "$NAMESPACE" --type merge \
-  -p "{\"spec\":{\"loadBalancerSourceRanges\":[\"$C_ALLOW_CIDR\"]}}"
-kubectl wait service agent-host-lb -n "$NAMESPACE" --for=jsonpath='{.status.loadBalancer.ingress[0].ip}' --timeout=5m
-C_AGENT_HOST=$(kubectl get service agent-host-lb -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-C_AGENT_URL="http://${C_AGENT_HOST}"
-printf 'C application: %s\n' "$C_AGENT_URL"
-curl --fail-with-body --show-error --max-time 30 "$C_AGENT_URL/ready"
-curl --fail-with-body --show-error --max-time 180 \
-  -H 'Content-Type: application/json' \
-  -d '{"query":"Where is Bangkok? Answer in one short sentence."}' "$C_AGENT_URL/reflect" | \
-  python -c 'import json,sys; body=json.load(sys.stdin); answer=body.get("response"); print(json.dumps(body,ensure_ascii=False)); sys.exit(0 if isinstance(answer,str) and answer.strip() else "C invocation failed: non-empty response missing")'
 cd "$HOSTING_REPO"
 ```
 
+If the first line prints the `C_ALLOW_CIDR` message, nothing else ran: set it, reload `.env` and run the block again. 
 Open the printed URL in a browser to use the chat page. `/ready` must succeed and `/reflect` must return a non-empty `response`; a Ready pod alone is not an answering application. On failure inspect `kubectl get pods`, `kubectl describe pod` and `kubectl logs` in `NAMESPACE`; for unreachable HTTP also check the egress CIDR, Service address and network rules.
-
+ Following the workshop, `aca-subnet` goes into the VNet of the AKS node resource group; [AKS documents modifying resources there as unsupported](https://learn.microsoft.com/azure/aks/faq) and deletes that group with the cluster. Treat this as a workshop shortcut; outside the workshop, give the sandbox group a delegated subnet in a VNet you own.
 **4. A — Deploy the ACA sandbox agent.** [Module 4](https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-04/README.md) creates the sandbox group. Its disk-image and sandbox steps are separate; the SDK commands below perform those operations rather than replay measurements. This full example reuses step 3's image/network. Choose a free `ACA_SUBNET_PREFIX` inside that VNet.
 
 ```bash
@@ -203,12 +204,12 @@ kubectl get pods -n foundry-system
 ROUTER_IP=$(kubectl get svc foundry-router -n foundry-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 if [ -z "$ROUTER_IP" ]; then
   echo "foundry-router has no LoadBalancer address; resolve provisioning before deploying the agent" >&2
-  exit 1
+else
+  az network nsg rule create -g "$BYOAKS_SUBNET_NSG_RG" --nsg-name "$BYOAKS_SUBNET_NSG" \
+    -n Allow-AzureCloud-FoundryRouter-443 --priority 500 --direction Inbound --access Allow --protocol Tcp \
+    --source-address-prefixes AzureCloud --destination-address-prefixes "$ROUTER_IP" --destination-port-ranges 443 \
+    --query provisioningState -o tsv
 fi
-az network nsg rule create -g "$BYOAKS_SUBNET_NSG_RG" --nsg-name "$BYOAKS_SUBNET_NSG" \
-  -n Allow-AzureCloud-FoundryRouter-443 --priority 500 --direction Inbound --access Allow --protocol Tcp \
-  --source-address-prefixes AzureCloud --destination-address-prefixes "$ROUTER_IP" --destination-port-ranges 443 \
-  --query provisioningState -o tsv
 ```
 
 **D4. Deploy and invoke the application.** These commands remain in the sample directory. Success: deployment completes, invoke answers, and show displays the endpoint. On failures inspect the sample/controller logs and the approved storage, identity and network settings; do not automatically purge resources.
@@ -222,13 +223,30 @@ cd "$HOSTING_REPO"
 
 **Done.** The selected path has an actual answering application and its usable entry, not merely a completed measurement command. Optional cold/warm tests, isolation checks and historical-number replay are in [VALIDATION.md](VALIDATION.md#tests-and-offline-checks).
 
-**Offboard only after explicit owner approval; not part of deployment.** Choose only the command for resources you intend to remove. Stopping AKS saves compute charges, not all retained-resource charges; the resource-group delete removes the shared foundation and A/B/C.
+**Offboard only after explicit owner approval; not part of deployment.** Each command below is its own block: run only the ones for resources you intend to remove. Stopping AKS saves compute charges, not all retained-resource charges.
+
+Delete the A sandbox:
 
 ```bash
 python tools/aca_sandbox.py delete
+```
+
+Stop the C cluster:
+
+```bash
 az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"
+```
+
+Stop the D cluster:
+
+```bash
 az aks stop -g "$BYOAKS_RESOURCE_GROUP" -n "$BYOAKS_CLUSTER"
-az group delete -n "$RESOURCE_GROUP" --yes --no-wait
+```
+
+Delete the resource group. This removes the shared foundation and A/B/C, and `az` asks you to confirm first:
+
+```bash
+az group delete -n "$RESOURCE_GROUP" --no-wait
 ```
 
 ## Results

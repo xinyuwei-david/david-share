@@ -15,7 +15,9 @@ Rules (each prints CHECK <rule> PASS|FAIL <detail>):
   images              every image is used in both languages, has alt text, and diagrams are embedded at <= 900 px
   numbers             the multiset of numbers in each README equals its Chinese page's (same for VALIDATION)
   information-alignment core identities, statuses, boundaries, recommendations and evidence limits agree
-  commands            Steps commands use variables, not subscription IDs, GUIDs or literal resource IDs
+  commands            Steps commands use variables, not subscription IDs, GUIDs or literal resource IDs; they
+                      install into a virtual environment, never close the reader's shell (set -e, exit), and
+                      keep az group delete alone in its block with its confirmation prompt
   private             no GUID, IPv4 address, email, token, internal name or retired claim in the delivered tree
 """
 from __future__ import annotations
@@ -72,7 +74,11 @@ RETIRED_CLAIMS = ["not observed on the cluster", "Sessions on cluster-not observ
                   "A, B and C use the agenthost workshop's reflection agent",
                   "A、B、C 使用 workshop reflection agent",
                   "A、B、C 使用 workshop 的 reflection agent",
-                  "A、B、C 用 agenthost workshop 的 reflection agent"]
+                  "A、B、C 用 agenthost workshop 的 reflection agent",
+                  # B reached GA in 2026-06 (Azure Update 563596); the preview wording must not return.
+                  "and a public preview is acceptable", "且能接受公开预览",
+                  "Hosted agents are in public preview today", "no later GA announcement was found",
+                  "此后未找到 GA 公告", "B public preview", "B 的公开预览说明"]
 SCAN_SUFFIXES = {".md", ".json", ".py", ".yml", ".yaml", ".txt", ".example", ".svg", ".in"}
 SKIP_SCAN = {"tests/test_guards.py", "tools/validate_docs.py"}
 
@@ -156,8 +162,8 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             errors.append(f"{name}: {label} row differs from evidence/claims.json")
     required = {
         "README.md": [
-            "Start with B for a general managed enterprise agent when its limits fit and a public preview is acceptable",
-            "For a Qira-like long-running, per-user workload",
+            "Start with B for a general managed enterprise agent when its limits fit.",
+            "For a long-running, per-user workload",
             "A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS",
             "not the same container",
             "component sums, not a single end-to-end client stopwatch",
@@ -165,8 +171,8 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             "pod age, not idle duration",
         ],
         "README_CN.md": [
-            "一般企业 agent 在 B 的限制可接受、且能接受公开预览时先选 B",
-            "对于 Qira 这类需要按用户长期运行",
+            "一般企业 agent 在 B 的限制可接受时先选 B。",
+            "对于需要按用户长期运行",
             "A = ACA Sandboxes，B = Foundry hosted agent，C = AKS + agent-sandbox，D = BYO-AKS",
             "不是相同容器",
             "采用分段相加，不是客户端连续端到端计时",
@@ -420,9 +426,19 @@ def check_commands(pages: dict[str, str]) -> list[str]:
             errors.append(f"{name}: missing stable repository return directory")
         if re.search(r"tools/(?:measure_aca|measure_responses|check_isolation|build_measurements|render_docs|validate_docs)\.py", commands):
             errors.append(f"{name}: measurement or evidence check used in deployment Steps")
-        if "set -euo pipefail" not in commands or "C invocation failed: non-empty response missing" not in commands:
+        if "C invocation failed: non-empty response missing" not in commands:
             errors.append(f"{name}: C invocation does not reject a missing application answer")
+        for required in ("python3 -m venv .venv", ". .venv/bin/activate"):
+            if required not in commands:
+                errors.append(f"{name}: Steps must install Python packages into a virtual environment ({required})")
+        # Readers paste these blocks into a shell they keep open; set -e or exit would close it on the first failure.
+        if re.search(r"(?m)^\s*set\s+-[a-z]*e", commands) or re.search(r"(?m)^\s*exit\b", commands):
+            errors.append(f"{name}: Steps commands must not close the reader's interactive shell (set -e or exit)")
         for code in blocks:
+            if "az group delete" in code and code.strip().count("\n") > 0:
+                errors.append(f"{name}: az group delete must be alone in its own code block")
+            if re.search(r"az group delete[^\n]*(?:--yes|\s-y\b)", code):
+                errors.append(f"{name}: az group delete must keep its confirmation prompt")
             for bad, why in ((r"/subscriptions/[0-9a-f-]{8}", "literal subscription ID"),
                              (PRIVATE_PATTERNS["guid"], "GUID"),
                              (r"-g\s+rg-[a-z0-9-]+|--resource-group\s+rg-", "literal resource group")):

@@ -8,7 +8,7 @@
     "d_workload": "BYO-AKS private-preview sample agent",
     "common_behavior": "new stateful session, follow-up in the same session, and lifecycle or recovery where the path exposes it",
     "general_managed_start": "B",
-    "qira_like_long_running_start": "A"
+    "long_running_per_user_start": "A"
   },
   "measurement_scope": {
     "region": "East US 2",
@@ -70,10 +70,10 @@
       "node_owner_zh": "微软"
     },
     "B": {
-      "status_en": "Public preview",
-      "status_zh": "公开预览",
-      "diagram_status_en": "public preview",
-      "diagram_status_zh": "公开预览",
+      "status_en": "GA (2026-06)",
+      "status_zh": "GA（2026-06）",
+      "diagram_status_en": "GA",
+      "diagram_status_zh": "GA",
       "lifecycle_owner_en": "Foundry",
       "lifecycle_owner_zh": "Foundry",
       "session_location_en": "Microsoft-managed compute",
@@ -148,7 +148,7 @@
     "workshop_ac_source": "https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/agent-src/app/main.py",
     "aca_quotas": "https://sandboxes.azure.com/docs/sandboxes/limits",
     "aca_ga_announcement": "https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125",
-    "hosted_agents_preview_status": "https://devblogs.microsoft.com/foundry/hosted-agents-build26/",
+    "hosted_agents_ga_announcement": "https://azure.microsoft.com/updates?id=563596",
     "hosted_agent_sizes": "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes",
     "aks_pod_sandboxing_ga": "https://azure.microsoft.com/updates?id=526237",
     "aks_compute_isolation_scope": "https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing",

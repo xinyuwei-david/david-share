@@ -223,6 +223,43 @@ def test_c_deployment_requires_a_real_application_request(name):
     assert any("real invocation" in error for error in vd.check_commands(p))
 
 
+@pytest.mark.parametrize("name,old,new", (("README.md", "| GA (2026-06) |", "| Public preview |"),
+                                          ("README_CN.md", "| GA（2026-06） |", "| 公开预览 |")))
+def test_b_status_cannot_revert_to_preview(name, old, new):
+    p = pages()
+    assert old in p[name]
+    p[name] = p[name].replace(old, new, 1)
+    assert any("maturity row" in e for e in vd.check_information_alignment(p))
+
+
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+@pytest.mark.parametrize("closing", ("set -euo pipefail\n", "exit 1\n"))
+def test_steps_cannot_close_the_readers_shell(name, closing):
+    p = pages()
+    p[name] = p[name].replace("git clone --filter=blob:none", closing + "git clone --filter=blob:none", 1)
+    assert any("interactive shell" in e for e in vd.check_commands(p))
+
+
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+def test_steps_install_into_a_virtual_environment(name):
+    p = pages()
+    p[name] = p[name].replace(". .venv/bin/activate\n", "", 1)
+    assert any("virtual environment" in e for e in vd.check_commands(p))
+
+
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+@pytest.mark.parametrize("fault", ("no-prompt", "shared-block"))
+def test_resource_group_delete_stays_alone_and_confirmed(name, fault):
+    p = pages()
+    cmd = 'az group delete -n "$RESOURCE_GROUP" --no-wait'
+    assert cmd in p[name]
+    if fault == "no-prompt":
+        p[name] = p[name].replace(cmd, 'az group delete -n "$RESOURCE_GROUP" --yes --no-wait', 1)
+    else:
+        p[name] = p[name].replace(cmd, 'az aks stop -g "$RESOURCE_GROUP" -n "$AKS_NAME"\n' + cmd, 1)
+    assert any("az group delete" in e for e in vd.check_commands(p))
+
+
 def test_private_content_fails(tmp_path):
     for leak in ("subscription 12345678-1234-1234-1234-123456789abc", "router at 20.242.33.10",
                  "mail someone@contoso.com", "cluster aks-byoaks", "sessions were not observed on the cluster"):

@@ -467,7 +467,7 @@
       "container_base": "rocm/sgl-dev@sha256:8f8dc55398855764d339ff4e2695b9c3c298704999051acaa1a67993fdff62e5",
       "host_binary": "HPC-image bundled all_reduce_perf; not rebuilt for the host arm.",
       "driver_boundary": "ROCm version strings report the software stack; the host amdgpu module version was not independently captured.",
-      "scope": "Communication microbenchmark, not model-serving or long-term reliability validation."
+      "scope": "Communication microbenchmark, not a model-serving or long-term reliability test."
     },
     "runs": [
       {
@@ -911,7 +911,7 @@
         }
       },
       {
-        "id": "container-validation",
+        "id": "container-correctness",
         "label": {
           "en": "Container correctness and transport",
           "cn": "\u5bb9\u5668\u6570\u636e\u6821\u9a8c\u4e0e\u4f20\u8f93\u8def\u5f84"
@@ -926,10 +926,10 @@
         },
         "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
         "boundary": {
-          "en": "Validation and INFO logging use a separate run, not the headline performance run.",
+          "en": "The data check and INFO logging come from a separate run, not the headline performance run.",
           "cn": "\u6570\u636e\u6821\u9a8c\u548c INFO \u65e5\u5fd7\u6765\u81ea\u72ec\u7acb\u8fd0\u884c\uff0c\u4e0d\u80fd\u7b97\u4f5c\u4e3b\u6027\u80fd\u8fd0\u884c\u4e2d\u7684\u68c0\u67e5\u3002"
         },
-        "source": "evidence/rccl/raw/container-validation.txt",
+        "source": "evidence/rccl/raw/container-correctness.txt",
         "parameters": {
           "threads": 1,
           "gpus_per_thread": 1,
@@ -1131,7 +1131,7 @@
         }
       },
       {
-        "id": "socket-validation",
+        "id": "socket-fallback",
         "label": {
           "en": "No IB device: Socket fallback",
           "cn": "\u4e0d\u6620\u5c04 IB \u8bbe\u5907\uff1a\u9000\u56de Socket"
@@ -1149,7 +1149,7 @@
           "en": "MPI used TCP in both arms; one message size, not the full headline sweep.",
           "cn": "\u4e24\u7ec4 MPI \u90fd\u8d70 TCP\uff1b\u53ea\u6d4b\u4e00\u4e2a\u6d88\u606f\u5927\u5c0f\uff0c\u4e0d\u662f\u4e3b\u7ed3\u679c\u7684\u5b8c\u6574\u626b\u63cf\u3002"
         },
-        "source": "evidence/rccl/raw/socket-validation.txt",
+        "source": "evidence/rccl/raw/socket-fallback.txt",
         "parameters": {
           "threads": 1,
           "gpus_per_thread": 1,
@@ -1215,7 +1215,7 @@
         }
       },
       {
-        "id": "ib-control-validation",
+        "id": "ib-transport",
         "label": {
           "en": "IB device mapped: IB transport",
           "cn": "\u6620\u5c04 IB \u8bbe\u5907\uff1a\u4f7f\u7528 IB \u4f20\u8f93"
@@ -1233,7 +1233,7 @@
           "en": "Same MPI and RCCL arguments as the Socket arm, with the IB device visible.",
           "cn": "MPI \u548c RCCL \u53c2\u6570\u4e0e Socket \u7ec4\u76f8\u540c\uff0c\u5dee\u522b\u662f\u5bb9\u5668\u53ef\u4ee5\u8bbf\u95ee IB \u8bbe\u5907\u3002"
         },
-        "source": "evidence/rccl/raw/ib-control-validation.txt",
+        "source": "evidence/rccl/raw/ib-transport.txt",
         "parameters": {
           "threads": 1,
           "gpus_per_thread": 1,
@@ -1314,7 +1314,7 @@
         },
         "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION -x NCCL_MIN_NCHANNELS=112 \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
         "boundary": {
-          "en": "One-VM large-message validation; not a claim about model inference throughput.",
+          "en": "One-VM large-message data check; not a claim about model inference throughput.",
           "cn": "\u8fd9\u662f\u5355\u673a\u5927\u6d88\u606f\u6821\u9a8c\uff0c\u4e0d\u4ee3\u8868\u6a21\u578b\u63a8\u7406\u541e\u5410\u7387\u3002"
         },
         "source": "evidence/rccl/raw/single-min-channels.txt",

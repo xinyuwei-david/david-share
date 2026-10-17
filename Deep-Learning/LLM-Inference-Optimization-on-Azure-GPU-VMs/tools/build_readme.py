@@ -685,7 +685,7 @@ def rccl_runs(lang: str) -> str:
         p = run["parameters"]
         title = run["label"][lang]
         question = questions[run["comparison"]][not en]
-        if run["id"] == "ib-control-validation":
+        if run["id"] == "ib-transport":
             question = ("With the IB device visible, does RCCL choose IB and pass its data check?" if en else
                         "映射 IB 设备后，RCCL 是否选择 IB 并通过数据校验？")
         out.append(f"### {title}\n")
@@ -717,7 +717,7 @@ def rccl_runs(lang: str) -> str:
         out.append(_table(header, rows, ["r", "r", "r"]))
         network = run["network_markers"]
         if run["environment"]["nodes"] == 1:
-            transport_boundary = ("This is intra-VM communication, not a validation of the inter-VM IB path." if en else
+            transport_boundary = ("This is intra-VM communication; it does not test the inter-VM IB path." if en else
                                   "这是单机通信结果，不能验证跨机 IB 链路。")
         elif network["IB"] == run["ranks"] and network["GDRDMA"]:
             transport_boundary = ("This run positively records IB selection and GPU Direct RDMA." if en else

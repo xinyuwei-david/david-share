@@ -16,7 +16,7 @@
     "container_base": "rocm/sgl-dev@sha256:8f8dc55398855764d339ff4e2695b9c3c298704999051acaa1a67993fdff62e5",
     "host_binary": "HPC-image bundled all_reduce_perf; not rebuilt for the host arm.",
     "driver_boundary": "ROCm version strings report the software stack; the host amdgpu module version was not independently captured.",
-    "scope": "Communication microbenchmark, not model-serving or long-term reliability validation."
+    "scope": "Communication microbenchmark, not a model-serving or long-term reliability test."
   },
   "runs": [
     {
@@ -110,8 +110,8 @@
       }
     },
     {
-      "id": "container-validation",
-      "file": "container-validation.txt",
+      "id": "container-correctness",
+      "file": "container-correctness.txt",
       "sha256": "86b5d41d6b21caaeaa57acccc746d2d510765d8db8640603e87cd49049a851e5",
       "original_sha256": "34ee4791c0eccc3def34ae7950a1143c1a368398b25e1c2b6ca3e7b182e77f3f",
       "original_command_sha256": "99a27e2b578e80313259bc188c6a60a0d7b85feb8aa404a9e5d6ebe2d2fc9eea",
@@ -129,7 +129,7 @@
       },
       "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
       "boundary": {
-        "en": "Validation and INFO logging use a separate run, not the headline performance run.",
+        "en": "The data check and INFO logging come from a separate run, not the headline performance run.",
         "cn": "数据校验和 INFO 日志来自独立运行，不能算作主性能运行中的检查。"
       },
       "expected": {
@@ -155,8 +155,8 @@
       }
     },
     {
-      "id": "socket-validation",
-      "file": "socket-validation.txt",
+      "id": "socket-fallback",
+      "file": "socket-fallback.txt",
       "sha256": "62357bec97e64ee4e388e9eb5b3aa4eb551b1601c650538b3757f81e5cd16e10",
       "original_sha256": "7fb67f6214a90a3e7db824ae3cffbeef37ddec20eea303554ebaae977824c0e6",
       "original_command_sha256": "1f952487856073c1448114d672f689fbbd42f7f923b7bc02829067c9b8e1501c",
@@ -200,8 +200,8 @@
       }
     },
     {
-      "id": "ib-control-validation",
-      "file": "ib-control-validation.txt",
+      "id": "ib-transport",
+      "file": "ib-transport.txt",
       "sha256": "64ce65ab4d5a3fa08d0b700d695afc93e383f7cde384211e087088e95751c71f",
       "original_sha256": "7a7eb26b68cf72e1546bdc6eaf6d433faa9384a8f7fd588ca23fdc663817c0b9",
       "original_command_sha256": "1f952487856073c1448114d672f689fbbd42f7f923b7bc02829067c9b8e1501c",
@@ -264,7 +264,7 @@
       },
       "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION -x NCCL_MIN_NCHANNELS=112 \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
       "boundary": {
-        "en": "One-VM large-message validation; not a claim about model inference throughput.",
+        "en": "One-VM large-message data check; not a claim about model inference throughput.",
         "cn": "这是单机大消息校验，不代表模型推理吞吐率。"
       },
       "expected": {

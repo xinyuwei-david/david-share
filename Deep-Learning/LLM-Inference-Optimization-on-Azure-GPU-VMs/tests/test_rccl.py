@@ -38,7 +38,7 @@ class RcclParseTests(unittest.TestCase):
         self.assertIsNone(run["rows"][0]["out_of_place"]["wrong"])
 
     def test_check_run_preserves_out_of_place_and_in_place_order(self):
-        run = rccl_log.parse(sample("container-validation"))
+        run = rccl_log.parse(sample("container-correctness"))
         self.assertEqual(run["data_check"], "PASS")
         self.assertEqual(run["rows"][0]["out_of_place"]["busbw_gb_s"], 337.40)
         self.assertEqual(run["rows"][0]["in_place"]["busbw_gb_s"], 337.27)
@@ -46,7 +46,7 @@ class RcclParseTests(unittest.TestCase):
         self.assertEqual(run["parameters"]["iterations"], 20)
 
     def test_interleaved_info_does_not_lose_a_numeric_group(self):
-        original = sample("container-validation")
+        original = sample("container-correctness")
         lines = original.splitlines()
         index = next(i for i, line in enumerate(lines) if rccl_log.ROW_START.match(line))
         tokens = lines[index].split()
@@ -59,7 +59,7 @@ class RcclParseTests(unittest.TestCase):
         self.assertEqual(rccl_log.parse(logger + "\n" + "\n".join(lines)), rccl_log.parse(original))
 
     def test_numeric_container_hostname_does_not_extend_the_wrong_count(self):
-        original = sample("container-validation")
+        original = sample("container-correctness")
         lines = original.splitlines()
         index = next(i for i, line in enumerate(lines) if rccl_log.ROW_START.match(line))
         tokens = lines[index].split()
@@ -77,7 +77,7 @@ class RcclParseTests(unittest.TestCase):
         self.assertEqual(rccl_log.parse(result)["software"]["RCCL"], "2.27.7-HEAD:0d2c4fd")
 
     def test_missing_result_group_is_rejected(self):
-        text = sample("container-validation")
+        text = sample("container-correctness")
         line = next(line for line in text.splitlines() if rccl_log.ROW_START.match(line))
         broken = text.replace(line, " ".join(line.split()[:9]), 1)
         with self.assertRaisesRegex(rccl_log.RcclError, "result groups"):
@@ -91,7 +91,7 @@ class RcclParseTests(unittest.TestCase):
                     rccl_log.parse(broken)
 
     def test_bad_data_check_is_rejected(self):
-        text = sample("container-validation")
+        text = sample("container-correctness")
         line = next(line for line in text.splitlines() if rccl_log.ROW_START.match(line))
         tokens = line.split()
         tokens[8] = "1"
@@ -107,8 +107,8 @@ class RcclParseTests(unittest.TestCase):
                 rccl_log.parse(broken)
 
     def test_socket_control_does_not_claim_ib(self):
-        socket = rccl_log.parse(sample("socket-validation"))
-        ib = rccl_log.parse(sample("ib-control-validation"))
+        socket = rccl_log.parse(sample("socket-fallback"))
+        ib = rccl_log.parse(sample("ib-transport"))
         self.assertEqual(socket["parameters"], ib["parameters"])
         self.assertEqual(socket["data_check"], "PASS")
         self.assertEqual(socket["network_markers"]["Socket"], 16)

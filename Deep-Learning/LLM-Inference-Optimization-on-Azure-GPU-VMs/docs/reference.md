@@ -69,7 +69,7 @@ Not provided: model weights, the private raw logs behind the projected evidence 
 
 The client records workload arguments and the Serving Benchmark Result block. `tools/bench_log.py` projects and parses those fields; `tools/build_evidence.py` verifies their hashes and accepted comparisons. A server HTTP response alone is not an accuracy result.
 
-RCCL output uses binary message sizes: 1G is 1 GiB. algbw is message bytes divided by time. For N ranks, AllReduce busbw is algbw multiplied by 2(N-1)/N. The reported average includes in-place and out-of-place rows; it is not a repeat-run average or NIC utilization. `-c 0` does not validate data. An INFO log must show IB selection and GDRDMA before claiming that path. The parser handles INFO text glued to a result's wrong-count without swapping the two modes.
+RCCL output uses binary message sizes: 1G is 1 GiB. algbw is message bytes divided by time. For N ranks, AllReduce busbw is algbw multiplied by 2(N-1)/N. The reported average includes in-place and out-of-place rows; it is not a repeat-run average or NIC utilization. `-c 0` skips the data check. An INFO log must show IB selection and GDRDMA before claiming that path. The parser handles INFO text glued to a result's wrong-count without swapping the two modes.
 
 ## Upstream commits
 

@@ -342,7 +342,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 <!-- END GENERATED: run-inputs -->
 
-## Independent RCCL communication validation
+## Independent RCCL communication tests
 
 The host route and container route ran on the same two MI300X VMs. They used different ROCm/RCCL and test builds, so their difference does not isolate container overhead. AllReduce does not load model weights and does not measure model throughput. The source revision is in the [ROCm monorepo](https://github.com/ROCm/rocm-systems/tree/1284e5da11f7904e8a6efd902b9de52253785bd0/projects/rccl-tests).
 
@@ -359,6 +359,8 @@ The primary container sweep inherited NCCL_MIN_NCHANNELS=112 on local ranks but 
 <!-- END GENERATED: rccl-observation -->
 
 The [repackaged build recipe](../docker/rccl.Dockerfile) fetches this public source rather than the author's built directory. Its source inputs resolve, but its build and GPU replay are NOT_RUN; the [build-status record](../evidence/rccl/build-status.json) separates that packaging from the captured measurements.
+
+Each run's variables quote rccl-tests' own label: `validation=1` is the data check (`-c 1`), and `validation=0` (`-c 0`) means the results were not checked.
 
 <!-- BEGIN GENERATED: rccl-runs -->
 ### Host AllReduce
@@ -446,7 +448,7 @@ mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \
   "${RCCL_BIN}" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5
 ```
 
-**Variables.** 2 VM(s), 16 ranks, float/sum; 20 timed iterations, 5 warmups, validation=1. Validation and INFO logging use a separate run, not the headline performance run. Each arm is one sweep, not a repeatability estimate.
+**Variables.** 2 VM(s), 16 ranks, float/sum; 20 timed iterations, 5 warmups, validation=1. The data check and INFO logging come from a separate run, not the headline performance run. Each arm is one sweep, not a repeatability estimate.
 
 **Observed result.**
 
@@ -460,7 +462,7 @@ mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \
 
 Reported average: **345.307 GB/s** across both modes and all sizes. Data check: **PASS**. INFO markers: IB=16, Socket=0, GDRDMA=472.
 
-**Boundary.** This run positively records IB selection and GPU Direct RDMA. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/container-validation.txt); [source hashes and conditions](../evidence/rccl/runs.json).
+**Boundary.** This run positively records IB selection and GPU Direct RDMA. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/container-correctness.txt); [source hashes and conditions](../evidence/rccl/runs.json).
 
 ### No IB device: Socket fallback
 
@@ -490,7 +492,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NOD
 
 Reported average: **11.3114 GB/s** across both modes and all sizes. Data check: **PASS**. INFO markers: IB=0, Socket=16, GDRDMA=0.
 
-**Boundary.** This run records Socket fallback, not an IB data path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/socket-validation.txt); [source hashes and conditions](../evidence/rccl/runs.json).
+**Boundary.** This run records Socket fallback, not an IB data path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/socket-fallback.txt); [source hashes and conditions](../evidence/rccl/runs.json).
 
 ### IB device mapped: IB transport
 
@@ -520,7 +522,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NOD
 
 Reported average: **335.588 GB/s** across both modes and all sizes. Data check: **PASS**. INFO markers: IB=16, Socket=0, GDRDMA=472.
 
-**Boundary.** This run positively records IB selection and GPU Direct RDMA. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/ib-control-validation.txt); [source hashes and conditions](../evidence/rccl/runs.json).
+**Boundary.** This run positively records IB selection and GPU Direct RDMA. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/ib-transport.txt); [source hashes and conditions](../evidence/rccl/runs.json).
 
 ### One VM: minimum channels 112
 
@@ -540,7 +542,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \
   "${RCCL_BIN}" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5
 ```
 
-**Variables.** 1 VM(s), 8 ranks, float/sum; 20 timed iterations, 5 warmups, validation=1. One-VM large-message validation; not a claim about model inference throughput. Each arm is one sweep, not a repeatability estimate.
+**Variables.** 1 VM(s), 8 ranks, float/sum; 20 timed iterations, 5 warmups, validation=1. One-VM large-message data check; not a claim about model inference throughput. Each arm is one sweep, not a repeatability estimate.
 
 **Observed result.**
 
@@ -554,7 +556,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \
 
 Reported average: **301.688 GB/s** across both modes and all sizes. Data check: **PASS**. INFO markers: IB=0, Socket=0, GDRDMA=0.
 
-**Boundary.** This is intra-VM communication, not a validation of the inter-VM IB path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/single-min-channels.txt); [source hashes and conditions](../evidence/rccl/runs.json).
+**Boundary.** This is intra-VM communication; it does not test the inter-VM IB path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/single-min-channels.txt); [source hashes and conditions](../evidence/rccl/runs.json).
 
 ### One VM: minimum channels unset
 
@@ -588,7 +590,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \
 
 Reported average: **321.714 GB/s** across both modes and all sizes. Data check: **PASS**. INFO markers: IB=0, Socket=0, GDRDMA=0.
 
-**Boundary.** This is intra-VM communication, not a validation of the inter-VM IB path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/single-auto-channels.txt); [source hashes and conditions](../evidence/rccl/runs.json).
+**Boundary.** This is intra-VM communication; it does not test the inter-VM IB path. busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. [Numeric projection](../evidence/rccl/raw/single-auto-channels.txt); [source hashes and conditions](../evidence/rccl/runs.json).
 <!-- END GENERATED: rccl-runs -->
 
 ## Limits
@@ -598,4 +600,4 @@ Reported average: **321.714 GB/s** across both modes and all sizes. Data check: 
 - `NOT_MEASURED`: the final runtime (FlyDSL decode, vectorized 5D KV, page 64, 1M context) has no Microsoft throughput run published here, and neither does the mixed-precision router GEMM.
 - `NOT_MEASURED`: the accuracy effect of the lossy switches (FP8 KV cache, INT8 Quick Reduce, mixed-precision router) was not measured; the throughput runs had the first two on. [Subset accuracy of the optimized kernels](#accuracy-measured-on-the-optimized-kernels) was measured with the FP8 KV cache off. The [lossy-switch procedure](benchmark.md#check-a-lossy-switch-on-your-model) covers FP8 KV and Quick Reduce; the router change needs its own A/B on a runtime that contains commit `1f9bb2b`.
 - `NOT_MEASURED`: nothing here was run on NVIDIA GPUs. The CUDA profile is a mapping of upstream switches.
-- `SOURCE_FACT`: the FlyDSL, CK and MTP shape gates in the excerpts limit each kernel to MiMo's shape (16 query heads and 1 KV head per rank, head 192, page 64, gfx942). Another model needs its own validation, not just the flags.
+- `SOURCE_FACT`: the FlyDSL, CK and MTP shape gates in the excerpts limit each kernel to MiMo's shape (16 query heads and 1 KV head per rank, head 192, page 64, gfx942). Another model needs its own verification, not just the flags.

@@ -342,7 +342,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 <!-- END GENERATED: run-inputs -->
 
-## 独立的 RCCL 通信验证
+## 独立的 RCCL 通信测试
 
 宿主机与容器路线使用同一对 MI300X VM，但 ROCm、RCCL 和测试程序构建不同，差值不能单独归因于容器开销。AllReduce 不加载模型权重，也不测模型吞吐率。源码提交位于 [ROCm monorepo](https://github.com/ROCm/rocm-systems/tree/1284e5da11f7904e8a6efd902b9de52253785bd0/projects/rccl-tests)。
 
@@ -359,6 +359,8 @@ Moby 是安装的容器引擎软件包，不是测试镜像。这次使用公开
 <!-- END GENERATED: rccl-observation -->
 
 [重新打包的构建配方](../docker/rccl.Dockerfile)获取公开源码，而不是复制作者已经构建好的目录。源码输入可获取，但这个新配方的构建与 GPU 重跑尚未执行；[构建状态](../evidence/rccl/build-status.json)明确区分了打包步骤和已收录的测量。
+
+各组“变量”照录 rccl-tests 自己的写法：`validation=1` 即数据校验（`-c 1`），`validation=0`（`-c 0`）表示没有校验结果。
 
 <!-- BEGIN GENERATED: rccl-runs -->
 ### 宿主机 AllReduce
@@ -460,7 +462,7 @@ mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \
 
 工具报告平均 **345.307 GB/s**，包含两种模式和全部消息大小。数据校验：**PASS**。INFO 标记：IB=16、Socket=0、GDRDMA=472。
 
-**边界。** 本次运行已正向记录 IB 选择和 GPU Direct RDMA。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/container-validation.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
+**边界。** 本次运行已正向记录 IB 选择和 GPU Direct RDMA。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/container-correctness.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
 
 ### 不映射 IB 设备：退回 Socket
 
@@ -490,7 +492,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NOD
 
 工具报告平均 **11.3114 GB/s**，包含两种模式和全部消息大小。数据校验：**PASS**。INFO 标记：IB=0、Socket=16、GDRDMA=0。
 
-**边界。** 本次记录的是 Socket 回退，不能作为走 IB 的证明。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/socket-validation.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
+**边界。** 本次记录的是 Socket 回退，不能作为走 IB 的证明。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/socket-fallback.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
 
 ### 映射 IB 设备：使用 IB 传输
 
@@ -520,7 +522,7 @@ env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NOD
 
 工具报告平均 **335.588 GB/s**，包含两种模式和全部消息大小。数据校验：**PASS**。INFO 标记：IB=16、Socket=0、GDRDMA=472。
 
-**边界。** 本次运行已正向记录 IB 选择和 GPU Direct RDMA。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/ib-control-validation.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
+**边界。** 本次运行已正向记录 IB 选择和 GPU Direct RDMA。busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。[数值投影](../evidence/rccl/raw/ib-transport.txt)；[来源哈希与条件](../evidence/rccl/runs.json)。
 
 ### 单机：最少通道数设为 112
 

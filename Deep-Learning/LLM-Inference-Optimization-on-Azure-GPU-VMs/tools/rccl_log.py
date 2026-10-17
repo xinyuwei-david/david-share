@@ -155,7 +155,7 @@ def parse(text: str) -> dict:
             result = row[mode]
             wrong = result["wrong"]
             if parameters["validation"] and wrong != 0:
-                raise RcclError("data validation is enabled but a wrong-count is nonzero or missing")
+                raise RcclError("the data check is enabled but a wrong-count is nonzero or missing")
             if not parameters["validation"] and wrong is not None:
                 raise RcclError("performance-only run unexpectedly claims a data check")
             factor = 2 * (rank_count - 1) / rank_count

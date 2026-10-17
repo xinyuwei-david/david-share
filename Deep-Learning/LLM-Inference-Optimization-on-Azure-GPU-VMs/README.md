@@ -139,7 +139,7 @@ curl --fail-with-body -sS "$API_BASE/v1/chat/completions" \
 
 Expect `choices[0].message.content` containing `391` and `finish_reason=stop`. Both routes must show the expected kernels in native logs ([log checks](docs/deployment.md#step-6-confirm-the-optimizations-are-active)). Only the 1P1D route additionally requires Mooncake RDMA between the servers and no TCP fallback; a single-server route has no inter-server KV transfer to check.
 
-**7. Optional: validate communication without loading model weights.** On two otherwise idle VMs, copy `docker/rccl.env.example` to `docker/rccl.env`. Supply both node addresses, a dedicated absolute `RCCL_SSH_DIR` ending in `/rccl-ssh`, and the other settings. Host-to-host SSH must already be authenticated with verified host keys.
+**7. Optional: test communication without loading model weights.** On two otherwise idle VMs, copy `docker/rccl.env.example` to `docker/rccl.env`. Supply both node addresses, a dedicated absolute `RCCL_SSH_DIR` ending in `/rccl-ssh`, and the other settings. Host-to-host SSH must already be authenticated with verified host keys.
 
 ```bash
 cp docker/rccl.env.example docker/rccl.env

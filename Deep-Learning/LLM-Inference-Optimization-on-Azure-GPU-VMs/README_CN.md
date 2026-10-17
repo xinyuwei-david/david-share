@@ -139,7 +139,7 @@ curl --fail-with-body -sS "$API_BASE/v1/chat/completions" \
 
 预期 `choices[0].message.content` 包含 `391`，且 `finish_reason=stop`。两条路线都要在原生日志中确认目标 kernel 已启用（[日志检查](docs/deployment_CN.md#第-6-步确认优化已生效)）；只有 1P1D 还需检查服务间的 Mooncake RDMA，并排除 TCP 回退。单机服务没有跨服务 KV 传输，不需要这一项检查。
 
-**7. 可选：不加载权重，单独验证通信。** 在两台没有其他 GPU 负载的 VM 上，把 `docker/rccl.env.example` 复制为 `docker/rccl.env`。填写节点地址、以 `/rccl-ssh` 结尾的专用绝对目录 `RCCL_SSH_DIR` 及其余配置。两台宿主机之间须已配置认证 SSH，并核验主机指纹。
+**7. 可选：不加载权重，单独测试通信。** 在两台没有其他 GPU 负载的 VM 上，把 `docker/rccl.env.example` 复制为 `docker/rccl.env`。填写节点地址、以 `/rccl-ssh` 结尾的专用绝对目录 `RCCL_SSH_DIR` 及其余配置。两台宿主机之间须已配置认证 SSH，并核验主机指纹。
 
 ```bash
 cp docker/rccl.env.example docker/rccl.env

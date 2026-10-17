@@ -94,7 +94,7 @@ class RcclShellTests(unittest.TestCase):
             self.assertEqual(done.returncode, 2)
             self.assertIn("already exists", done.stderr)
             env["RCCL_OUTPUT_DIR"] = str(temp / "bad-transport")
-            env["FIXTURE"] = str(ROOT / "evidence/rccl/raw/socket-validation.txt")
+            env["FIXTURE"] = str(ROOT / "evidence/rccl/raw/socket-fallback.txt")
             done = subprocess.run(command + ["check"], env=env, capture_output=True, text=True, encoding="utf-8")
             self.assertNotEqual(done.returncode, 0)
             self.assertIn("does not prove IB", done.stderr)

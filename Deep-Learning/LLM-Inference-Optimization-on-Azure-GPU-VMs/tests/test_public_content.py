@@ -238,16 +238,22 @@ class ReadmeTests(unittest.TestCase):
         self.assertIn("cn: MISSING_DOC_ENTRY docs/reference_CN.md", errors)
 
     def test_retired_reviewer_page_cannot_return(self):
-        """The single VALIDATION page was split into docs/; a file, a link or the old label must turn the audit red."""
+        """The retired page, its label, a stray "validation" term or such an evidence name must turn the audit red."""
         cases = {
             "file": lambda copy: (copy / "VALIDATION.md").write_text("# Validation\n", encoding="utf-8"),
             "link": lambda copy: (copy / "README.md").write_text(
                 (copy / "README.md").read_text(encoding="utf-8") + "\nSee [VALIDATION.md](README.md).\n", encoding="utf-8"),
             "label": lambda copy: (copy / "docs" / "results.md").write_text(
                 (copy / "docs" / "results.md").read_text(encoding="utf-8") + "\nSee the reviewer page.\n", encoding="utf-8"),
+            "term": lambda copy: (copy / "docs" / "results_CN.md").write_text(
+                (copy / "docs" / "results_CN.md").read_text(encoding="utf-8") + "\nSee the validation run.\n", encoding="utf-8"),
+            "evidence-name": lambda copy: (copy / "evidence" / "rccl" / "raw" / "x-validation.txt").write_text(
+                "not a run\n", encoding="utf-8"),
         }
         expected = {"file": "RETIRED_PAGE VALIDATION.md", "link": "README.md: RETIRED_PAGE_LINK VALIDATION.md",
-                    "label": "docs/results.md: RETIRED_WORDING reviewer page"}
+                    "label": "docs/results.md: RETIRED_WORDING reviewer page",
+                    "term": "docs/results_CN.md: RETIRED_TERM validation",
+                    "evidence-name": "RETIRED_EVIDENCE_NAME evidence/rccl/raw/x-validation.txt"}
         for case, mutate in cases.items():
             with self.subTest(case=case):
                 with tempfile.TemporaryDirectory() as tmp:

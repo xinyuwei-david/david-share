@@ -5,7 +5,8 @@
 
 Fails (exit 1) on: a broken relative link, image or in-page anchor; a `##`
 heading out of reader order in the README or a docs/ page; a docs/ page missing
-or unlinked; the retired single reviewer page; an undocumented top-level path; a
+or unlinked; the retired single reviewer page, or "validation" outside rccl-tests'
+own `validation=` field; an undocumented top-level path; a
 `<details>` block; English and Chinese generated blocks that carry different
 numbers; or content that must not be published (private paths, hosts,
 addresses, names, and comparisons with other accelerators).
@@ -50,13 +51,15 @@ DOC_ORDER = {
     },
     "results": {
         "en": ["Test setup", "Measurements on MI300X", "Measured Results on MI300X",
-               "Serving run inputs and provenance", "Independent RCCL communication validation", "Limits"],
-        "cn": ["测试环境", "MI300X 上的实测验证", "MI300X 实测结果", "推理运行的输入与来源", "独立的 RCCL 通信验证",
+               "Serving run inputs and provenance", "Independent RCCL communication tests", "Limits"],
+        "cn": ["测试环境", "MI300X 上的实测验证", "MI300X 实测结果", "推理运行的输入与来源", "独立的 RCCL 通信测试",
                "边界"],
     },
 }
 RETIRED_PAGES = ("VALIDATION.md", "VALIDATION_CN.md")
 RETIRED_WORDING = ("reviewer page", "评审页")
+# The data check is called "data check"; only rccl-tests' own `validation=` field keeps the word.
+STRAY_VALIDATION = re.compile(r"(?i)\bvalidation\b(?!=)")
 MAX_TABLE_COLUMNS = 4  # five-column tables overflow a 390px viewport on GitHub
 TOP_LEVEL_EXEMPT = {".gitattributes", ".gitignore", "README.md", "__pycache__"}
 FORBIDDEN = [
@@ -241,6 +244,11 @@ def check_retired(texts: dict[str, str], errors: list[str]) -> None:
         for wording in RETIRED_WORDING:
             if wording in text:
                 errors.append(f"{label}: RETIRED_WORDING {wording}")
+        if STRAY_VALIDATION.search(text):
+            errors.append(f"{label}: RETIRED_TERM validation")
+    for path in sorted((ROOT / "evidence").rglob("*")):
+        if "validation" in path.name.lower():
+            errors.append(f"RETIRED_EVIDENCE_NAME {path.relative_to(ROOT).as_posix()}")
 
 
 def check_table_shape(lang: str, text: str, errors: list[str]) -> None:

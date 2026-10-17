@@ -54,7 +54,7 @@ cd david-share/Deep-Learning/LLM-Inference-Optimization-on-Azure-GPU-VMs
 
 Expect eight MI300X GPUs and, for multi-node work, eight active IB devices. Confirm the valid GID for the selected device rather than copying a value from another fabric. Keep a durable copy of the weights: VM-local NVMe is temporary and can be lost on deallocation.
 
-**2. Supply your values once.** Fill the empty values before running this block, then complete `docker/mimo.env` using the template comments and copy it to every serving host.
+**2. Supply your values once.** Fill the empty values before running this block, then complete `docker/mimo.env` using the template comments and copy it to every serving host. Run the `hf download` line on every VM that runs a server, prefill or decode role, or stage the durable copy there: each of those containers mounts its own host's `$MODELS`.
 
 ```bash
 export MODELS=/mnt/models
@@ -104,7 +104,7 @@ python3 tools/render_launch.py --profile rocm-mi300x-pd --role decode --ablate s
 python3 tools/render_launch.py --profile rocm-mi300x-pd --role router > run/router.sh
 ```
 
-The 1P1D commands remove fixed MTP acceptance. They retain INT8 Quick Reduce from that profile; add `--ablate int8-quick-reduce` to both GPU roles when you need to disable it. FP8 KV and INT8 Quick Reduce can change outputs and require your workload's accuracy checks.
+The 1P1D commands remove fixed MTP acceptance. They retain INT8 Quick Reduce from that profile; add `--ablate int8-quick-reduce` to both GPU roles when you need to disable it. FP8 KV and INT8 Quick Reduce can change outputs and require your workload's [accuracy checks](docs/benchmark.md#check-a-lossy-switch-on-your-model). All profiles, roles and `--ablate` names: [Launch profiles](docs/reference.md#launch-profiles).
 
 **5. Start and wait.** One VM:
 
@@ -137,7 +137,7 @@ curl --fail-with-body -sS "$API_BASE/v1/chat/completions" \
   -d '{"model":"default","messages":[{"role":"user","content":"What is 17 * 23? Reply with the number."}],"max_tokens":1024,"temperature":0}'
 ```
 
-Expect `choices[0].message.content` containing `391` and `finish_reason=stop`. Both routes must show the expected kernels in native logs. Only the 1P1D route additionally requires Mooncake RDMA between the servers and no TCP fallback; a single-server route has no inter-server KV transfer to check.
+Expect `choices[0].message.content` containing `391` and `finish_reason=stop`. Both routes must show the expected kernels in native logs ([log checks](docs/deployment.md#step-6-confirm-the-optimizations-are-active)). Only the 1P1D route additionally requires Mooncake RDMA between the servers and no TCP fallback; a single-server route has no inter-server KV transfer to check.
 
 **7. Optional: validate communication without loading model weights.** On two otherwise idle VMs, copy `docker/rccl.env.example` to `docker/rccl.env`. Supply both node addresses, a dedicated absolute `RCCL_SSH_DIR` ending in `/rccl-ssh`, and the other settings. Host-to-host SSH must already be authenticated with verified host keys.
 
@@ -231,7 +231,7 @@ More detail, by what you want to do:
 | Understand what each optimization changes, why it helps on MI300X and whether it can change output | [How the optimizations work](docs/optimizations.md) |
 | Get more detail on a deployment step, confirm the optimizations are active, operate the service or diagnose a misleading failure | [Deployment details and operations](docs/deployment.md) |
 | Reproduce a published point, measure one change, check a lossy switch or verify the numbers without a GPU | [Measure and verify](docs/benchmark.md) |
-| Look up metric and log fields, the directory layout, pinned upstream commits or sources | [Reference](docs/reference.md) |
+| Look up launch profiles and `--ablate` names, metric and log fields, the directory layout, pinned upstream commits or sources | [Reference](docs/reference.md) |
 | See every run's recorded input, controlled variables, result and boundary | [Measured results](docs/results.md) |
 
 Directories: [docs/](docs/) · [docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/).

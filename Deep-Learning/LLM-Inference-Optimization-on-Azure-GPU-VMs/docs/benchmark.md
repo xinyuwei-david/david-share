@@ -30,6 +30,8 @@ docker rm -f mimo-decode && bash docker/run-role.sh decode run/decode-baseline.s
 
 ## Measurement practice
 
+How to design a concurrency ladder and size the decode batch from KV capacity is kept with the techniques: see [Concurrency ladder against the saturation point](optimizations.md#concurrency-ladder-against-the-saturation-point) and [Sizing the decode batch from KV capacity](optimizations.md#sizing-the-decode-batch-from-kv-capacity).
+
 ### Exact inputs and context headroom
 
 Random-prompt benchmarks re-tokenize text, so the server-side length can drift. For long-context points, pass token IDs (`--tokenize-prompt`) and account for the model's special tokens: MiMo adds four, so 65,532 supplied IDs give exactly 65,536 server-side tokens. Leave the same headroom in `--context-length`, otherwise the longest point can "succeed" with error payloads, which is why the 256K point is excluded from the [stage pair](results.md#stage-pair-shape-tuned-fused-moe-table).
@@ -55,7 +57,7 @@ Every accepted A/B arm is run twice on a freshly started server. Agreement withi
 
 A kernel test proves the kernel matches its reference on the tested shapes. It does not measure how FP8 storage or INT8 reduction moves end-to-end answers; that needs a model-level check.
 
-**How to check a lossy switch on your model (not run here).** Use the accuracy role of the pinned runtime, which runs with real MTP acceptance and Quick Reduce off. This FP8-KV comparison is not strictly single-variable: arm B switches to BF16 KV and also moves target verification from FlyDSL back to AITER.
+**Model-level check (not run here).** Use the accuracy role of the pinned runtime, which runs with real MTP acceptance and Quick Reduce off. This FP8-KV comparison is not strictly single-variable: arm B switches to BF16 KV and also moves target verification from FlyDSL back to AITER.
 
 ```bash
 # Arm A: FP8 KV cache (as served)

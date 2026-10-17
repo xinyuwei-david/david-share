@@ -30,6 +30,8 @@ docker rm -f mimo-decode && bash docker/run-role.sh decode run/decode-baseline.s
 
 ## 测量要点
 
+并发阶梯怎样设计、decode batch 怎样按 KV 容量估算，和对应技术放在一起，见[按饱和点设计并发阶梯](optimizations_CN.md#按饱和点设计并发阶梯)和[按 KV 容量估算 decode batch](optimizations_CN.md#按-kv-容量估算-decode-batch)。
+
 ### 精确输入与上下文余量
 
 随机 prompt 压测会把文本重新分词，服务端的实际长度可能漂移。长上下文测点应直接传 token ID（`--tokenize-prompt`），并把模型的特殊 token 算进去：MiMo 会加 4 个，所以传 65,532 个 ID 才是服务端正好 65,536 个 token。`--context-length` 也要留同样的余量，否则最长的测点可能带着错误内容被记为「成功」，[阶段对比](results_CN.md#阶段对比按-shape-调优的-fused-moe-表)剔除 256K 点正是这个原因。
@@ -55,7 +57,7 @@ docker rm -f mimo-decode && bash docker/run-role.sh decode run/decode-baseline.s
 
 kernel 测试证明的是 kernel 在测过的 shape 上与参考实现一致，并不能衡量 FP8 存储或 INT8 求和对端到端答案的影响；那需要模型级的检查。
 
-**如何在你的模型上检查一个有损开关（本仓库未运行）。** 用固定 runtime 的准确率角色（真实 MTP 接受、Quick Reduce 关闭）。这组 FP8 KV 对照不是严格单变量：B 组切换为 BF16 KV，同时将 target verify 从 FlyDSL 切回 AITER。
+**模型级检查（本仓库未运行）。** 用固定 runtime 的准确率角色（真实 MTP 接受、Quick Reduce 关闭）。这组 FP8 KV 对照不是严格单变量：B 组切换为 BF16 KV，同时将 target verify 从 FlyDSL 切回 AITER。
 
 ```bash
 # A 组：FP8 KV cache（线上配置）

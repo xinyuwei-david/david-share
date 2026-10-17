@@ -30,7 +30,7 @@ README 中每个数字背后的实测：测试环境、总体提升，每组运�
 - 这些倍数不能相乘：每一行比较的是不同的一对运行。每一行的负载和拓扑见[从基线栈到优化后](#从基线栈到优化后累计提升)。本页没有任何性能数字拿 MI300X 和其他加速器比较。
 <!-- END GENERATED: glance -->
 
-框架与负载层的思路，以及列出的 CUDA 对应实现，只是迁移线索，不代表已验证 NVIDIA 上的兼容性或性能。
+[优化原理](optimizations_CN.md)各卡片里列出的框架层与负载层思路和 CUDA 对应实现只是迁移线索，不代表已验证 NVIDIA 上的兼容性或性能。
 
 ## MI300X 实测结果
 
@@ -229,7 +229,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `stage-before-moe-table` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [stage-before-moe-table__decode-8k1k.txt](../evidence/raw/stage-before-moe-table__decode-8k1k.txt), [stage-before-moe-table__prefill.txt](../evidence/raw/stage-before-moe-table__prefill.txt)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [stage-before-moe-table__decode-8k1k.txt](../evidence/raw/stage-before-moe-table__decode-8k1k.txt), [stage-before-moe-table__prefill.txt](../evidence/raw/stage-before-moe-table__prefill.txt)。[阶段对比：按 shape 调优的 fused-MoE 表](#阶段对比按-shape-调优的-fused-moe-表)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -241,7 +241,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `stage-after-moe-table` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [stage-after-moe-table__decode-8k1k-c16.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c16.txt), [stage-after-moe-table__decode-8k1k-c32.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c32.txt), [stage-after-moe-table__decode-8k1k-c64.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c64.txt), [stage-after-moe-table__decode-8k1k-c128.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c128.txt), [stage-after-moe-table__prefill-8192-c4.txt](../evidence/raw/stage-after-moe-table__prefill-8192-c4.txt), [stage-after-moe-table__prefill-65536-c4.txt](../evidence/raw/stage-after-moe-table__prefill-65536-c4.txt), [stage-after-moe-table__prefill-262144-c4.txt](../evidence/raw/stage-after-moe-table__prefill-262144-c4.txt)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [stage-after-moe-table__decode-8k1k-c16.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c16.txt), [stage-after-moe-table__decode-8k1k-c32.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c32.txt), [stage-after-moe-table__decode-8k1k-c64.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c64.txt), [stage-after-moe-table__decode-8k1k-c128.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c128.txt), [stage-after-moe-table__prefill-8192-c4.txt](../evidence/raw/stage-after-moe-table__prefill-8192-c4.txt), [stage-after-moe-table__prefill-65536-c4.txt](../evidence/raw/stage-after-moe-table__prefill-65536-c4.txt), [stage-after-moe-table__prefill-262144-c4.txt](../evidence/raw/stage-after-moe-table__prefill-262144-c4.txt)。[阶段对比：按 shape 调优的 fused-MoE 表](#阶段对比按-shape-调优的-fused-moe-表)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -253,7 +253,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `ladder-ck` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [ladder-ck__decode-8k1k-c16.txt](../evidence/raw/ladder-ck__decode-8k1k-c16.txt), [ladder-ck__decode-8k1k-c32.txt](../evidence/raw/ladder-ck__decode-8k1k-c32.txt), [ladder-ck__decode-8k1k-c64.txt](../evidence/raw/ladder-ck__decode-8k1k-c64.txt), [ladder-ck__decode-8k1k-c96.txt](../evidence/raw/ladder-ck__decode-8k1k-c96.txt), [ladder-ck__decode-8k1k-c128.txt](../evidence/raw/ladder-ck__decode-8k1k-c128.txt), [ladder-ck__decode-8k1k-c192.txt](../evidence/raw/ladder-ck__decode-8k1k-c192.txt), [ladder-ck__decode-8k1k-c256.txt](../evidence/raw/ladder-ck__decode-8k1k-c256.txt)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [ladder-ck__decode-8k1k-c16.txt](../evidence/raw/ladder-ck__decode-8k1k-c16.txt), [ladder-ck__decode-8k1k-c32.txt](../evidence/raw/ladder-ck__decode-8k1k-c32.txt), [ladder-ck__decode-8k1k-c64.txt](../evidence/raw/ladder-ck__decode-8k1k-c64.txt), [ladder-ck__decode-8k1k-c96.txt](../evidence/raw/ladder-ck__decode-8k1k-c96.txt), [ladder-ck__decode-8k1k-c128.txt](../evidence/raw/ladder-ck__decode-8k1k-c128.txt), [ladder-ck__decode-8k1k-c192.txt](../evidence/raw/ladder-ck__decode-8k1k-c192.txt), [ladder-ck__decode-8k1k-c256.txt](../evidence/raw/ladder-ck__decode-8k1k-c256.txt)。[Decode 在哪里饱和：并发阶梯](#decode-在哪里饱和并发阶梯)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -265,7 +265,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `ab-64k-bs16` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [ab-64k-bs16.json](../evidence/raw/ab-64k-bs16.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [ab-64k-bs16.json](../evidence/raw/ab-64k-bs16.json)。[受控 A/B：64K 上下文下的 block-scale FP8 GEMM 路径](#受控-ab64k-上下文下的-block-scale-fp8-gemm-路径)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -277,7 +277,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `baseline-pd-client` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [baseline-pd-client.json](../evidence/raw/baseline-pd-client.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [baseline-pd-client.json](../evidence/raw/baseline-pd-client.json)。[从基线栈到优化后：累计提升](#从基线栈到优化后累计提升)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -289,7 +289,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `baseline-pd-summary` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [baseline-pd-summary.json](../evidence/raw/baseline-pd-summary.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [baseline-pd-summary.json](../evidence/raw/baseline-pd-summary.json)。[从基线栈到优化后：累计提升](#从基线栈到优化后累计提升)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -301,7 +301,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `actual-acceptance` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [actual-acceptance__decode-8k1k-c16.txt](../evidence/raw/actual-acceptance__decode-8k1k-c16.txt), [actual-acceptance__decode-8k1k-c32.txt](../evidence/raw/actual-acceptance__decode-8k1k-c32.txt), [actual-acceptance__decode-8k1k-c64.txt](../evidence/raw/actual-acceptance__decode-8k1k-c64.txt), [actual-acceptance__decode-8k1k-c128.txt](../evidence/raw/actual-acceptance__decode-8k1k-c128.txt)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [actual-acceptance__decode-8k1k-c16.txt](../evidence/raw/actual-acceptance__decode-8k1k-c16.txt), [actual-acceptance__decode-8k1k-c32.txt](../evidence/raw/actual-acceptance__decode-8k1k-c32.txt), [actual-acceptance__decode-8k1k-c64.txt](../evidence/raw/actual-acceptance__decode-8k1k-c64.txt), [actual-acceptance__decode-8k1k-c128.txt](../evidence/raw/actual-acceptance__decode-8k1k-c128.txt)。[从基线栈到优化后：累计提升](#从基线栈到优化后累计提升)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -313,7 +313,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `context-matrix` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [context-matrix.json](../evidence/raw/context-matrix.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [context-matrix.json](../evidence/raw/context-matrix.json)。[吞吐怎样随上下文长度变化](#吞吐怎样随上下文长度变化)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -325,7 +325,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `prefill-replicas` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [prefill-replicas.json](../evidence/raw/prefill-replicas.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [prefill-replicas.json](../evidence/raw/prefill-replicas.json)。[增加第二个 prefill 副本](#增加第二个-prefill-副本)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 
@@ -337,7 +337,7 @@ Decode 图捕获只在基线栈上测过，那时的栈没有 MTP 和 AITER kern
 
 **变量。** 使用[固定运行目录](../evidence/runs.json)中 `accuracy-subset` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。
 
-**结果。** [accuracy-subset.json](../evidence/raw/accuracy-subset.json)。[实测章节](#mi300x-实测结果)从这些记录计算结果。
+**结果。** [accuracy-subset.json](../evidence/raw/accuracy-subset.json)。[在优化后的 kernel 上实测的准确率](#在优化后的-kernel-上实测的准确率)一节从这些记录计算结果。
 
 **边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。
 <!-- END GENERATED: run-inputs -->

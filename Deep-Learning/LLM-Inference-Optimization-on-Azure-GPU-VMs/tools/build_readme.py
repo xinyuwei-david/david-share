@@ -25,16 +25,24 @@ DOC_PAGES = ("optimizations", "deployment", "benchmark", "reference", "results")
 DOCS = {page: {"en": ROOT / "docs" / f"{page}.md", "cn": ROOT / "docs" / f"{page}_CN.md"} for page in DOC_PAGES}
 DOCUMENTS = {"readme": READMES, **DOCS}
 BLOCK = re.compile(r"(<!-- BEGIN GENERATED: (?P<name>[a-z0-9-]+) -->\n)(?P<body>.*?)(<!-- END GENERATED: (?P=name) -->)", re.S)
-RELATIVE_TARGET = re.compile(r'(\]\(|<img\s[^>]*?src=")(?!https?://|mailto:|#|/)')
+RELATIVE_TARGET = re.compile(r'(\]\(|<img\s[^>]*?src=")(?!https?://|mailto:|#|/)(docs/)?')
 
 
 def rebase(text: str, prefix: str) -> str:
-    """Prefix project-root relative link and image targets, leaving fenced code untouched."""
+    """Prefix project-root relative link and image targets, leaving fenced code untouched.
+
+    From a page inside docs/, a `docs/<page>` target becomes the sibling `<page>`.
+    """
+    def target(m: re.Match) -> str:
+        if m.group(2):
+            return m.group(1) + ("" if prefix else m.group(2))
+        return m.group(1) + prefix
+
     out, fence = [], False
     for line in text.split("\n"):
         if line.startswith("```"):
             fence = not fence
-        out.append(line if fence or line.startswith("```") else RELATIVE_TARGET.sub(lambda m: m.group(1) + prefix, line))
+        out.append(line if fence or line.startswith("```") else RELATIVE_TARGET.sub(target, line))
     return "\n".join(out)
 
 
@@ -450,6 +458,75 @@ STACK_LABEL = {
 }
 
 
+PROFILE_STATUS = {
+    "en": {"MEASURED": "1P1D settings of the measured stage pair and concurrency ladder ({runs})",
+           "PINNED_RUNTIME": "final pinned runtime; no published throughput run",
+           "TEMPLATE_NOT_MEASURED": "mapping to NVIDIA; never run here"},
+    "cn": {"MEASURED": "阶段对比与并发阶梯（{runs}）实测所用的 1P1D 配置",
+           "PINNED_RUNTIME": "最终固定 runtime；未发布吞吐实测",
+           "TEMPLATE_NOT_MEASURED": "NVIDIA 对应模板；本仓库未运行"},
+}
+
+
+def _profiles() -> list[dict]:
+    paths = sorted(p for p in (ROOT / "profiles").glob("*.json") if p.name != "techniques.json")
+    return [json.loads(p.read_text(encoding="utf-8")) for p in paths]
+
+
+def launch_profiles(lang: str) -> str:
+    order = list(_json("evidence/runs.json")["runs"])
+    head = ["Profile", "Status", "Roles"] if lang == "en" else ["Profile", "状态", "角色"]
+    rows = []
+    for p in _profiles():
+        runs = "–".join(f"S{order.index(r) + 1}" for r in p["measured_runs"][:: max(len(p["measured_runs"]) - 1, 1)])
+        if p["status"] == "MEASURED" and not runs:
+            raise SystemExit(f"MEASURED_WITHOUT_RUNS {p['profile']}")
+        rows.append([f"`{p['profile']}`", f"`{p['status']}`<br>" + PROFILE_STATUS[lang][p["status"]].format(runs=runs),
+                     " · ".join(f"`{role}`" for role in p["roles"])])
+    return _table(head, rows, ["l", "l", "l"])
+
+
+def _effective_roles(profile: dict, technique: str) -> list[str]:
+    """Roles whose rendered environment or arguments change when the technique is ablated."""
+    from render_launch import compose  # same directory; imported lazily so the module stays importable alone
+    roles = []
+    for role in profile["roles"]:
+        deps = [t["id"] for t in _json("profiles/techniques.json")["techniques"]
+                if technique in t.get("requires", []) and t["id"] in profile["techniques"]]
+        if compose(profile, role, [technique, *deps])[:2] != compose(profile, role, deps)[:2]:
+            roles.append(role)
+    return roles
+
+
+def ablation_names(lang: str) -> str:
+    en = lang == "en"
+    catalog = _json("profiles/techniques.json")["techniques"]
+    page = DOCS["optimizations"][lang].relative_to(ROOT).as_posix()
+    rows = []
+    for t in catalog:
+        cells = [f"`{p['profile']}`: " + ", ".join(f"`{r}`" for r in roles)
+                 for p in _profiles() if t["id"] in p["techniques"] for roles in [_effective_roles(p, t["id"])] if roles]
+        if cells:
+            rows.append([f"`{t['id']}`", f"[{t[lang]}]({page}#{slug(t[lang])})", "<br>".join(cells)])
+    head = (["`--ablate` name", "Removes", "Changes the script of"] if en
+            else ["`--ablate` 名称", "去掉的优化", "会改变哪些角色的脚本"])
+    notes = ["- Within a profile that includes a name, a role not listed for it accepts the name, but the rendered "
+             "script changes only in its comment lines. A name that a profile does not include is rejected by "
+             "`render_launch.py`." if en
+             else "- 在包含某个名称的 profile 中，表里没有列出的角色也接受这个名称，但渲染出的脚本只有注释行变化。"
+             "profile 不包含的名称会被 `render_launch.py` 直接拒绝。"]
+    if any(t["id"] == "tuned-fused-moe" for t in catalog):
+        notes.append("- `cuda-hopper-pd` carries `tuned-fused-moe` only as a note: generate and install the Triton "
+                     "fused-MoE configuration yourself." if en else
+                     "- `cuda-hopper-pd` 里的 `tuned-fused-moe` 只是一条注释：Triton fused-MoE 配置要自己生成并放入。")
+    for t in catalog:
+        for dep in t.get("requires", []):
+            notes.append(f"- In profiles that include `{t['id']}`, ablating `{dep}` also requires ablating `{t['id']}`, "
+                         "which depends on it." if en else
+                         f"- 在包含 `{t['id']}` 的 profile 中，消融 `{dep}` 时必须同时消融依赖它的 `{t['id']}`。")
+    return _table(head, rows, ["l", "l", "l"]) + "\n" + "\n".join(notes) + "\n"
+
+
 def upstream_table(lang: str) -> str:
     lock = _json("upstream/SOURCES.lock.json")
     cat = _json("profiles/techniques.json")["layers"]
@@ -474,6 +551,22 @@ RUN_LABELS = {
 
 def _run_heading(identity: str, index: int, lang: str) -> str:
     return f"{RUN_LABELS[identity][lang == 'cn']} (S{index})"
+
+
+# The results-page section that derives its numbers from each run's records.
+RUN_SECTIONS = {
+    "stage-before-moe-table": ("Stage pair: shape-tuned fused-MoE table", "阶段对比：按 shape 调优的 fused-MoE 表"),
+    "stage-after-moe-table": ("Stage pair: shape-tuned fused-MoE table", "阶段对比：按 shape 调优的 fused-MoE 表"),
+    "ladder-ck": ("Where decode saturates: concurrency ladder", "Decode 在哪里饱和：并发阶梯"),
+    "ab-64k-bs16": ("Controlled A/B: block-scale FP8 GEMM path at 64K context",
+                    "受控 A/B：64K 上下文下的 block-scale FP8 GEMM 路径"),
+    "baseline-pd-client": ("Baseline to optimized stack: the cumulative gain", "从基线栈到优化后：累计提升"),
+    "baseline-pd-summary": ("Baseline to optimized stack: the cumulative gain", "从基线栈到优化后：累计提升"),
+    "actual-acceptance": ("Baseline to optimized stack: the cumulative gain", "从基线栈到优化后：累计提升"),
+    "context-matrix": ("How throughput changes with context length", "吞吐怎样随上下文长度变化"),
+    "prefill-replicas": ("Adding a second prefill replica", "增加第二个 prefill 副本"),
+    "accuracy-subset": ("Accuracy measured on the optimized kernels", "在优化后的 kernel 上实测的准确率"),
+}
 
 
 def rccl_headline(lang: str) -> str:
@@ -557,8 +650,8 @@ def run_inputs(lang: str) -> str:
                 f"**Recorded input.** {input_text}\n",
                 f"**Variables.** Use the topology, runtime, flags and environment for `{identity}` in "
                 "[the frozen run catalog](evidence/runs.json), not another bundle's configuration.\n",
-                f"**Result.** {links}. The [measurement sections](#measured-results-on-mi300x) derive their values "
-                "from these records.\n",
+                f"**Result.** {links}. [{RUN_SECTIONS[identity][0]}](#{slug(RUN_SECTIONS[identity][0])}) derives "
+                "its values from these records.\n",
                 "**Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of "
                 "missing private input. Replaying evidence is not a fresh serving experiment.\n",
             ])
@@ -568,7 +661,7 @@ def run_inputs(lang: str) -> str:
                 f"**问题。** 这份“{RUN_LABELS[identity][1]}”记录能够说明什么？\n",
                 f"**记录的输入。** {input_text}\n",
                 f"**变量。** 使用[固定运行目录](evidence/runs.json)中 `{identity}` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。\n",
-                f"**结果。** {links}。[实测章节](#mi300x-实测结果)从这些记录计算结果。\n",
+                f"**结果。** {links}。[{RUN_SECTIONS[identity][1]}](#{slug(RUN_SECTIONS[identity][1])})一节从这些记录计算结果。\n",
                 "**边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。\n",
             ])
     return "\n".join(out)
@@ -688,14 +781,15 @@ for _t in _json("profiles/techniques.json")["techniques"]:
 for _name in _json("tools/excerpts.json")["excerpts"]:
     BLOCKS[f"excerpt-{_name}"] = (lambda n: (lambda lang: excerpt(n, lang)))(_name)
 BLOCKS.update({"rccl-headline": rccl_headline, "rccl-runs": rccl_runs, "rccl-observation": rccl_observation,
-               "run-index": run_index, "run-inputs": run_inputs})
+               "run-index": run_index, "run-inputs": run_inputs, "launch-profiles": launch_profiles,
+               "ablation-names": ablation_names})
 REQUIRED_BLOCKS = {
     "readme": {"headline", "rccl-headline", "run-index"},
     "optimizations": {"technique-overview", "precision-summary", "moe-table"}
                      | {name for name in BLOCKS if name.startswith(("card-", "excerpt-"))},
     "deployment": set(),
     "benchmark": {"numerical-tests"},
-    "reference": {"upstream-table"},
+    "reference": {"upstream-table", "launch-profiles", "ablation-names"},
     "results": {"cumulative", "glance", "cumulative-decode", "headline", "ab-table", "ab-tpot", "stage-prefill",
                 "stage-decode", "ladder", "context-table", "replicas-table", "accuracy-table", "run-inputs",
                 "rccl-observation", "rccl-runs"},

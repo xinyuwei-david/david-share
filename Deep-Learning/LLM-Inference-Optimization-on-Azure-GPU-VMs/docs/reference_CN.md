@@ -2,13 +2,7 @@
 
 [English](reference.md) · [README](../README_CN.md) · [优化原理](optimizations_CN.md) · [部署细节](deployment_CN.md) · [复测与核对](benchmark_CN.md) · **参考** · [实测结果](results_CN.md)
 
-查阅用资料：指标与日志字段的定义、本仓库提供什么、目录结构、固定的上游提交和资料来源。
-
-## 指标与日志字段
-
-客户端记录负载参数和 Serving Benchmark Result 块。`tools/bench_log.py` 提取、解析这些字段，`tools/build_evidence.py` 校验哈希及可接受的对照关系。服务返回 HTTP 响应本身不是准确率结果。
-
-RCCL 的消息大小按二进制计算：1G 即 1 GiB。algbw 是消息字节数除以耗时；N 个进程的 AllReduce busbw 等于 algbw × 2(N−1)/N。工具报告的平均值包含 in-place 与 out-of-place，不是多次重跑的均值，也不是网卡利用率。`-c 0` 不校验数据；声明 IB/GDRDMA 前必须有对应 INFO 日志。解析器处理了 INFO 文本与错误计数粘连的情况，不会把两种模式的结果对调。
+本页汇集供查阅的资料：本仓库提供什么、目录结构、启动 profile 与 `--ablate` 名称、指标与日志字段的定义、固定的上游提交和资料来源。
 
 ## 本仓库做了什么、提供什么
 
@@ -20,9 +14,9 @@ RCCL 的消息大小按二进制计算：1G 即 1 GiB。algbw 是消息字节数
 
 你需要自备：Azure ND MI300X v5 容量（PD 路线两台，单机路线一台）、MiMo-V2.5-Pro 权重，以及能访问 RDMA 的容器宿主机。
 
-不提供：模型权重；证据投影背后的私有原始日志（只记录其 SHA-256）；与其他加速卡的比较；打开 FP8 KV cache 时的准确率结果；任何 NVIDIA 上的实测。每项优化会对准确率产生什么影响、怎么核对，见[哪些优化可能改变模型输出](optimizations_CN.md#哪些优化可能改变模型输出)。
+不提供：模型权重；证据投影背后的私有原始日志（只记录其 SHA-256）；与其他加速卡的比较；打开 FP8 KV cache 时的准确率结果；任何 NVIDIA 上的实测。每项优化会对准确率产生什么影响，见[哪些优化可能改变模型输出](optimizations_CN.md#哪些优化可能改变模型输出)；怎么核对，见[在你的模型上核对有损开关](benchmark_CN.md#在你的模型上核对有损开关)。
 
-## 目录
+## 目录结构
 
 - [`evidence/runs.json`](../evidence/runs.json)——每次运行的身份、拓扑、控制变量和脚本哈希。
 - [`evidence/raw/`](../evidence/raw/)——各数据源的投影：`sglang.bench_serving` 输出（每次运行的负载参数和结果块）、调度器日志审计中的 A/B 采样值、长上下文和副本的结果表、逐条回答的准确率评分，以及基线栈的客户端结果和汇总。
@@ -36,6 +30,46 @@ RCCL 的消息大小按二进制计算：1G 即 1 GiB。algbw 是消息字节数
 - [`tests/`](../tests/)——离线测试。
 - [`docker/`](../docker/)——Dockerfile、按角色启动容器的脚本、就绪检查和设置模板。
 - [`images/`](../images/)——示意图及其哈希台账。
+
+## 启动 profile
+
+`tools/render_launch.py` 按 profile 和角色生成启动脚本，`--ablate <名称>` 去掉一项技术，用来做单变量 A/B。`python tools/render_launch.py --list` 打印同样的 profile、角色和名称。
+
+<!-- BEGIN GENERATED: launch-profiles -->
+| Profile | 状态 | 角色 |
+|---|---|---|
+| `cuda-hopper-pd` | `TEMPLATE_NOT_MEASURED`<br>NVIDIA 对应模板；本仓库未运行 | `prefill` · `decode` · `router` · `bench-decode` · `bench-prefill` |
+| `rocm-mi300x-pd` | `MEASURED`<br>阶段对比与并发阶梯（S1–S3）实测所用的 1P1D 配置 | `prefill` · `decode` · `router` · `bench-decode` · `bench-prefill` |
+| `rocm-mi300x-single` | `PINNED_RUNTIME`<br>最终固定 runtime；未发布吞吐实测 | `decode` · `server` · `bench-decode` |
+<!-- END GENERATED: launch-profiles -->
+
+<!-- BEGIN GENERATED: ablation-names -->
+| `--ablate` 名称 | 去掉的优化 | 会改变哪些角色的脚本 |
+|---|---|---|
+| `attention-dispatch` | [混合 SWA + GQA 的逐层 attention 分派](optimizations_CN.md#混合-swa--gqa-的逐层-attention-分派) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `fp8-kv-5d` | [FP8 KV cache + 向量化 5D 分页布局](optimizations_CN.md#fp8-kv-cache--向量化-5d-分页布局) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `unified-verify` | [MTP target verify 使用 AITER unified attention](optimizations_CN.md#mtp-target-verify-使用-aiter-unified-attention) | `rocm-mi300x-pd`: `decode` |
+| `eagle-mtp` | [多层 EAGLE MTP 投机解码及校验修复](optimizations_CN.md#多层-eagle-mtp-投机解码及校验修复) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `memory-sizing` | [Chunked prefill、page size 与 SWA 池容量](optimizations_CN.md#chunked-prefillpage-size-与-swa-池容量) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `decode-graph-capture` | [Decode 图捕获（HIP graph）](optimizations_CN.md#decode-图捕获hip-graph) | `cuda-hopper-pd`: `decode`<br>`rocm-mi300x-pd`: `decode`<br>`rocm-mi300x-single`: `decode` |
+| `flydsl-pa-decode` | [FlyDSL paged-attention decode kernel（head 192，page 64）](optimizations_CN.md#flydsl-paged-attention-decode-kernelhead-192page-64) | `rocm-mi300x-single`: `decode`, `server` |
+| `ck-a8w8-gemm` | [权重预重排的 block-scale FP8 GEMM](optimizations_CN.md#权重预重排的-block-scale-fp8-gemm) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `int8-quick-reduce` | [张量并行 all-reduce 使用 INT8 Quick Reduce](optimizations_CN.md#张量并行-all-reduce-使用-int8-quick-reduce) | `rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode` |
+| `tuned-fused-moe` | [按 shape 调优的 fused-MoE kernel 表](optimizations_CN.md#按-shape-调优的-fused-moe-kernel-表) | `rocm-mi300x-pd`: `prefill`, `decode` |
+| `pd-disaggregation` | [Prefill/Decode 分离（1P1D），KV 走 RDMA](optimizations_CN.md#prefilldecode-分离1p1dkv-走-rdma) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode` |
+| `fake-prefill` | [Fake prefill：只测 decode](optimizations_CN.md#fake-prefill只测-decode) | `rocm-mi300x-single`: `decode`, `bench-decode` |
+| `simulated-acceptance` | [性能测试固定 MTP 接受长度](optimizations_CN.md#性能测试固定-mtp-接受长度) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode` |
+
+- 在包含某个名称的 profile 中，表里没有列出的角色也接受这个名称，但渲染出的脚本只有注释行变化。profile 不包含的名称会被 `render_launch.py` 直接拒绝。
+- `cuda-hopper-pd` 里的 `tuned-fused-moe` 只是一条注释：Triton fused-MoE 配置要自己生成并放入。
+- 在包含 `flydsl-pa-decode` 的 profile 中，消融 `fp8-kv-5d` 时必须同时消融依赖它的 `flydsl-pa-decode`。
+<!-- END GENERATED: ablation-names -->
+
+## 指标与日志字段
+
+客户端记录负载参数和 Serving Benchmark Result 块。`tools/bench_log.py` 提取、解析这些字段，`tools/build_evidence.py` 校验哈希及可接受的对照关系。服务返回 HTTP 响应本身不是准确率结果。
+
+RCCL 的消息大小按二进制计算：1G 即 1 GiB。algbw 是消息字节数除以耗时；N 个进程的 AllReduce busbw 等于 algbw × 2(N−1)/N。工具报告的平均值包含 in-place 与 out-of-place，不是多次重跑的均值，也不是网卡利用率。`-c 0` 不校验数据；声明 IB/GDRDMA 前必须有对应 INFO 日志。解析器处理了 INFO 文本与错误计数粘连的情况，不会把两种模式的结果对调。
 
 ## 上游提交
 

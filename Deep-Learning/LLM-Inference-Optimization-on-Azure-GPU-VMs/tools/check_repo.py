@@ -35,8 +35,8 @@ DOC_ORDER = {
                "常见误解", "迁移到 NVIDIA GPU"],
     },
     "deployment": {
-        "en": ["Deployment step details", "What has been run", "Failures that are easy to misread"],
-        "cn": ["部署步骤详解", "哪些步骤实际跑过", "容易误判的故障"],
+        "en": ["Deployment step details", "Operate", "What has been run", "Failures that are easy to misread"],
+        "cn": ["部署步骤详解", "日常运维", "哪些步骤实际跑过", "容易误判的故障"],
     },
     "benchmark": {
         "en": ["Reproduce the published numbers", "Measure one change", "Measurement practice",
@@ -44,9 +44,9 @@ DOC_ORDER = {
         "cn": ["复现已发布的数字", "测量一项改动", "测量要点", "在你的模型上核对有损开关", "测试与离线校验"],
     },
     "reference": {
-        "en": ["Metrics and log fields", "What This Repository Delivers", "Repository layout", "Upstream commits",
-               "Sources"],
-        "cn": ["指标与日志字段", "本仓库做了什么、提供什么", "目录", "上游提交", "资料"],
+        "en": ["What This Repository Delivers", "Repository layout", "Launch profiles", "Metrics and log fields",
+               "Upstream commits", "Sources"],
+        "cn": ["本仓库做了什么、提供什么", "目录结构", "启动 profile", "指标与日志字段", "上游提交", "资料"],
     },
     "results": {
         "en": ["Test setup", "Measurements on MI300X", "Measured Results on MI300X",

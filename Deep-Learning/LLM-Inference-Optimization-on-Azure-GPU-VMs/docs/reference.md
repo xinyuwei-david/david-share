@@ -2,13 +2,7 @@
 
 [中文](reference_CN.md) · [README](../README.md) · [Optimizations](optimizations.md) · [Deployment](deployment.md) · [Measure and verify](benchmark.md) · **Reference** · [Results](results.md)
 
-Look-up material: metric and log field definitions, what this repository delivers, the directory layout, the pinned upstream commits and sources.
-
-## Metrics and log fields
-
-The client records workload arguments and the Serving Benchmark Result block. `tools/bench_log.py` projects and parses those fields; `tools/build_evidence.py` verifies their hashes and accepted comparisons. A server HTTP response alone is not an accuracy result.
-
-RCCL output uses binary message sizes: 1G is 1 GiB. algbw is message bytes divided by time. For N ranks, AllReduce busbw is algbw multiplied by 2(N-1)/N. The reported average includes in-place and out-of-place rows; it is not a repeat-run average or NIC utilization. `-c 0` does not validate data. An INFO log must show IB selection and GDRDMA before claiming that path. The parser handles INFO text glued to a result's wrong-count without swapping the two modes.
+This page collects look-up material: what this repository delivers, the directory layout, launch profiles and `--ablate` names, metric and log field definitions, the pinned upstream commits and sources.
 
 ## What This Repository Delivers
 
@@ -20,7 +14,7 @@ RCCL output uses binary message sizes: 1G is 1 GiB. algbw is message bytes divid
 
 You supply: Azure ND MI300X v5 capacity (two VMs for the PD path, one for the single-VM path), the MiMo-V2.5-Pro checkpoint, and a container host with RDMA access.
 
-Not provided: model weights, the private raw logs behind the projected evidence (their SHA-256 is recorded), comparisons with other accelerators, accuracy results with the FP8 KV cache on, and any measured NVIDIA run. What each optimization can do to accuracy, and how to check it, is covered in [Which optimizations can change model output](optimizations.md#which-optimizations-can-change-model-output).
+Not provided: model weights, the private raw logs behind the projected evidence (their SHA-256 is recorded), comparisons with other accelerators, accuracy results with the FP8 KV cache on, and any measured NVIDIA run. What each optimization can do to accuracy is covered in [Which optimizations can change model output](optimizations.md#which-optimizations-can-change-model-output); how to check it is in [Check a lossy switch on your model](benchmark.md#check-a-lossy-switch-on-your-model).
 
 ## Repository layout
 
@@ -36,6 +30,46 @@ Not provided: model weights, the private raw logs behind the projected evidence 
 - [`tests/`](../tests/) — offline tests.
 - [`docker/`](../docker/) — the Dockerfile, the per-role container start script, the readiness check and the settings template.
 - [`images/`](../images/) — diagrams and their hash ledger.
+
+## Launch profiles
+
+`tools/render_launch.py` turns a profile and a role into a launch script, and `--ablate <name>` removes one technique to set up a single-variable A/B. `python tools/render_launch.py --list` prints the same profiles, roles and names.
+
+<!-- BEGIN GENERATED: launch-profiles -->
+| Profile | Status | Roles |
+|---|---|---|
+| `cuda-hopper-pd` | `TEMPLATE_NOT_MEASURED`<br>mapping to NVIDIA; never run here | `prefill` · `decode` · `router` · `bench-decode` · `bench-prefill` |
+| `rocm-mi300x-pd` | `MEASURED`<br>1P1D settings of the measured stage pair and concurrency ladder (S1–S3) | `prefill` · `decode` · `router` · `bench-decode` · `bench-prefill` |
+| `rocm-mi300x-single` | `PINNED_RUNTIME`<br>final pinned runtime; no published throughput run | `decode` · `server` · `bench-decode` |
+<!-- END GENERATED: launch-profiles -->
+
+<!-- BEGIN GENERATED: ablation-names -->
+| `--ablate` name | Removes | Changes the script of |
+|---|---|---|
+| `attention-dispatch` | [Per-layer attention dispatch for hybrid SWA + GQA](optimizations.md#per-layer-attention-dispatch-for-hybrid-swa--gqa) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `fp8-kv-5d` | [FP8 KV cache in a vectorized 5D page layout](optimizations.md#fp8-kv-cache-in-a-vectorized-5d-page-layout) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `unified-verify` | [AITER unified attention for MTP target verify](optimizations.md#aiter-unified-attention-for-mtp-target-verify) | `rocm-mi300x-pd`: `decode` |
+| `eagle-mtp` | [Multi-layer EAGLE MTP speculative decoding and verifier fixes](optimizations.md#multi-layer-eagle-mtp-speculative-decoding-and-verifier-fixes) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `memory-sizing` | [Chunked prefill, page size and SWA pool sizing](optimizations.md#chunked-prefill-page-size-and-swa-pool-sizing) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `decode-graph-capture` | [Decode graph capture (HIP graphs)](optimizations.md#decode-graph-capture-hip-graphs) | `cuda-hopper-pd`: `decode`<br>`rocm-mi300x-pd`: `decode`<br>`rocm-mi300x-single`: `decode` |
+| `flydsl-pa-decode` | [FlyDSL paged-attention decode kernel (head 192, page 64)](optimizations.md#flydsl-paged-attention-decode-kernel-head-192-page-64) | `rocm-mi300x-single`: `decode`, `server` |
+| `ck-a8w8-gemm` | [Block-scale FP8 GEMM with pre-shuffled weights](optimizations.md#block-scale-fp8-gemm-with-pre-shuffled-weights) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode`, `server` |
+| `int8-quick-reduce` | [INT8 Quick Reduce for tensor-parallel all-reduce](optimizations.md#int8-quick-reduce-for-tensor-parallel-all-reduce) | `rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode` |
+| `tuned-fused-moe` | [Shape-tuned fused-MoE kernel table](optimizations.md#shape-tuned-fused-moe-kernel-table) | `rocm-mi300x-pd`: `prefill`, `decode` |
+| `pd-disaggregation` | [Prefill/decode disaggregation (1P1D) over RDMA](optimizations.md#prefilldecode-disaggregation-1p1d-over-rdma) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode` |
+| `fake-prefill` | [Fake prefill for decode-only measurement](optimizations.md#fake-prefill-for-decode-only-measurement) | `rocm-mi300x-single`: `decode`, `bench-decode` |
+| `simulated-acceptance` | [Fixed MTP acceptance for performance runs](optimizations.md#fixed-mtp-acceptance-for-performance-runs) | `cuda-hopper-pd`: `prefill`, `decode`<br>`rocm-mi300x-pd`: `prefill`, `decode`<br>`rocm-mi300x-single`: `decode` |
+
+- Within a profile that includes a name, a role not listed for it accepts the name, but the rendered script changes only in its comment lines. A name that a profile does not include is rejected by `render_launch.py`.
+- `cuda-hopper-pd` carries `tuned-fused-moe` only as a note: generate and install the Triton fused-MoE configuration yourself.
+- In profiles that include `flydsl-pa-decode`, ablating `fp8-kv-5d` also requires ablating `flydsl-pa-decode`, which depends on it.
+<!-- END GENERATED: ablation-names -->
+
+## Metrics and log fields
+
+The client records workload arguments and the Serving Benchmark Result block. `tools/bench_log.py` projects and parses those fields; `tools/build_evidence.py` verifies their hashes and accepted comparisons. A server HTTP response alone is not an accuracy result.
+
+RCCL output uses binary message sizes: 1G is 1 GiB. algbw is message bytes divided by time. For N ranks, AllReduce busbw is algbw multiplied by 2(N-1)/N. The reported average includes in-place and out-of-place rows; it is not a repeat-run average or NIC utilization. `-c 0` does not validate data. An INFO log must show IB selection and GDRDMA before claiming that path. The parser handles INFO text glued to a result's wrong-count without swapping the two modes.
 
 ## Upstream commits
 

@@ -30,7 +30,7 @@ How much faster the optimized stack is than the baseline stack, measured on MI30
 - The factors do not multiply: each row compares a different pair of runs. Workload and topology of every row are in [Baseline to optimized stack](#baseline-to-optimized-stack-the-cumulative-gain). No performance number compares MI300X with another accelerator.
 <!-- END GENERATED: glance -->
 
-Framework/workload concepts and the named CUDA counterparts are adaptation guidance, not measured NVIDIA portability or performance.
+The framework/workload concepts and CUDA counterparts on the cards in [How the optimizations work](optimizations.md) are adaptation guidance, not measured NVIDIA portability or performance.
 
 ## Measured Results on MI300X
 
@@ -229,7 +229,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `stage-before-moe-table` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [stage-before-moe-table__decode-8k1k.txt](../evidence/raw/stage-before-moe-table__decode-8k1k.txt), [stage-before-moe-table__prefill.txt](../evidence/raw/stage-before-moe-table__prefill.txt). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [stage-before-moe-table__decode-8k1k.txt](../evidence/raw/stage-before-moe-table__decode-8k1k.txt), [stage-before-moe-table__prefill.txt](../evidence/raw/stage-before-moe-table__prefill.txt). [Stage pair: shape-tuned fused-MoE table](#stage-pair-shape-tuned-fused-moe-table) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -241,7 +241,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `stage-after-moe-table` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [stage-after-moe-table__decode-8k1k-c16.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c16.txt), [stage-after-moe-table__decode-8k1k-c32.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c32.txt), [stage-after-moe-table__decode-8k1k-c64.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c64.txt), [stage-after-moe-table__decode-8k1k-c128.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c128.txt), [stage-after-moe-table__prefill-8192-c4.txt](../evidence/raw/stage-after-moe-table__prefill-8192-c4.txt), [stage-after-moe-table__prefill-65536-c4.txt](../evidence/raw/stage-after-moe-table__prefill-65536-c4.txt), [stage-after-moe-table__prefill-262144-c4.txt](../evidence/raw/stage-after-moe-table__prefill-262144-c4.txt). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [stage-after-moe-table__decode-8k1k-c16.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c16.txt), [stage-after-moe-table__decode-8k1k-c32.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c32.txt), [stage-after-moe-table__decode-8k1k-c64.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c64.txt), [stage-after-moe-table__decode-8k1k-c128.txt](../evidence/raw/stage-after-moe-table__decode-8k1k-c128.txt), [stage-after-moe-table__prefill-8192-c4.txt](../evidence/raw/stage-after-moe-table__prefill-8192-c4.txt), [stage-after-moe-table__prefill-65536-c4.txt](../evidence/raw/stage-after-moe-table__prefill-65536-c4.txt), [stage-after-moe-table__prefill-262144-c4.txt](../evidence/raw/stage-after-moe-table__prefill-262144-c4.txt). [Stage pair: shape-tuned fused-MoE table](#stage-pair-shape-tuned-fused-moe-table) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -253,7 +253,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `ladder-ck` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [ladder-ck__decode-8k1k-c16.txt](../evidence/raw/ladder-ck__decode-8k1k-c16.txt), [ladder-ck__decode-8k1k-c32.txt](../evidence/raw/ladder-ck__decode-8k1k-c32.txt), [ladder-ck__decode-8k1k-c64.txt](../evidence/raw/ladder-ck__decode-8k1k-c64.txt), [ladder-ck__decode-8k1k-c96.txt](../evidence/raw/ladder-ck__decode-8k1k-c96.txt), [ladder-ck__decode-8k1k-c128.txt](../evidence/raw/ladder-ck__decode-8k1k-c128.txt), [ladder-ck__decode-8k1k-c192.txt](../evidence/raw/ladder-ck__decode-8k1k-c192.txt), [ladder-ck__decode-8k1k-c256.txt](../evidence/raw/ladder-ck__decode-8k1k-c256.txt). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [ladder-ck__decode-8k1k-c16.txt](../evidence/raw/ladder-ck__decode-8k1k-c16.txt), [ladder-ck__decode-8k1k-c32.txt](../evidence/raw/ladder-ck__decode-8k1k-c32.txt), [ladder-ck__decode-8k1k-c64.txt](../evidence/raw/ladder-ck__decode-8k1k-c64.txt), [ladder-ck__decode-8k1k-c96.txt](../evidence/raw/ladder-ck__decode-8k1k-c96.txt), [ladder-ck__decode-8k1k-c128.txt](../evidence/raw/ladder-ck__decode-8k1k-c128.txt), [ladder-ck__decode-8k1k-c192.txt](../evidence/raw/ladder-ck__decode-8k1k-c192.txt), [ladder-ck__decode-8k1k-c256.txt](../evidence/raw/ladder-ck__decode-8k1k-c256.txt). [Where decode saturates: concurrency ladder](#where-decode-saturates-concurrency-ladder) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -265,7 +265,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `ab-64k-bs16` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [ab-64k-bs16.json](../evidence/raw/ab-64k-bs16.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [ab-64k-bs16.json](../evidence/raw/ab-64k-bs16.json). [Controlled A/B: block-scale FP8 GEMM path at 64K context](#controlled-ab-block-scale-fp8-gemm-path-at-64k-context) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -277,7 +277,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `baseline-pd-client` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [baseline-pd-client.json](../evidence/raw/baseline-pd-client.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [baseline-pd-client.json](../evidence/raw/baseline-pd-client.json). [Baseline to optimized stack: the cumulative gain](#baseline-to-optimized-stack-the-cumulative-gain) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -289,7 +289,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `baseline-pd-summary` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [baseline-pd-summary.json](../evidence/raw/baseline-pd-summary.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [baseline-pd-summary.json](../evidence/raw/baseline-pd-summary.json). [Baseline to optimized stack: the cumulative gain](#baseline-to-optimized-stack-the-cumulative-gain) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -301,7 +301,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `actual-acceptance` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [actual-acceptance__decode-8k1k-c16.txt](../evidence/raw/actual-acceptance__decode-8k1k-c16.txt), [actual-acceptance__decode-8k1k-c32.txt](../evidence/raw/actual-acceptance__decode-8k1k-c32.txt), [actual-acceptance__decode-8k1k-c64.txt](../evidence/raw/actual-acceptance__decode-8k1k-c64.txt), [actual-acceptance__decode-8k1k-c128.txt](../evidence/raw/actual-acceptance__decode-8k1k-c128.txt). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [actual-acceptance__decode-8k1k-c16.txt](../evidence/raw/actual-acceptance__decode-8k1k-c16.txt), [actual-acceptance__decode-8k1k-c32.txt](../evidence/raw/actual-acceptance__decode-8k1k-c32.txt), [actual-acceptance__decode-8k1k-c64.txt](../evidence/raw/actual-acceptance__decode-8k1k-c64.txt), [actual-acceptance__decode-8k1k-c128.txt](../evidence/raw/actual-acceptance__decode-8k1k-c128.txt). [Baseline to optimized stack: the cumulative gain](#baseline-to-optimized-stack-the-cumulative-gain) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -313,7 +313,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `context-matrix` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [context-matrix.json](../evidence/raw/context-matrix.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [context-matrix.json](../evidence/raw/context-matrix.json). [How throughput changes with context length](#how-throughput-changes-with-context-length) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -325,7 +325,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `prefill-replicas` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [prefill-replicas.json](../evidence/raw/prefill-replicas.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [prefill-replicas.json](../evidence/raw/prefill-replicas.json). [Adding a second prefill replica](#adding-a-second-prefill-replica) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 
@@ -337,7 +337,7 @@ Decode graph capture was measured only on the baseline stack, without MTP and th
 
 **Variables.** Use the topology, runtime, flags and environment for `accuracy-subset` in [the frozen run catalog](../evidence/runs.json), not another bundle's configuration.
 
-**Result.** [accuracy-subset.json](../evidence/raw/accuracy-subset.json). The [measurement sections](#measured-results-on-mi300x) derive their values from these records.
+**Result.** [accuracy-subset.json](../evidence/raw/accuracy-subset.json). [Accuracy measured on the optimized kernels](#accuracy-measured-on-the-optimized-kernels) derives its values from these records.
 
 **Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of missing private input. Replaying evidence is not a fresh serving experiment.
 <!-- END GENERATED: run-inputs -->

@@ -54,7 +54,7 @@ cd david-share/Deep-Learning/LLM-Inference-Optimization-on-Azure-GPU-VMs
 
 应看到 8 张 MI300X；跨机时还应有 8 个活动的 IB 设备。根据所选设备确认有效 GID，不要照搬另一个网络的值。权重必须另有持久副本：VM 本地 NVMe 是临时盘，deallocate 后可能丢失。
 
-**2. 集中填写自己的配置。** 执行前先填好下方空值，再按模板注释补全 `docker/mimo.env`，复制到每台服务主机。
+**2. 集中填写自己的配置。** 执行前先填好下方空值，再按模板注释补全 `docker/mimo.env`，复制到每台服务主机。运行 server、prefill 或 decode 角色的每台 VM 都要执行其中的 `hf download`，或从持久副本拷过去：这些容器挂载的是各自主机上的 `$MODELS`。
 
 ```bash
 export MODELS=/mnt/models
@@ -104,7 +104,7 @@ python3 tools/render_launch.py --profile rocm-mi300x-pd --role decode --ablate s
 python3 tools/render_launch.py --profile rocm-mi300x-pd --role router > run/router.sh
 ```
 
-1P1D 命令取消了固定 MTP 接受长度，但仍保留 profile 中的 INT8 Quick Reduce；需要关闭时，在两个 GPU 角色上都加 `--ablate int8-quick-reduce`。FP8 KV 和 INT8 Quick Reduce 可能改变输出，必须在自己的负载上检查准确率。
+1P1D 命令取消了固定 MTP 接受长度，但仍保留 profile 中的 INT8 Quick Reduce；需要关闭时，在两个 GPU 角色上都加 `--ablate int8-quick-reduce`。FP8 KV 和 INT8 Quick Reduce 可能改变输出，必须在自己的负载上[检查准确率](docs/benchmark_CN.md#在你的模型上核对有损开关)。全部 profile、角色和 `--ablate` 名称见[启动 profile](docs/reference_CN.md#启动-profile)。
 
 **5. 启动并等待就绪。** 单机：
 
@@ -137,7 +137,7 @@ curl --fail-with-body -sS "$API_BASE/v1/chat/completions" \
   -d '{"model":"default","messages":[{"role":"user","content":"What is 17 * 23? Reply with the number."}],"max_tokens":1024,"temperature":0}'
 ```
 
-预期 `choices[0].message.content` 包含 `391`，且 `finish_reason=stop`。两条路线都要在原生日志中确认目标 kernel 已启用；只有 1P1D 还需检查服务间的 Mooncake RDMA，并排除 TCP 回退。单机服务没有跨服务 KV 传输，不需要这一项检查。
+预期 `choices[0].message.content` 包含 `391`，且 `finish_reason=stop`。两条路线都要在原生日志中确认目标 kernel 已启用（[日志检查](docs/deployment_CN.md#第-6-步确认优化已生效)）；只有 1P1D 还需检查服务间的 Mooncake RDMA，并排除 TCP 回退。单机服务没有跨服务 KV 传输，不需要这一项检查。
 
 **7. 可选：不加载权重，单独验证通信。** 在两台没有其他 GPU 负载的 VM 上，把 `docker/rccl.env.example` 复制为 `docker/rccl.env`。填写节点地址、以 `/rccl-ssh` 结尾的专用绝对目录 `RCCL_SSH_DIR` 及其余配置。两台宿主机之间须已配置认证 SSH，并核验主机指纹。
 
@@ -231,7 +231,7 @@ bash docker/run-rccl.sh stop                         # optional RCCL container, 
 | 理解每项优化改了什么、为什么在 MI300X 上有效、会不会改变输出 | [优化原理](docs/optimizations_CN.md) |
 | 了解某个部署步骤的细节、确认优化已生效、日常运维或排查容易误判的故障 | [部署细节与运维](docs/deployment_CN.md) |
 | 复现已发布的测点、测量一项改动、核对有损开关，或不用 GPU 核对数字 | [复测与核对](docs/benchmark_CN.md) |
-| 查指标与日志字段、目录、固定的上游提交和资料 | [参考](docs/reference_CN.md) |
+| 查启动 profile 与 `--ablate` 名称、指标与日志字段、目录结构、固定的上游提交和资料 | [参考](docs/reference_CN.md) |
 | 看每组运行记录的输入、控制变量、结果和边界 | [实测结果](docs/results_CN.md) |
 
 目录：[docs/](docs/) · [docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/)。

@@ -483,7 +483,7 @@ Size memory and topology for context length × batch before tuning kernels, and 
 
 ## Which optimizations can change model output
 
-A throughput gain only counts if the answers stay the same. Every technique above does one of four things to the numbers, and the class decides what has to be checked before it goes to production. The optimized throughput runs had FP8 KV and fixed MTP acceptance on, and the stage-pair runs record INT8 Quick Reduce on. The [measured accuracy scores](results.md#accuracy-measured-on-the-optimized-kernels) come from the same kernels with real MTP acceptance but with the FP8 KV cache off, so no published accuracy result covers FP8 KV.
+A throughput gain only counts if the answers stay the same. Every technique above does one of four things to the numbers, and the class decides what has to be checked before it goes to production. The optimized throughput runs had FP8 KV and fixed MTP acceptance on, and the stage-pair runs record INT8 Quick Reduce on. The [measured accuracy scores](results.md#accuracy-measured-on-the-optimized-kernels) come from the same kernels with real MTP acceptance but with the FP8 KV cache off, so no published accuracy result covers FP8 KV. To check a lossy switch on your workload, see [Check a lossy switch on your model](benchmark.md#check-a-lossy-switch-on-your-model).
 
 Each card above ends with the technique's effect on output. Grouped by class:
 
@@ -502,7 +502,7 @@ INT8 Quick Reduce deserves a separate warning. None of the launch scripts used i
 - **"The tuned MoE table improves both throughput and latency."** At decode concurrency 64 and 128 throughput rose by about 12% while TPOT also rose by 12.6–14.1%: the table trades per-token latency for batch throughput.
 - **"More client concurrency means more throughput."** The ladder plateaus at concurrency 64; beyond it only time to first token grows.
 - **"If the launch script does not set a precision switch, it is off."** `ROCM_QUICK_REDUCE_QUANTIZATION=INT8` comes from the base image's ENV and was on in the measured runs although none of their launch scripts sets it. Read the process environment, not the script.
-- **"A 100% success count means every request worked."** With too small a `--context-length`, oversized prompts can return error payloads that the client counts as successes; the context headroom rule catches this.
+- **"A 100% success count means every request worked."** With too small a `--context-length`, oversized prompts can return error payloads that the client counts as successes; the [context headroom rule](benchmark.md#exact-inputs-and-context-headroom) catches this.
 
 ## Porting the method to NVIDIA GPUs
 

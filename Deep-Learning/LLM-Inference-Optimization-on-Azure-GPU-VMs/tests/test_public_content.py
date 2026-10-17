@@ -164,19 +164,58 @@ class ReadmeTests(unittest.TestCase):
         self.assertEqual(errors, ["probe: BROKEN_LOCAL_LINK evidence/runs.json"])
 
     def test_rebase_moves_only_relative_targets_outside_code(self):
-        text = ('[a](evidence/x.json) [b](https://example.org) [c](#y)\n```bash\n[d](evidence/z)\n```\n'
-                '<img src="images/p.png" width="9" alt="p">')
+        text = ('[a](evidence/x.json) [b](https://example.org) [c](#y) [o](docs/optimizations.md#z)\n'
+                '```bash\n[d](evidence/z)\n```\n<img src="images/p.png" width="9" alt="p">')
         out = build_readme.rebase(text, "../")
         for expected in ("[a](../evidence/x.json)", "[b](https://example.org)", "[c](#y)", "[d](evidence/z)",
-                         '<img src="../images/p.png"'):
+                         '<img src="../images/p.png"', "[o](optimizations.md#z)"):
             self.assertIn(expected, out)
+        self.assertEqual(build_readme.rebase(text, ""), text)
 
     def test_generated_blocks_on_docs_pages_use_page_relative_links(self):
         for paths in build_readme.DOCS.values():
             for path in paths.values():
                 for m in build_readme.BLOCK.finditer(path.read_text(encoding="utf-8")):
                     with self.subTest(page=path.name, block=m.group("name")):
-                        self.assertNotRegex(m.group("body"), r"\]\((?:evidence|upstream|images|docker|profiles|tools)/")
+                        self.assertNotRegex(m.group("body"), r"\]\((?:docs|evidence|upstream|images|docker|profiles|tools)/")
+
+    def test_launch_reference_lists_every_profile_role_and_ablation_name(self):
+        profiles = [render_launch.load_profile(p.stem) for p in sorted((ROOT / "profiles").glob("*.json"))
+                    if p.name != "techniques.json"]
+        names = {t for p in profiles for t in p["techniques"]}
+        effective = {t for p in profiles for t in p["techniques"] if build_readme._effective_roles(p, t)}
+        for lang in ("en", "cn"):
+            listed = re.findall(r"(?m)^\| `([a-z0-9-]+)` \| \[", build_readme.ablation_names(lang))
+            self.assertEqual(sorted(listed), sorted(effective), lang)
+            table = build_readme.launch_profiles(lang)
+            for p in profiles:
+                row = next(line for line in table.splitlines() if line.startswith(f"| `{p['profile']}` |"))
+                self.assertEqual(re.findall(r"`([a-z-]+)`", row.split(" | ")[-1]), list(p["roles"]), (lang, p["profile"]))
+        for path in [*build_readme.READMES.values(), *build_readme.DOCS["benchmark"].values()]:
+            for used in re.findall(r"--ablate ([a-z0-9-]+)", path.read_text(encoding="utf-8")):
+                self.assertIn(used, names, (path.name, used))
+
+    def test_ablation_table_lists_only_roles_whose_script_changes(self):
+        """A name listed for a role must change that role's rendered env or arguments; an unlisted role must not."""
+        single = render_launch.load_profile("rocm-mi300x-single")
+        self.assertNotIn("server", build_readme._effective_roles(single, "int8-quick-reduce"))
+        self.assertIn("decode", build_readme._effective_roles(single, "int8-quick-reduce"))
+        pd = render_launch.load_profile("rocm-mi300x-pd")
+        self.assertEqual(build_readme._effective_roles(pd, "unified-verify"), ["decode"])
+        self.assertIn("`rocm-mi300x-single`: `decode`, `server`", build_readme.ablation_names("en"))
+        # The note must match the renderer: a name outside the profile is rejected, not ignored.
+        with self.assertRaises(SystemExit):
+            render_launch.compose(single, "server", ["unified-verify"])
+        for lang in ("en", "cn"):
+            self.assertIn("render_launch.py", build_readme.ablation_names(lang).split("\n- ")[1])
+
+    def test_each_serving_run_links_to_the_section_that_uses_it(self):
+        for lang, path in build_readme.DOCS["results"].items():
+            text = path.read_text(encoding="utf-8")
+            anchors = {build_readme.slug(h) for h in re.findall(r"(?m)^#{2,6} (.+)$", text)}
+            for identity, titles in build_readme.RUN_SECTIONS.items():
+                with self.subTest(lang=lang, run=identity):
+                    self.assertIn(build_readme.slug(titles[lang == "cn"]), anchors)
 
     def test_every_generated_block_has_an_owning_page(self):
         owned = set().union(*build_readme.REQUIRED_BLOCKS.values())

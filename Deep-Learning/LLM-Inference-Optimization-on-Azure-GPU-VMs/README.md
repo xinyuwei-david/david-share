@@ -4,7 +4,7 @@
 [![Runtime](https://img.shields.io/badge/SGLang-pinned%20public%20source-0078D4)](upstream/SOURCES.lock.json)
 [![CI](https://github.com/david-xinyuwei/david-share/actions/workflows/llm-inference-optimization-ci.yml/badge.svg)](https://github.com/david-xinyuwei/david-share/actions/workflows/llm-inference-optimization-ci.yml)
 
-Author: Xinyu Wei · [中文](README_CN.md) · [Start operating](#steps)
+Author: Xinyu Wei · [中文](README_CN.md) · [Start operating](#steps) · [How the optimizations work](docs/optimizations.md) · [Measured results](docs/results.md)
 
 ## Purpose
 
@@ -194,28 +194,28 @@ The communication comparison uses the same pair of MI300X VMs, but different ROC
 | Moby container | ROCm 7.2.0<br>RCCL 2.27.7 | 359.24 | 364.28 |
 <!-- END GENERATED: rccl-headline -->
 
-Published run index (not every historical attempt; selected points for multi-point serving bundles, with full retained results in the reviewer page):
+Published run index (not every historical attempt; selected points for multi-point serving bundles, with full retained results in [Measured results](docs/results.md)):
 
 <!-- BEGIN GENERATED: run-index -->
 | Run | Scenario | Recorded result / scope |
 |---|---|---|
-| [S1](VALIDATION.md#moe-tuning-before-s1) | MoE tuning: before | 8K prefill: 16,715.80 input tok/s |
-| [S2](VALIDATION.md#moe-tuning-after-s2) | MoE tuning: after | 8K prefill: 20,780.79 input tok/s |
-| [S3](VALIDATION.md#decode-concurrency-ladder-s3) | Decode concurrency ladder | C=64: 2,198.77 output tok/s; fixed MTP 3 |
-| [S4](VALIDATION.md#two-switch-64k-ab-s4) | Two-switch 64K A/B | +25.65%; N=2/arm |
-| [S5](VALIDATION.md#graph-capture-ab-s5) | Graph capture A/B | 107.4 → 334.0 output tok/s |
-| [S6](VALIDATION.md#baseline-stack-s6) | Baseline stack | C=64, 16K: TPOT 45.86 ms |
-| [S7](VALIDATION.md#actual-mtp-acceptance-s7) | Actual MTP acceptance | C=64, 8K: TPOT 30.07 ms |
-| [S8](VALIDATION.md#context-length-sweep-s8) | Context-length sweep | 64K, 1 request: 18,057.01 input tok/s |
-| [S9](VALIDATION.md#prefill-replicas-s9) | Prefill replicas | 8K, 2 in flight: 41,201.86 input tok/s |
-| [S10](VALIDATION.md#public-accuracy-subsets-s10) | Public accuracy subsets | 6 benchmark subsets; scores in the reviewer page |
-| [R1](VALIDATION.md#host-allreduce) | Host AllReduce | 354.57 GB/s; data check NOT_RUN |
-| [R2](VALIDATION.md#moby-container-allreduce) | Moby container AllReduce | 359.24 GB/s; data check NOT_RUN |
-| [R3](VALIDATION.md#container-correctness-and-transport) | Container correctness and transport | 345.307 GB/s; data check PASS |
-| [R4](VALIDATION.md#no-ib-device-socket-fallback) | No IB device: Socket fallback | 11.3114 GB/s; data check PASS |
-| [R5](VALIDATION.md#ib-device-mapped-ib-transport) | IB device mapped: IB transport | 335.588 GB/s; data check PASS |
-| [R6](VALIDATION.md#one-vm-minimum-channels-112) | One VM: minimum channels 112 | 301.688 GB/s; data check PASS |
-| [R7](VALIDATION.md#one-vm-minimum-channels-unset) | One VM: minimum channels unset | 321.714 GB/s; data check PASS |
+| [S1](docs/results.md#moe-tuning-before-s1) | MoE tuning: before | 8K prefill: 16,715.80 input tok/s |
+| [S2](docs/results.md#moe-tuning-after-s2) | MoE tuning: after | 8K prefill: 20,780.79 input tok/s |
+| [S3](docs/results.md#decode-concurrency-ladder-s3) | Decode concurrency ladder | C=64: 2,198.77 output tok/s; fixed MTP 3 |
+| [S4](docs/results.md#two-switch-64k-ab-s4) | Two-switch 64K A/B | +25.65%; N=2/arm |
+| [S5](docs/results.md#graph-capture-ab-s5) | Graph capture A/B | 107.4 → 334.0 output tok/s |
+| [S6](docs/results.md#baseline-stack-s6) | Baseline stack | C=64, 16K: TPOT 45.86 ms |
+| [S7](docs/results.md#actual-mtp-acceptance-s7) | Actual MTP acceptance | C=64, 8K: TPOT 30.07 ms |
+| [S8](docs/results.md#context-length-sweep-s8) | Context-length sweep | 64K, 1 request: 18,057.01 input tok/s |
+| [S9](docs/results.md#prefill-replicas-s9) | Prefill replicas | 8K, 2 in flight: 41,201.86 input tok/s |
+| [S10](docs/results.md#public-accuracy-subsets-s10) | Public accuracy subsets | 6 benchmark subsets; scores on the results page |
+| [R1](docs/results.md#host-allreduce) | Host AllReduce | 354.57 GB/s; data check NOT_RUN |
+| [R2](docs/results.md#moby-container-allreduce) | Moby container AllReduce | 359.24 GB/s; data check NOT_RUN |
+| [R3](docs/results.md#container-correctness-and-transport) | Container correctness and transport | 345.307 GB/s; data check PASS |
+| [R4](docs/results.md#no-ib-device-socket-fallback) | No IB device: Socket fallback | 11.3114 GB/s; data check PASS |
+| [R5](docs/results.md#ib-device-mapped-ib-transport) | IB device mapped: IB transport | 335.588 GB/s; data check PASS |
+| [R6](docs/results.md#one-vm-minimum-channels-112) | One VM: minimum channels 112 | 301.688 GB/s; data check PASS |
+| [R7](docs/results.md#one-vm-minimum-channels-unset) | One VM: minimum channels unset | 321.714 GB/s; data check PASS |
 <!-- END GENERATED: run-index -->
 
 - `LOCAL_MEASUREMENT`: preserved observations on MI300X, not a comparison with another accelerator or proof that a newer serving image has the same performance.
@@ -224,6 +224,14 @@ Published run index (not every historical attempt; selected points for multi-poi
 - `NOT_MEASURED`: accuracy with FP8 KV enabled. Fixed MTP acceptance is not production acceptance; some historical inputs and complete raw logs are unavailable publicly.
 - `SOURCE_FACT`: the container uses the host GPU kernel driver. ROCm software version strings do not establish that driver's package version.
 
-See [VALIDATION.md](VALIDATION.md) for every recorded input, complete result tables, mechanism/source detail, executable tests and measurement boundaries.
+More detail, by what you want to do:
 
-Directories: [docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/).
+| You want to | Read |
+|---|---|
+| Understand what each optimization changes, why it helps on MI300X and whether it can change output | [How the optimizations work](docs/optimizations.md) |
+| Get more detail on a deployment step, confirm the optimizations are active, operate the service or diagnose a misleading failure | [Deployment details and operations](docs/deployment.md) |
+| Reproduce a published point, measure one change, check a lossy switch or verify the numbers without a GPU | [Measure and verify](docs/benchmark.md) |
+| Look up metric and log fields, the directory layout, pinned upstream commits or sources | [Reference](docs/reference.md) |
+| See every run's recorded input, controlled variables, result and boundary | [Measured results](docs/results.md) |
+
+Directories: [docs/](docs/) · [docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/).

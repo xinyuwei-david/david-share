@@ -4,7 +4,7 @@
 [![Runtime](https://img.shields.io/badge/SGLang-pinned%20public%20source-0078D4)](upstream/SOURCES.lock.json)
 [![CI](https://github.com/david-xinyuwei/david-share/actions/workflows/llm-inference-optimization-ci.yml/badge.svg)](https://github.com/david-xinyuwei/david-share/actions/workflows/llm-inference-optimization-ci.yml)
 
-作者：Xinyu Wei · [English](README.md) · [开始操作](#操作步骤)
+作者：Xinyu Wei · [English](README.md) · [开始操作](#操作步骤) · [优化原理](docs/optimizations_CN.md) · [实测结果](docs/results_CN.md)
 
 ## 目的
 
@@ -194,28 +194,28 @@ bash docker/run-rccl.sh stop                         # optional RCCL container, 
 | Moby 容器 | ROCm 7.2.0<br>RCCL 2.27.7 | 359.24 | 364.28 |
 <!-- END GENERATED: rccl-headline -->
 
-公开运行记录索引（不是所有历史尝试；多测点推理实验选取代表测点，保留的完整结果见评审页）：
+公开运行记录索引（不是所有历史尝试；多测点推理实验选取代表测点，保留的完整结果见[实测结果](docs/results_CN.md)）：
 
 <!-- BEGIN GENERATED: run-index -->
 | 运行 | 场景 | 记录结果 / 范围 |
 |---|---|---|
-| [S1](VALIDATION_CN.md#moe-调优前-s1) | MoE 调优前 | 8K prefill: 16,715.80 input tok/s |
-| [S2](VALIDATION_CN.md#moe-调优后-s2) | MoE 调优后 | 8K prefill: 20,780.79 input tok/s |
-| [S3](VALIDATION_CN.md#decode-并发扫描-s3) | Decode 并发扫描 | 并发 64：2,198.77 output tok/s；MTP 固定接受 3 |
-| [S4](VALIDATION_CN.md#64k-双开关-ab-s4) | 64K 双开关 A/B | +25.65%；每组 2 次 |
-| [S5](VALIDATION_CN.md#图捕获-ab-s5) | 图捕获 A/B | 107.4 → 334.0 output tok/s |
-| [S6](VALIDATION_CN.md#基线软件栈-s6) | 基线软件栈 | C=64, 16K: TPOT 45.86 ms |
-| [S7](VALIDATION_CN.md#实际-mtp-接受率-s7) | 实际 MTP 接受率 | C=64, 8K: TPOT 30.07 ms |
-| [S8](VALIDATION_CN.md#上下文长度扫描-s8) | 上下文长度扫描 | 64K，1 个请求：18,057.01 input tok/s |
-| [S9](VALIDATION_CN.md#prefill-副本-s9) | Prefill 副本 | 8K，2 个请求在途：41,201.86 input tok/s |
-| [S10](VALIDATION_CN.md#公开基准子集准确率-s10) | 公开基准子集准确率 | 6 个基准子集；逐项分数见评审页 |
-| [R1](VALIDATION_CN.md#宿主机-allreduce) | 宿主机 AllReduce | 354.57 GB/s；数据校验 NOT_RUN |
-| [R2](VALIDATION_CN.md#moby-容器-allreduce) | Moby 容器 AllReduce | 359.24 GB/s；数据校验 NOT_RUN |
-| [R3](VALIDATION_CN.md#容器数据校验与传输路径) | 容器数据校验与传输路径 | 345.307 GB/s；数据校验 PASS |
-| [R4](VALIDATION_CN.md#不映射-ib-设备退回-socket) | 不映射 IB 设备：退回 Socket | 11.3114 GB/s；数据校验 PASS |
-| [R5](VALIDATION_CN.md#映射-ib-设备使用-ib-传输) | 映射 IB 设备：使用 IB 传输 | 335.588 GB/s；数据校验 PASS |
-| [R6](VALIDATION_CN.md#单机最少通道数设为-112) | 单机：最少通道数设为 112 | 301.688 GB/s；数据校验 PASS |
-| [R7](VALIDATION_CN.md#单机不设置最少通道数) | 单机：不设置最少通道数 | 321.714 GB/s；数据校验 PASS |
+| [S1](docs/results_CN.md#moe-调优前-s1) | MoE 调优前 | 8K prefill: 16,715.80 input tok/s |
+| [S2](docs/results_CN.md#moe-调优后-s2) | MoE 调优后 | 8K prefill: 20,780.79 input tok/s |
+| [S3](docs/results_CN.md#decode-并发扫描-s3) | Decode 并发扫描 | 并发 64：2,198.77 output tok/s；MTP 固定接受 3 |
+| [S4](docs/results_CN.md#64k-双开关-ab-s4) | 64K 双开关 A/B | +25.65%；每组 2 次 |
+| [S5](docs/results_CN.md#图捕获-ab-s5) | 图捕获 A/B | 107.4 → 334.0 output tok/s |
+| [S6](docs/results_CN.md#基线软件栈-s6) | 基线软件栈 | C=64, 16K: TPOT 45.86 ms |
+| [S7](docs/results_CN.md#实际-mtp-接受率-s7) | 实际 MTP 接受率 | C=64, 8K: TPOT 30.07 ms |
+| [S8](docs/results_CN.md#上下文长度扫描-s8) | 上下文长度扫描 | 64K，1 个请求：18,057.01 input tok/s |
+| [S9](docs/results_CN.md#prefill-副本-s9) | Prefill 副本 | 8K，2 个请求在途：41,201.86 input tok/s |
+| [S10](docs/results_CN.md#公开基准子集准确率-s10) | 公开基准子集准确率 | 6 个基准子集；逐项分数见实测结果页 |
+| [R1](docs/results_CN.md#宿主机-allreduce) | 宿主机 AllReduce | 354.57 GB/s；数据校验 NOT_RUN |
+| [R2](docs/results_CN.md#moby-容器-allreduce) | Moby 容器 AllReduce | 359.24 GB/s；数据校验 NOT_RUN |
+| [R3](docs/results_CN.md#容器数据校验与传输路径) | 容器数据校验与传输路径 | 345.307 GB/s；数据校验 PASS |
+| [R4](docs/results_CN.md#不映射-ib-设备退回-socket) | 不映射 IB 设备：退回 Socket | 11.3114 GB/s；数据校验 PASS |
+| [R5](docs/results_CN.md#映射-ib-设备使用-ib-传输) | 映射 IB 设备：使用 IB 传输 | 335.588 GB/s；数据校验 PASS |
+| [R6](docs/results_CN.md#单机最少通道数设为-112) | 单机：最少通道数设为 112 | 301.688 GB/s；数据校验 PASS |
+| [R7](docs/results_CN.md#单机不设置最少通道数) | 单机：不设置最少通道数 | 321.714 GB/s；数据校验 PASS |
 <!-- END GENERATED: run-index -->
 
 - `LOCAL_MEASUREMENT`：保留的 MI300X 观测，不是与其他加速器比较，也不能证明更新后的推理镜像有相同吞吐率。
@@ -224,6 +224,14 @@ bash docker/run-rccl.sh stop                         # optional RCCL container, 
 - `NOT_MEASURED`：开启 FP8 KV 时的准确率。固定 MTP 接受长度不是生产接受率；部分历史完整输入和原始日志无法公开提供。
 - `SOURCE_FACT`：容器使用宿主机的 GPU 内核驱动。ROCm 软件版本字符串不能证明该驱动包的版本。
 
-每组记录的输入、完整结果、机制与源码、可执行测试和边界见 [VALIDATION_CN.md](VALIDATION_CN.md)。
+按要做的事查看详细文档：
 
-目录：[docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/)。
+| 想要 | 看这里 |
+|---|---|
+| 理解每项优化改了什么、为什么在 MI300X 上有效、会不会改变输出 | [优化原理](docs/optimizations_CN.md) |
+| 了解某个部署步骤的细节、确认优化已生效、日常运维或排查容易误判的故障 | [部署细节与运维](docs/deployment_CN.md) |
+| 复现已发布的测点、测量一项改动、核对有损开关，或不用 GPU 核对数字 | [复测与核对](docs/benchmark_CN.md) |
+| 查指标与日志字段、目录、固定的上游提交和资料 | [参考](docs/reference_CN.md) |
+| 看每组运行记录的输入、控制变量、结果和边界 | [实测结果](docs/results_CN.md) |
+
+目录：[docs/](docs/) · [docker/](docker/) · [profiles/](profiles/) · [tools/](tools/) · [tests/](tests/) · [evidence/](evidence/) · [upstream/](upstream/) · [images/](images/)。

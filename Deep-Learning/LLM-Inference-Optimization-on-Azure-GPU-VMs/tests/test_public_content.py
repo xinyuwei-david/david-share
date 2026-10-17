@@ -25,9 +25,9 @@ class ReadmeTests(unittest.TestCase):
         self.assertEqual(check_repo.run(), [])
 
     def test_each_measurement_section_states_its_input_before_its_table(self):
-        text = build_readme.VALIDATIONS["en"].read_text(encoding="utf-8")
-        section = text.split("### Measured Results on MI300X", 1)[1].split("\n### ", 1)[0]
-        for sub in re.split(r"\n#### ", section)[1:5]:
+        text = build_readme.DOCS["results"]["en"].read_text(encoding="utf-8")
+        section = text.split("## Measured Results on MI300X", 1)[1].split("\n## ", 1)[0]
+        for sub in re.split(r"\n### ", section)[1:5]:
             with self.subTest(section=sub.splitlines()[0]):
                 first_table = sub.find("\n| ")
                 self.assertGreater(first_table, 0)
@@ -37,7 +37,7 @@ class ReadmeTests(unittest.TestCase):
     def test_every_technique_has_a_card_under_its_own_heading(self):
         import json
         cat = json.loads((ROOT / "profiles" / "techniques.json").read_text(encoding="utf-8"))
-        for lang, path in build_readme.VALIDATIONS.items():
+        for lang, path in build_readme.DOCS["optimizations"].items():
             text = path.read_text(encoding="utf-8")
             for t in cat["techniques"]:
                 with self.subTest(lang=lang, technique=t["id"]):
@@ -86,7 +86,7 @@ class ReadmeTests(unittest.TestCase):
                 self.assertEqual(errors, [])
 
     def test_accuracy_section_lists_every_lossy_switch_in_both_languages(self):
-        for lang, path in build_readme.VALIDATIONS.items():
+        for lang, path in build_readme.DOCS["optimizations"].items():
             text = path.read_text(encoding="utf-8")
             block = text.split("<!-- BEGIN GENERATED: precision-summary -->", 1)[1].split("<!-- END GENERATED: precision-summary -->", 1)[0]
             lossy = [l for l in block.splitlines() if l.startswith("- **")][0]
@@ -139,10 +139,10 @@ class ReadmeTests(unittest.TestCase):
             "en": ("**Question.**", "**Recorded input.**", "**Variables.**", "**Observed result.**", "**Boundary.**"),
             "cn": ("**问题。**", "**记录的输入。**", "**变量。**", "**观测结果。**", "**边界。**"),
         }
-        for lang, path in build_readme.VALIDATIONS.items():
+        for lang, path in build_readme.DOCS["results"].items():
             text = path.read_text(encoding="utf-8")
             block = text.split("<!-- BEGIN GENERATED: rccl-runs -->", 1)[1].split("<!-- END GENERATED: rccl-runs -->", 1)[0]
-            sections = re.split(r"\n#### ", block)[1:]
+            sections = re.split(r"\n### ", block)[1:]
             self.assertEqual(len(sections), 7)
             for section in sections:
                 positions = [section.find(label) for label in labels[lang]]
@@ -152,8 +152,78 @@ class ReadmeTests(unittest.TestCase):
 
     def test_cross_document_anchor_is_checked(self):
         errors = []
-        check_repo.check_links("probe", "[review](VALIDATION.md#not-a-real-heading)", errors)
-        self.assertEqual(errors, ["probe: BROKEN_FILE_ANCHOR VALIDATION.md#not-a-real-heading"])
+        check_repo.check_links("probe", "[results](docs/results.md#not-a-real-heading)", errors)
+        self.assertEqual(errors, ["probe: BROKEN_FILE_ANCHOR docs/results.md#not-a-real-heading"])
+
+    def test_docs_links_resolve_from_their_own_directory(self):
+        base = ROOT / "docs"
+        errors = []
+        check_repo.check_links("probe", "[runs](../evidence/runs.json) [twin](results_CN.md#测试环境)", errors, base)
+        self.assertEqual(errors, [])
+        check_repo.check_links("probe", "[runs](evidence/runs.json)", errors, base)
+        self.assertEqual(errors, ["probe: BROKEN_LOCAL_LINK evidence/runs.json"])
+
+    def test_rebase_moves_only_relative_targets_outside_code(self):
+        text = ('[a](evidence/x.json) [b](https://example.org) [c](#y)\n```bash\n[d](evidence/z)\n```\n'
+                '<img src="images/p.png" width="9" alt="p">')
+        out = build_readme.rebase(text, "../")
+        for expected in ("[a](../evidence/x.json)", "[b](https://example.org)", "[c](#y)", "[d](evidence/z)",
+                         '<img src="../images/p.png"'):
+            self.assertIn(expected, out)
+
+    def test_generated_blocks_on_docs_pages_use_page_relative_links(self):
+        for paths in build_readme.DOCS.values():
+            for path in paths.values():
+                for m in build_readme.BLOCK.finditer(path.read_text(encoding="utf-8")):
+                    with self.subTest(page=path.name, block=m.group("name")):
+                        self.assertNotRegex(m.group("body"), r"\]\((?:evidence|upstream|images|docker|profiles|tools)/")
+
+    def test_every_generated_block_has_an_owning_page(self):
+        owned = set().union(*build_readme.REQUIRED_BLOCKS.values())
+        self.assertEqual(owned, set(build_readme.BLOCKS))
+        self.assertEqual(set(build_readme.REQUIRED_BLOCKS), set(build_readme.DOCUMENTS))
+
+    def test_docs_page_navigation_is_checked(self):
+        path = build_readme.DOCS["optimizations"]["en"]
+        text = path.read_text(encoding="utf-8")
+        errors = []
+        check_repo.check_page_nav("en", path, text, errors)
+        self.assertEqual(errors, [])
+        check_repo.check_page_nav("en", path, text.replace("(benchmark.md)", "(missing.md)", 1), errors)
+        self.assertEqual(errors, ["docs/optimizations.md: MISSING_PAGE_NAV benchmark.md"])
+
+    def test_readme_must_route_to_every_docs_page(self):
+        text = build_readme.READMES["cn"].read_text(encoding="utf-8")
+        errors = []
+        check_repo.check_operator_path("cn", text.replace("(docs/reference_CN.md)", "(docs/missing.md)"), errors)
+        self.assertIn("cn: MISSING_DOC_ENTRY docs/reference_CN.md", errors)
+
+    def test_retired_reviewer_page_cannot_return(self):
+        """The single VALIDATION page was split into docs/; a file, a link or the old label must turn the audit red."""
+        cases = {
+            "file": lambda copy: (copy / "VALIDATION.md").write_text("# Validation\n", encoding="utf-8"),
+            "link": lambda copy: (copy / "README.md").write_text(
+                (copy / "README.md").read_text(encoding="utf-8") + "\nSee [VALIDATION.md](README.md).\n", encoding="utf-8"),
+            "label": lambda copy: (copy / "docs" / "results.md").write_text(
+                (copy / "docs" / "results.md").read_text(encoding="utf-8") + "\nSee the reviewer page.\n", encoding="utf-8"),
+        }
+        expected = {"file": "RETIRED_PAGE VALIDATION.md", "link": "README.md: RETIRED_PAGE_LINK VALIDATION.md",
+                    "label": "docs/results.md: RETIRED_WORDING reviewer page"}
+        for case, mutate in cases.items():
+            with self.subTest(case=case):
+                with tempfile.TemporaryDirectory() as tmp:
+                    copy = Path(tmp) / ROOT.name
+                    shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns("__pycache__"))
+                    mutate(copy)
+                    original_root = check_repo.ROOT
+                    try:
+                        check_repo.ROOT = copy
+                        check_repo.READMES = {"en": copy / "README.md", "cn": copy / "README_CN.md"}
+                        errors = check_repo.run()
+                    finally:
+                        check_repo.ROOT = original_root
+                        check_repo.READMES = {"en": original_root / "README.md", "cn": original_root / "README_CN.md"}
+                    self.assertIn(expected[case], errors)
 
     def test_software_version_exception_does_not_hide_a_real_address(self):
         text = 'ROCm version : 6.4.4.0-129-e7d83f5\nendpoint=10.2.3.4\n'
@@ -184,7 +254,7 @@ class ReadmeTests(unittest.TestCase):
         changed = arm.replace(before, after)
         self.assertIn(after, changed)
         self.assertNotIn(before, changed)
-        for path in build_readme.VALIDATIONS.values():
+        for path in build_readme.DOCS["benchmark"].values():
             text = path.read_text(encoding="utf-8")
             self.assertIn("cp arm_a.sh arm_qr_int8.sh", text)
             self.assertIn("s/^" + before + "$/" + after + "/", text)
@@ -192,7 +262,7 @@ class ReadmeTests(unittest.TestCase):
 
     def test_rccl_boundaries_follow_the_observed_transport(self):
         block = build_readme.rccl_runs("en")
-        sections = re.split(r"\n#### ", "\n" + block)[1:]
+        sections = re.split(r"\n### ", "\n" + block)[1:]
         by_name = {s.splitlines()[0]: s for s in sections}
         ib = by_name["IB device mapped: IB transport"]
         socket = by_name["No IB device: Socket fallback"]
@@ -204,7 +274,7 @@ class ReadmeTests(unittest.TestCase):
         self.assertIn("VERSION-only", by_name["Host AllReduce"])
 
     def test_model_evaluation_uses_the_pinned_container_interpreter(self):
-        for path in build_readme.VALIDATIONS.values():
+        for path in build_readme.DOCS["benchmark"].values():
             text = path.read_text(encoding="utf-8")
             lines = [line for line in text.splitlines() if "-m sglang.test.run_eval" in line]
             self.assertEqual(len(lines), 3)

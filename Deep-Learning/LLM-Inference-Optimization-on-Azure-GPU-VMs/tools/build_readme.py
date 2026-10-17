@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Fill the generated blocks of the operator and reviewer documents.
+"""Fill the generated blocks of the README pair and the docs/ pages.
 
     python tools/build_readme.py          # rewrite the generated blocks in place
-    python tools/build_readme.py --check  # fail if either README differs from a fresh render
+    python tools/build_readme.py --check  # fail if any document differs from a fresh render
 
 Every number, table and code excerpt between `<!-- BEGIN GENERATED: name -->`
 and `<!-- END GENERATED: name -->` comes from evidence/, profiles/ or the
-pinned upstream patches. Prose outside the markers is written by hand.
+pinned upstream patches. Prose outside the markers is written by hand. Blocks
+are rendered with project-root links and rebased for pages under docs/.
 """
 from __future__ import annotations
 
@@ -20,9 +21,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 READMES = {"en": ROOT / "README.md", "cn": ROOT / "README_CN.md"}
-VALIDATIONS = {"en": ROOT / "VALIDATION.md", "cn": ROOT / "VALIDATION_CN.md"}
-DOCUMENTS = {"readme": READMES, "validation": VALIDATIONS}
+DOC_PAGES = ("optimizations", "deployment", "benchmark", "reference", "results")
+DOCS = {page: {"en": ROOT / "docs" / f"{page}.md", "cn": ROOT / "docs" / f"{page}_CN.md"} for page in DOC_PAGES}
+DOCUMENTS = {"readme": READMES, **DOCS}
 BLOCK = re.compile(r"(<!-- BEGIN GENERATED: (?P<name>[a-z0-9-]+) -->\n)(?P<body>.*?)(<!-- END GENERATED: (?P=name) -->)", re.S)
+RELATIVE_TARGET = re.compile(r'(\]\(|<img\s[^>]*?src=")(?!https?://|mailto:|#|/)')
+
+
+def rebase(text: str, prefix: str) -> str:
+    """Prefix project-root relative link and image targets, leaving fenced code untouched."""
+    out, fence = [], False
+    for line in text.split("\n"):
+        if line.startswith("```"):
+            fence = not fence
+        out.append(line if fence or line.startswith("```") else RELATIVE_TARGET.sub(lambda m: m.group(1) + prefix, line))
+    return "\n".join(out)
 
 
 def _json(rel: str) -> dict:
@@ -499,7 +512,7 @@ def run_index(lang: str) -> str:
         "actual-acceptance": f"C=64, 8K: TPOT {_n(decode['real_mean_tpot_ms'])} ms",
         "context-matrix": f"64K, 1 request: {_n(context['prefill_1req_input_tok_s'])} input tok/s",
         "prefill-replicas": f"8K, 2 in flight: {_n(replicas['two_in_flight_tok_s'])} input tok/s",
-        "accuracy-subset": f"{len(m['accuracy'])} benchmark subsets; scores in the reviewer page",
+        "accuracy-subset": f"{len(m['accuracy'])} benchmark subsets; scores on the results page",
     }
     if not en:
         results.update({
@@ -507,9 +520,9 @@ def run_index(lang: str) -> str:
             "ab-64k-bs16": f"{_pct(m['ab_ck_unified_verify_64k']['throughput_delta_pct'])}；每组 2 次",
             "context-matrix": f"64K，1 个请求：{_n(context['prefill_1req_input_tok_s'])} input tok/s",
             "prefill-replicas": f"8K，2 个请求在途：{_n(replicas['two_in_flight_tok_s'])} input tok/s",
-            "accuracy-subset": f"{len(m['accuracy'])} 个基准子集；逐项分数见评审页",
+            "accuracy-subset": f"{len(m['accuracy'])} 个基准子集；逐项分数见实测结果页",
         })
-    page = VALIDATIONS[lang].name
+    page = DOCS["results"][lang].relative_to(ROOT).as_posix()
     rows = []
     for i, identity in enumerate(meta, 1):
         heading = _run_heading(identity, i, lang)
@@ -539,22 +552,23 @@ def run_inputs(lang: str) -> str:
                           "这份记录没有保存完整的 shell 调用；下列公开证据保留了当时可获取的负载和配置字段。")
         if en:
             out.extend([
-                f"#### {title}\n",
+                f"### {title}\n",
                 f"**Question.** What does the recorded {RUN_LABELS[identity][0].lower()} establish?\n",
                 f"**Recorded input.** {input_text}\n",
                 f"**Variables.** Use the topology, runtime, flags and environment for `{identity}` in "
                 "[the frozen run catalog](evidence/runs.json), not another bundle's configuration.\n",
-                f"**Result.** {links}. The measurement sections below derive their values from these records.\n",
+                f"**Result.** {links}. The [measurement sections](#measured-results-on-mi300x) derive their values "
+                "from these records.\n",
                 "**Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of "
                 "missing private input. Replaying evidence is not a fresh serving experiment.\n",
             ])
         else:
             out.extend([
-                f"#### {title}\n",
+                f"### {title}\n",
                 f"**问题。** 这份“{RUN_LABELS[identity][1]}”记录能够说明什么？\n",
                 f"**记录的输入。** {input_text}\n",
                 f"**变量。** 使用[固定运行目录](evidence/runs.json)中 `{identity}` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。\n",
-                f"**结果。** {links}。后面的实测章节从这些记录计算结果。\n",
+                f"**结果。** {links}。[实测章节](#mi300x-实测结果)从这些记录计算结果。\n",
                 "**边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。\n",
             ])
     return "\n".join(out)
@@ -581,7 +595,7 @@ def rccl_runs(lang: str) -> str:
         if run["id"] == "ib-control-validation":
             question = ("With the IB device visible, does RCCL choose IB and pass its data check?" if en else
                         "映射 IB 设备后，RCCL 是否选择 IB 并通过数据校验？")
-        out.append(f"#### {title}\n")
+        out.append(f"### {title}\n")
         if en:
             out.extend([
                 f"**Question.** {question}\n",
@@ -673,17 +687,24 @@ for _t in _json("profiles/techniques.json")["techniques"]:
     BLOCKS[f"card-{_t['id']}"] = (lambda i: (lambda lang: card(i, lang)))(_t["id"])
 for _name in _json("tools/excerpts.json")["excerpts"]:
     BLOCKS[f"excerpt-{_name}"] = (lambda n: (lambda lang: excerpt(n, lang)))(_name)
-LEGACY_BLOCKS = set(BLOCKS)
 BLOCKS.update({"rccl-headline": rccl_headline, "rccl-runs": rccl_runs, "rccl-observation": rccl_observation,
                "run-index": run_index, "run-inputs": run_inputs})
 REQUIRED_BLOCKS = {
     "readme": {"headline", "rccl-headline", "run-index"},
-    "validation": LEGACY_BLOCKS | {"rccl-runs", "rccl-observation", "run-inputs"},
+    "optimizations": {"technique-overview", "precision-summary", "moe-table"}
+                     | {name for name in BLOCKS if name.startswith(("card-", "excerpt-"))},
+    "deployment": set(),
+    "benchmark": {"numerical-tests"},
+    "reference": {"upstream-table"},
+    "results": {"cumulative", "glance", "cumulative-decode", "headline", "ab-table", "ab-tpot", "stage-prefill",
+                "stage-decode", "ladder", "context-table", "replicas-table", "accuracy-table", "run-inputs",
+                "rccl-observation", "rccl-runs"},
 }
 
 
 def render(text: str, lang: str, document: str = "readme") -> str:
     seen = set()
+    prefix = "" if document == "readme" else "../"
 
     def fill(m: re.Match) -> str:
         name = m.group("name")
@@ -692,7 +713,7 @@ def render(text: str, lang: str, document: str = "readme") -> str:
         if name in seen:
             raise SystemExit(f"DUPLICATE_BLOCK {name} in {lang} {document}")
         seen.add(name)
-        return m.group(1) + BLOCKS[name](lang) + m.group(4)
+        return m.group(1) + rebase(BLOCKS[name](lang), prefix) + m.group(4)
 
     out = BLOCK.sub(fill, text)
     missing = REQUIRED_BLOCKS[document] - seen
@@ -719,9 +740,10 @@ def main(argv: list[str] | None = None) -> int:
         if stale:
             print("STALE " + ", ".join(stale) + "; run tools/build_readme.py")
             return 1
-        print(f"PASS {len(BLOCKS)} generated blocks are current across four operator/reviewer documents")
+        count = sum(len(paths) for paths in DOCUMENTS.values())
+        print(f"PASS {len(BLOCKS)} generated blocks are current across {count} README and docs pages")
         return 0
-    print("rendered README.md, README_CN.md, VALIDATION.md and VALIDATION_CN.md")
+    print("rendered " + ", ".join(p.relative_to(ROOT).as_posix() for paths in DOCUMENTS.values() for p in paths.values()))
     return 0
 
 

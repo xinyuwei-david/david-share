@@ -4,10 +4,11 @@
     python tools/check_repo.py
 
 Fails (exit 1) on: a broken relative link, image or in-page anchor; a `##`
-heading out of reader order; an undocumented top-level path; a `<details>`
-block; English and Chinese generated blocks that carry different numbers; or
-content that must not be published (private paths, hosts, addresses, names,
-and comparisons with other accelerators).
+heading out of reader order in the README or a docs/ page; a docs/ page missing
+or unlinked; the retired single reviewer page; an undocumented top-level path; a
+`<details>` block; English and Chinese generated blocks that carry different
+numbers; or content that must not be published (private paths, hosts,
+addresses, names, and comparisons with other accelerators).
 """
 from __future__ import annotations
 
@@ -20,17 +21,42 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 READMES = {"en": ROOT / "README.md", "cn": ROOT / "README_CN.md"}
-VALIDATION_NAMES = {"en": "VALIDATION.md", "cn": "VALIDATION_CN.md"}
 READER_ORDER = {
     "en": ["Purpose", "Steps", "Results"],
     "cn": ["目的", "操作步骤", "实现效果"],
 }
-VALIDATION_ORDER = {
-    "en": ["Architecture and Metrics", "Commands and Configuration", "Query and Log Details",
-           "Measurements on MI300X", "Tests and Offline Checks", "Limits, Assets and Sources"],
-    "cn": ["架构与指标口径", "配置命令实际执行了什么", "查询与日志细节",
-           "MI300X 上的实测验证", "测试与离线校验", "边界、目录与资料"],
+# One page per reader need; the `##` order of each page is a contract.
+DOC_ORDER = {
+    "optimizations": {
+        "en": ["Architecture", "The Three Optimization Layers", "Serving-framework layer", "Operator layer",
+               "Workload and deployment layer", "Which optimizations can change model output",
+               "Common misconceptions", "Porting the method to NVIDIA GPUs"],
+        "cn": ["架构", "三层优化逐项拆解", "推理框架层", "算子层", "负载与部署层", "哪些优化可能改变模型输出",
+               "常见误解", "迁移到 NVIDIA GPU"],
+    },
+    "deployment": {
+        "en": ["Deployment step details", "What has been run", "Failures that are easy to misread"],
+        "cn": ["部署步骤详解", "哪些步骤实际跑过", "容易误判的故障"],
+    },
+    "benchmark": {
+        "en": ["Reproduce the published numbers", "Measure one change", "Measurement practice",
+               "Check a lossy switch on your model", "Tests and Offline Checks"],
+        "cn": ["复现已发布的数字", "测量一项改动", "测量要点", "在你的模型上核对有损开关", "测试与离线校验"],
+    },
+    "reference": {
+        "en": ["Metrics and log fields", "What This Repository Delivers", "Repository layout", "Upstream commits",
+               "Sources"],
+        "cn": ["指标与日志字段", "本仓库做了什么、提供什么", "目录", "上游提交", "资料"],
+    },
+    "results": {
+        "en": ["Test setup", "Measurements on MI300X", "Measured Results on MI300X",
+               "Serving run inputs and provenance", "Independent RCCL communication validation", "Limits"],
+        "cn": ["测试环境", "MI300X 上的实测验证", "MI300X 实测结果", "推理运行的输入与来源", "独立的 RCCL 通信验证",
+               "边界"],
+    },
 }
+RETIRED_PAGES = ("VALIDATION.md", "VALIDATION_CN.md")
+RETIRED_WORDING = ("reviewer page", "评审页")
 MAX_TABLE_COLUMNS = 4  # five-column tables overflow a 390px viewport on GitHub
 TOP_LEVEL_EXEMPT = {".gitattributes", ".gitignore", "README.md", "__pycache__"}
 FORBIDDEN = [
@@ -95,7 +121,11 @@ def headings(text: str) -> list[tuple[int, str]]:
     return out
 
 
-def check_links(lang: str, text: str, errors: list[str]) -> None:
+def doc_paths() -> dict[str, dict[str, Path]]:
+    return {page: {"en": ROOT / "docs" / f"{page}.md", "cn": ROOT / "docs" / f"{page}_CN.md"} for page in DOC_ORDER}
+
+
+def check_links(lang: str, text: str, errors: list[str], base: Path | None = None) -> None:
     anchors = {slug(h) for _, h in headings(text)}
     for m in LINK.finditer(text):
         target = next(g for g in m.groups() if g)
@@ -106,7 +136,7 @@ def check_links(lang: str, text: str, errors: list[str]) -> None:
             if anchor not in anchors:
                 errors.append(f"{lang}: BROKEN_ANCHOR #{anchor}")
             continue
-        resolved = (ROOT / path).resolve()
+        resolved = ((base or ROOT) / path).resolve()
         outside = ROOT.resolve() not in resolved.parents and resolved != ROOT.resolve()
         if outside and os.environ.get("CHECK_MONOREPO_LINKS") != "1":
             continue  # sibling projects may be absent in a sparse checkout; CI sets CHECK_MONOREPO_LINKS=1
@@ -118,11 +148,11 @@ def check_links(lang: str, text: str, errors: list[str]) -> None:
                 errors.append(f"{lang}: BROKEN_FILE_ANCHOR {target}")
 
 
-def check_order(lang: str, text: str, errors: list[str], document: str = "readme") -> None:
+def check_order(lang: str, text: str, errors: list[str], document: str = "readme", label: str | None = None) -> None:
     got = [h for level, h in headings(text) if level == 2]
-    expected = READER_ORDER if document == "readme" else VALIDATION_ORDER
+    expected = READER_ORDER if document == "readme" else DOC_ORDER[document]
     if got != expected[lang]:
-        errors.append(f"{lang}: HEADING_ORDER {got}")
+        errors.append(f"{label or lang}: HEADING_ORDER {got}")
 
 
 def _rows(body: str) -> list[list[str]]:
@@ -138,7 +168,7 @@ def _rows(body: str) -> list[list[str]]:
 
 
 def check_bilingual(errors: list[str]) -> None:
-    documents = [READMES, {lang: ROOT / name for lang, name in VALIDATION_NAMES.items()}]
+    documents = [READMES] + [paths for paths in doc_paths().values() if all(p.is_file() for p in paths.values())]
     for paths in documents:
         blocks = {lang: {m.group("name"): m.group("body") for m in GENERATED.finditer(p.read_text(encoding="utf-8"))}
                   for lang, p in paths.items()}
@@ -175,12 +205,42 @@ def check_operator_path(lang: str, text: str, errors: list[str]) -> None:
     for old in ("## Start Here", "## Reproduce in Your Environment", "## 从这里开始", "## 客户如何复现"):
         if old in text:
             errors.append(f"{lang}: RETIRED_OPERATOR_HEADING")
-    if VALIDATION_NAMES[lang] not in text:
-        errors.append(f"{lang}: MISSING_REVIEWER_ENTRY")
+    for page, paths in doc_paths().items():
+        if f"(docs/{paths[lang].name})" not in text:
+            errors.append(f"{lang}: MISSING_DOC_ENTRY docs/{paths[lang].name}")
+    check_images(lang, text, errors)
+
+
+def check_images(label: str, text: str, errors: list[str]) -> None:
     for image in re.finditer(r'<img\b[^>]*src="([^"]+)"[^>]*>', text):
         width = re.search(r'\bwidth="(\d+)"', image[0])
         if not width or int(width[1]) > 900:
-            errors.append(f"{lang}: UNBOUNDED_DIAGRAM {image[1]}")
+            errors.append(f"{label}: UNBOUNDED_DIAGRAM {image[1]}")
+
+
+def check_page_nav(lang: str, path: Path, text: str, errors: list[str]) -> None:
+    """Every docs page links its other-language twin, the README and every sibling page."""
+    twin = path.name.replace("_CN.md", ".md") if lang == "cn" else path.name.replace(".md", "_CN.md")
+    readme = "../README_CN.md" if lang == "cn" else "../README.md"
+    first_heading = text.find("\n## ")
+    header = text[:first_heading] if first_heading >= 0 else text
+    for target in [twin, readme] + [paths[lang].name for paths in doc_paths().values() if paths[lang] != path]:
+        if f"({target})" not in header:
+            errors.append(f"docs/{path.name}: MISSING_PAGE_NAV {target}")
+
+
+def check_retired(texts: dict[str, str], errors: list[str]) -> None:
+    """The single reviewer page was split into docs/; it must not come back as a file, a link or a label."""
+    for name in RETIRED_PAGES:
+        if (ROOT / name).exists():
+            errors.append(f"RETIRED_PAGE {name}")
+    for label, text in texts.items():
+        for name in RETIRED_PAGES:
+            if name in text:
+                errors.append(f"{label}: RETIRED_PAGE_LINK {name}")
+        for wording in RETIRED_WORDING:
+            if wording in text:
+                errors.append(f"{label}: RETIRED_WORDING {wording}")
 
 
 def check_table_shape(lang: str, text: str, errors: list[str]) -> None:
@@ -202,7 +262,6 @@ def check_table_shape(lang: str, text: str, errors: list[str]) -> None:
 
 def check_top_level(errors: list[str]) -> None:
     text = "".join(path.read_text(encoding="utf-8") for path in READMES.values())
-    text += "".join((ROOT / name).read_text(encoding="utf-8") for name in VALIDATION_NAMES.values())
     for entry in ROOT.iterdir():
         if entry.name in TOP_LEVEL_EXEMPT:
             continue
@@ -242,22 +301,30 @@ def check_forbidden(errors: list[str]) -> None:
 
 def run() -> list[str]:
     errors: list[str] = []
+    texts: dict[str, str] = {}
     for lang, path in READMES.items():
         text = path.read_text(encoding="utf-8")
+        texts[path.name] = text
         check_links(lang, text, errors)
         check_order(lang, text, errors)
         check_table_shape(lang, text, errors)
         check_operator_path(lang, text, errors)
-        reviewer = ROOT / VALIDATION_NAMES[lang]
-        if not reviewer.is_file():
-            errors.append(f"{lang}: MISSING_VALIDATION")
-            continue
-        review_text = reviewer.read_text(encoding="utf-8")
-        check_links(reviewer.name, review_text, errors)
-        check_order(lang, review_text, errors, "validation")
-        check_table_shape(reviewer.name, review_text, errors)
+    for page, paths in doc_paths().items():
+        for lang, path in paths.items():
+            label = f"docs/{path.name}"
+            if not path.is_file():
+                errors.append(f"{label}: MISSING_DOC")
+                continue
+            text = path.read_text(encoding="utf-8")
+            texts[label] = text
+            check_links(label, text, errors, path.parent)
+            check_order(lang, text, errors, page, label)
+            check_table_shape(label, text, errors)
+            check_images(label, text, errors)
+            check_page_nav(lang, path, text, errors)
     check_bilingual(errors)
     check_top_level(errors)
+    check_retired(texts, errors)
     check_forbidden(errors)
     return errors
 
@@ -267,7 +334,7 @@ def main() -> int:
     if errors:
         print("\n".join(errors))
         return 1
-    print("PASS operator/reviewer structure, execution paths, links, bilingual numbers and public-content guards")
+    print("PASS README and docs/ structure, execution paths, links, bilingual numbers and public-content guards")
     return 0
 
 

@@ -1,4 +1,4 @@
-"""Tests for pinned upstream patches and code excerpts on the reviewer pages."""
+"""Tests for pinned upstream patches and the code excerpts on the docs pages."""
 import hashlib
 import json
 import re
@@ -43,7 +43,7 @@ class UpstreamTests(unittest.TestCase):
 
     def test_reviewer_excerpts_are_byte_identical_to_the_patch(self):
         spec = json.loads((ROOT / "tools/excerpts.json").read_text(encoding="utf-8"))["excerpts"]
-        for lang, path in build_readme.VALIDATIONS.items():
+        for lang, path in build_readme.DOCS["optimizations"].items():
             text = path.read_text(encoding="utf-8")
             for name, e in spec.items():
                 lines = (ROOT / "upstream/patches" / e["patch"]).read_text(encoding="utf-8").split("\n")

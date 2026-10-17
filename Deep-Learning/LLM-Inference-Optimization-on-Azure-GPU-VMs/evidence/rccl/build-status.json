@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "source_input_status": "RESOLVED",
+  "source": {
+    "repository": "https://github.com/ROCm/rocm-systems",
+    "commit": "1284e5da11f7904e8a6efd902b9de52253785bd0",
+    "subdirectory": "projects/rccl-tests",
+    "makefile_git_blob": "f652b78a9972ca1f6717d7c0743b3b01b351f851",
+    "license_git_blob": "d2e566e3e2c837c9434181bec15af07c5f61822d"
+  },
+  "base_image": "rocm/sgl-dev@sha256:8f8dc55398855764d339ff4e2695b9c3c298704999051acaa1a67993fdff62e5",
+  "image_build_status": "NOT_BUILT",
+  "container_start_status": "NOT_RUN",
+  "fresh_gpu_replay_status": "NOT_RUN",
+  "recorded_measurements": "The committed logs came from a direct source build on this base image. They are not a build or deployment receipt for the new rccl.Dockerfile.",
+  "packaging_changes": [
+    "Compile the pinned public source during image build instead of copying the author's prebuilt tree.",
+    "Use dedicated SSH material, independently generated host keys and strict host-key checking.",
+    "Store a new output and parsed result for every benchmark invocation."
+  ],
+  "no_billable_resources_started_for_documentation": true
+}

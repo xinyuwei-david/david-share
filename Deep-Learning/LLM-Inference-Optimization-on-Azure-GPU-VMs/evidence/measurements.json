@@ -449,5 +449,1301 @@
       "thinking": false,
       "accuracy_pct": 70.31
     }
-  ]
+  ],
+  "rccl": {
+    "protocol": {
+      "collective": "all_reduce_perf",
+      "hardware": "Standard_ND96isr_MI300X_v5",
+      "gpus_per_vm": 8,
+      "ib_ports_per_vm": 8,
+      "nominal_ib_port_gbps": 400,
+      "command_projection": "Node addresses and executable paths are variables; other recorded arguments are retained.",
+      "log_projection": "Numeric tokens are retained; INFO-interleaved rows are reassembled; host identities are removed.",
+      "container_source": {
+        "repository": "https://github.com/ROCm/rocm-systems",
+        "commit": "1284e5da11f7904e8a6efd902b9de52253785bd0",
+        "subdirectory": "projects/rccl-tests"
+      },
+      "container_base": "rocm/sgl-dev@sha256:8f8dc55398855764d339ff4e2695b9c3c298704999051acaa1a67993fdff62e5",
+      "host_binary": "HPC-image bundled all_reduce_perf; not rebuilt for the host arm.",
+      "driver_boundary": "ROCm version strings report the software stack; the host amdgpu module version was not independently captured.",
+      "scope": "Communication microbenchmark, not model-serving or long-term reliability validation."
+    },
+    "runs": [
+      {
+        "id": "host-performance",
+        "label": {
+          "en": "Host AllReduce",
+          "cn": "\u5bbf\u4e3b\u673a AllReduce"
+        },
+        "comparison": "host-vs-container",
+        "environment": {
+          "execution": "host",
+          "nodes": 2,
+          "gpus_per_node": 8,
+          "container_engine": null,
+          "repetitions": 1
+        },
+        "command": "mpirun -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 0 -n 50 -w 20 < /dev/null",
+        "boundary": {
+          "en": "Different ROCm/RCCL and test builds; not an isolated container-overhead experiment.",
+          "cn": "ROCm\u3001RCCL \u548c\u6d4b\u8bd5\u7a0b\u5e8f\u6784\u5efa\u4e0d\u540c\uff0c\u4e0d\u80fd\u628a\u5dee\u5f02\u5355\u72ec\u5f52\u56e0\u4e8e\u5bb9\u5668\u5f00\u9500\u3002"
+        },
+        "source": "evidence/rccl/raw/host-performance.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 20,
+          "iterations": 50,
+          "aggregate_iterations": 1,
+          "validation": 0,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 20 iters: 50 agg iters: 1 validation: 0 graph: 0 unalign: 0",
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.22.3-HEAD:7d8d67c",
+          "ROCm": "6.4.4.0-129-e7d83f5",
+          "HIP": "6.4.43484-123eb5128"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "5785.20",
+              "185.60",
+              "348.00",
+              "N/A",
+              "5783.58",
+              "185.65",
+              "348.10",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 5785.2,
+              "algbw_gb_s": 185.6,
+              "busbw_gb_s": 348.0,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 5783.58,
+              "algbw_gb_s": 185.65,
+              "busbw_gb_s": 348.1,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 2147483648,
+            "count": 536870912,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "2147483648",
+              "536870912",
+              "float",
+              "sum",
+              "-1",
+              "11470.1",
+              "187.22",
+              "351.05",
+              "N/A",
+              "11468.2",
+              "187.25",
+              "351.10",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 11470.1,
+              "algbw_gb_s": 187.22,
+              "busbw_gb_s": 351.05,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 11468.2,
+              "algbw_gb_s": 187.25,
+              "busbw_gb_s": 351.1,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 4294967296,
+            "count": 1073741824,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "4294967296",
+              "1073741824",
+              "float",
+              "sum",
+              "-1",
+              "22802.8",
+              "188.35",
+              "353.16",
+              "N/A",
+              "22609.6",
+              "189.96",
+              "356.18",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 22802.8,
+              "algbw_gb_s": 188.35,
+              "busbw_gb_s": 353.16,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 22609.6,
+              "algbw_gb_s": 189.96,
+              "busbw_gb_s": 356.18,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 8589934592,
+            "count": 2147483648,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "8589934592",
+              "2147483648",
+              "float",
+              "sum",
+              "-1",
+              "45017.4",
+              "190.81",
+              "357.78",
+              "N/A",
+              "45020.2",
+              "190.80",
+              "357.75",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 45017.4,
+              "algbw_gb_s": 190.81,
+              "busbw_gb_s": 357.78,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 45020.2,
+              "algbw_gb_s": 190.8,
+              "busbw_gb_s": 357.75,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 17179869184,
+            "count": 4294967296,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "17179869184",
+              "4294967296",
+              "float",
+              "sum",
+              "-1",
+              "89154.9",
+              "192.70",
+              "361.31",
+              "N/A",
+              "89163.8",
+              "192.68",
+              "361.27",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 89154.9,
+              "algbw_gb_s": 192.7,
+              "busbw_gb_s": 361.31,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 89163.8,
+              "algbw_gb_s": 192.68,
+              "busbw_gb_s": 361.27,
+              "wrong": null
+            }
+          }
+        ],
+        "average_busbw_gb_s": 354.57,
+        "data_check": "NOT_RUN",
+        "network_markers": {
+          "IB": 0,
+          "Socket": 0,
+          "GDRDMA": 0
+        }
+      },
+      {
+        "id": "container-performance",
+        "label": {
+          "en": "Moby container AllReduce",
+          "cn": "Moby \u5bb9\u5668 AllReduce"
+        },
+        "comparison": "host-vs-container",
+        "environment": {
+          "execution": "container",
+          "nodes": 2,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 0 -n 50 -w 20",
+        "boundary": {
+          "en": "One completed sweep; image-default NCCL_MIN_NCHANNELS reached local ranks only.",
+          "cn": "\u4ec5\u4e00\u6b21\u5b8c\u6210\u7684\u626b\u63cf\uff1b\u955c\u50cf\u9ed8\u8ba4 NCCL_MIN_NCHANNELS \u53ea\u4f20\u5230\u4e86\u672c\u5730\u8fdb\u7a0b\u3002"
+        },
+        "source": "evidence/rccl/raw/container-performance.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 20,
+          "iterations": 50,
+          "aggregate_iterations": 1,
+          "validation": 0,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 20 iters: 50 agg iters: 1 validation: 0 graph: 0 unalign: 0",
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "5675.60",
+              "189.19",
+              "354.72",
+              "N/A",
+              "5675.37",
+              "189.19",
+              "354.74",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 5675.6,
+              "algbw_gb_s": 189.19,
+              "busbw_gb_s": 354.72,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 5675.37,
+              "algbw_gb_s": 189.19,
+              "busbw_gb_s": 354.74,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 2147483648,
+            "count": 536870912,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "2147483648",
+              "536870912",
+              "float",
+              "sum",
+              "-1",
+              "11254.5",
+              "190.81",
+              "357.77",
+              "N/A",
+              "11263.9",
+              "190.65",
+              "357.47",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 11254.5,
+              "algbw_gb_s": 190.81,
+              "busbw_gb_s": 357.77,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 11263.9,
+              "algbw_gb_s": 190.65,
+              "busbw_gb_s": 357.47,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 4294967296,
+            "count": 1073741824,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "4294967296",
+              "1073741824",
+              "float",
+              "sum",
+              "-1",
+              "22523.9",
+              "190.68",
+              "357.53",
+              "N/A",
+              "22522.4",
+              "190.70",
+              "357.56",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 22523.9,
+              "algbw_gb_s": 190.68,
+              "busbw_gb_s": 357.53,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 22522.4,
+              "algbw_gb_s": 190.7,
+              "busbw_gb_s": 357.56,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 8589934592,
+            "count": 2147483648,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "8589934592",
+              "2147483648",
+              "float",
+              "sum",
+              "-1",
+              "44473.1",
+              "193.15",
+              "362.15",
+              "N/A",
+              "44482.5",
+              "193.11",
+              "362.08",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 44473.1,
+              "algbw_gb_s": 193.15,
+              "busbw_gb_s": 362.15,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 44482.5,
+              "algbw_gb_s": 193.11,
+              "busbw_gb_s": 362.08,
+              "wrong": null
+            }
+          },
+          {
+            "bytes": 17179869184,
+            "count": 4294967296,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "17179869184",
+              "4294967296",
+              "float",
+              "sum",
+              "-1",
+              "88427.8",
+              "194.28",
+              "364.28",
+              "N/A",
+              "88471.9",
+              "194.18",
+              "364.10",
+              "N/A"
+            ],
+            "out_of_place": {
+              "time_us": 88427.8,
+              "algbw_gb_s": 194.28,
+              "busbw_gb_s": 364.28,
+              "wrong": null
+            },
+            "in_place": {
+              "time_us": 88471.9,
+              "algbw_gb_s": 194.18,
+              "busbw_gb_s": 364.1,
+              "wrong": null
+            }
+          }
+        ],
+        "average_busbw_gb_s": 359.24,
+        "data_check": "NOT_RUN",
+        "network_markers": {
+          "IB": 0,
+          "Socket": 0,
+          "GDRDMA": 0
+        }
+      },
+      {
+        "id": "container-validation",
+        "label": {
+          "en": "Container correctness and transport",
+          "cn": "\u5bb9\u5668\u6570\u636e\u6821\u9a8c\u4e0e\u4f20\u8f93\u8def\u5f84"
+        },
+        "comparison": "correctness",
+        "environment": {
+          "execution": "container",
+          "nodes": 2,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+        "boundary": {
+          "en": "Validation and INFO logging use a separate run, not the headline performance run.",
+          "cn": "\u6570\u636e\u6821\u9a8c\u548c INFO \u65e5\u5fd7\u6765\u81ea\u72ec\u7acb\u8fd0\u884c\uff0c\u4e0d\u80fd\u7b97\u4f5c\u4e3b\u6027\u80fd\u8fd0\u884c\u4e2d\u7684\u68c0\u67e5\u3002"
+        },
+        "source": "evidence/rccl/raw/container-validation.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 5 iters: 20 agg iters: 1 validation: 1 graph: 0 unalign: 0",
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "5966.94",
+              "179.95",
+              "337.40",
+              "0",
+              "5969.23",
+              "179.88",
+              "337.27",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 5966.94,
+              "algbw_gb_s": 179.95,
+              "busbw_gb_s": 337.4,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 5969.23,
+              "algbw_gb_s": 179.88,
+              "busbw_gb_s": 337.27,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 2147483648,
+            "count": 536870912,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "2147483648",
+              "536870912",
+              "float",
+              "sum",
+              "-1",
+              "11665.6",
+              "184.09",
+              "345.16",
+              "0",
+              "11663.3",
+              "184.12",
+              "345.23",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 11665.6,
+              "algbw_gb_s": 184.09,
+              "busbw_gb_s": 345.16,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 11663.3,
+              "algbw_gb_s": 184.12,
+              "busbw_gb_s": 345.23,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 4294967296,
+            "count": 1073741824,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "4294967296",
+              "1073741824",
+              "float",
+              "sum",
+              "-1",
+              "23119.5",
+              "185.77",
+              "348.32",
+              "0",
+              "23145.8",
+              "185.56",
+              "347.93",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 23119.5,
+              "algbw_gb_s": 185.77,
+              "busbw_gb_s": 348.32,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 23145.8,
+              "algbw_gb_s": 185.56,
+              "busbw_gb_s": 347.93,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 8589934592,
+            "count": 2147483648,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "8589934592",
+              "2147483648",
+              "float",
+              "sum",
+              "-1",
+              "46388.7",
+              "185.17",
+              "347.20",
+              "0",
+              "46427.4",
+              "185.02",
+              "346.91",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 46388.7,
+              "algbw_gb_s": 185.17,
+              "busbw_gb_s": 347.2,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 46427.4,
+              "algbw_gb_s": 185.02,
+              "busbw_gb_s": 346.91,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 17179869184,
+            "count": 4294967296,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "17179869184",
+              "4294967296",
+              "float",
+              "sum",
+              "-1",
+              "92384.4",
+              "185.96",
+              "348.68",
+              "0",
+              "92307.9",
+              "186.11",
+              "348.97",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 92384.4,
+              "algbw_gb_s": 185.96,
+              "busbw_gb_s": 348.68,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 92307.9,
+              "algbw_gb_s": 186.11,
+              "busbw_gb_s": 348.97,
+              "wrong": 0
+            }
+          }
+        ],
+        "average_busbw_gb_s": 345.307,
+        "data_check": "PASS",
+        "network_markers": {
+          "IB": 16,
+          "Socket": 0,
+          "GDRDMA": 472
+        }
+      },
+      {
+        "id": "socket-validation",
+        "label": {
+          "en": "No IB device: Socket fallback",
+          "cn": "\u4e0d\u6620\u5c04 IB \u8bbe\u5907\uff1a\u9000\u56de Socket"
+        },
+        "comparison": "ib-vs-socket",
+        "environment": {
+          "execution": "container",
+          "nodes": 2,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET --mca btl_tcp_if_include eth0 \\\n  --mca pml ob1 --mca btl 'self,vader,tcp' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 1G -c 1 -n 5 -w 2",
+        "boundary": {
+          "en": "MPI used TCP in both arms; one message size, not the full headline sweep.",
+          "cn": "\u4e24\u7ec4 MPI \u90fd\u8d70 TCP\uff1b\u53ea\u6d4b\u4e00\u4e2a\u6d88\u606f\u5927\u5c0f\uff0c\u4e0d\u662f\u4e3b\u7ed3\u679c\u7684\u5b8c\u6574\u626b\u63cf\u3002"
+        },
+        "source": "evidence/rccl/raw/socket-validation.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 1073741824,
+          "factor": 2,
+          "warmup_iterations": 2,
+          "iterations": 5,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 1073741824 step: 2(factor) warmup iters: 2 iters: 5 agg iters: 1 validation: 1 graph: 0 unalign: 0",
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "180193",
+              "5.96",
+              "11.17",
+              "0",
+              "175830",
+              "6.11",
+              "11.45",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 180193.0,
+              "algbw_gb_s": 5.96,
+              "busbw_gb_s": 11.17,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 175830.0,
+              "algbw_gb_s": 6.11,
+              "busbw_gb_s": 11.45,
+              "wrong": 0
+            }
+          }
+        ],
+        "average_busbw_gb_s": 11.3114,
+        "data_check": "PASS",
+        "network_markers": {
+          "IB": 0,
+          "Socket": 16,
+          "GDRDMA": 0
+        }
+      },
+      {
+        "id": "ib-control-validation",
+        "label": {
+          "en": "IB device mapped: IB transport",
+          "cn": "\u6620\u5c04 IB \u8bbe\u5907\uff1a\u4f7f\u7528 IB \u4f20\u8f93"
+        },
+        "comparison": "ib-vs-socket",
+        "environment": {
+          "execution": "container",
+          "nodes": 2,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET --mca btl_tcp_if_include eth0 \\\n  --mca pml ob1 --mca btl 'self,vader,tcp' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 1G -c 1 -n 5 -w 2",
+        "boundary": {
+          "en": "Same MPI and RCCL arguments as the Socket arm, with the IB device visible.",
+          "cn": "MPI \u548c RCCL \u53c2\u6570\u4e0e Socket \u7ec4\u76f8\u540c\uff0c\u5dee\u522b\u662f\u5bb9\u5668\u53ef\u4ee5\u8bbf\u95ee IB \u8bbe\u5907\u3002"
+        },
+        "source": "evidence/rccl/raw/ib-control-validation.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 1073741824,
+          "factor": 2,
+          "warmup_iterations": 2,
+          "iterations": 5,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 1073741824 step: 2(factor) warmup iters: 2 iters: 5 agg iters: 1 validation: 1 graph: 0 unalign: 0",
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "6021.41",
+              "178.32",
+              "334.35",
+              "0",
+              "5977.19",
+              "179.64",
+              "336.82",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 6021.41,
+              "algbw_gb_s": 178.32,
+              "busbw_gb_s": 334.35,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 5977.19,
+              "algbw_gb_s": 179.64,
+              "busbw_gb_s": 336.82,
+              "wrong": 0
+            }
+          }
+        ],
+        "average_busbw_gb_s": 335.588,
+        "data_check": "PASS",
+        "network_markers": {
+          "IB": 16,
+          "Socket": 0,
+          "GDRDMA": 472
+        }
+      },
+      {
+        "id": "single-min-channels",
+        "label": {
+          "en": "One VM: minimum channels 112",
+          "cn": "\u5355\u673a\uff1a\u6700\u5c11\u901a\u9053\u6570\u8bbe\u4e3a 112"
+        },
+        "comparison": "single-channels",
+        "environment": {
+          "execution": "container",
+          "nodes": 1,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION -x NCCL_MIN_NCHANNELS=112 \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+        "boundary": {
+          "en": "One-VM large-message validation; not a claim about model inference throughput.",
+          "cn": "\u8fd9\u662f\u5355\u673a\u5927\u6d88\u606f\u6821\u9a8c\uff0c\u4e0d\u4ee3\u8868\u6a21\u578b\u63a8\u7406\u541e\u5410\u7387\u3002"
+        },
+        "source": "evidence/rccl/raw/single-min-channels.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 5 iters: 20 agg iters: 1 validation: 1 graph: 0 unalign: 0",
+        "ranks": 8,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "6223.51",
+              "172.53",
+              "301.93",
+              "0",
+              "6207.34",
+              "172.98",
+              "302.71",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 6223.51,
+              "algbw_gb_s": 172.53,
+              "busbw_gb_s": 301.93,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 6207.34,
+              "algbw_gb_s": 172.98,
+              "busbw_gb_s": 302.71,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 2147483648,
+            "count": 536870912,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "2147483648",
+              "536870912",
+              "float",
+              "sum",
+              "-1",
+              "12433.5",
+              "172.72",
+              "302.25",
+              "0",
+              "12436.4",
+              "172.68",
+              "302.19",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 12433.5,
+              "algbw_gb_s": 172.72,
+              "busbw_gb_s": 302.25,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 12436.4,
+              "algbw_gb_s": 172.68,
+              "busbw_gb_s": 302.19,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 4294967296,
+            "count": 1073741824,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "4294967296",
+              "1073741824",
+              "float",
+              "sum",
+              "-1",
+              "25010.0",
+              "171.73",
+              "300.53",
+              "0",
+              "25016.2",
+              "171.69",
+              "300.45",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 25010.0,
+              "algbw_gb_s": 171.73,
+              "busbw_gb_s": 300.53,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 25016.2,
+              "algbw_gb_s": 171.69,
+              "busbw_gb_s": 300.45,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 8589934592,
+            "count": 2147483648,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "8589934592",
+              "2147483648",
+              "float",
+              "sum",
+              "-1",
+              "49986.7",
+              "171.84",
+              "300.73",
+              "0",
+              "49937.3",
+              "172.01",
+              "301.03",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 49986.7,
+              "algbw_gb_s": 171.84,
+              "busbw_gb_s": 300.73,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 49937.3,
+              "algbw_gb_s": 172.01,
+              "busbw_gb_s": 301.03,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 17179869184,
+            "count": 4294967296,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "17179869184",
+              "4294967296",
+              "float",
+              "sum",
+              "-1",
+              "99385.1",
+              "172.86",
+              "302.51",
+              "0",
+              "99369.7",
+              "172.89",
+              "302.55",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 99385.1,
+              "algbw_gb_s": 172.86,
+              "busbw_gb_s": 302.51,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 99369.7,
+              "algbw_gb_s": 172.89,
+              "busbw_gb_s": 302.55,
+              "wrong": 0
+            }
+          }
+        ],
+        "average_busbw_gb_s": 301.688,
+        "data_check": "PASS",
+        "network_markers": {
+          "IB": 0,
+          "Socket": 0,
+          "GDRDMA": 0
+        }
+      },
+      {
+        "id": "single-auto-channels",
+        "label": {
+          "en": "One VM: minimum channels unset",
+          "cn": "\u5355\u673a\uff1a\u4e0d\u8bbe\u7f6e\u6700\u5c11\u901a\u9053\u6570"
+        },
+        "comparison": "single-channels",
+        "environment": {
+          "execution": "container",
+          "nodes": 1,
+          "gpus_per_node": 8,
+          "container_engine": "Moby 29.8.1",
+          "repetitions": 1
+        },
+        "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+        "boundary": {
+          "en": "Same one-VM arguments, with NCCL_MIN_NCHANNELS unset.",
+          "cn": "\u5355\u673a\u6d4b\u8bd5\u53c2\u6570\u76f8\u540c\uff0c\u53ea\u53d6\u6d88 NCCL_MIN_NCHANNELS\u3002"
+        },
+        "source": "evidence/rccl/raw/single-auto-channels.txt",
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "parameter_line": "# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 5 iters: 20 agg iters: 1 validation: 1 graph: 0 unalign: 0",
+        "ranks": 8,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "ROCm": "7.2.0.0-43-fc0010cf6a",
+          "HIP": "7.2.26015-fc0010cf6a"
+        },
+        "rows": [
+          {
+            "bytes": 1073741824,
+            "count": 268435456,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "1073741824",
+              "268435456",
+              "float",
+              "sum",
+              "-1",
+              "5840.32",
+              "183.85",
+              "321.74",
+              "0",
+              "5852.86",
+              "183.46",
+              "321.05",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 5840.32,
+              "algbw_gb_s": 183.85,
+              "busbw_gb_s": 321.74,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 5852.86,
+              "algbw_gb_s": 183.46,
+              "busbw_gb_s": 321.05,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 2147483648,
+            "count": 536870912,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "2147483648",
+              "536870912",
+              "float",
+              "sum",
+              "-1",
+              "11684.3",
+              "183.79",
+              "321.64",
+              "0",
+              "11695.6",
+              "183.61",
+              "321.33",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 11684.3,
+              "algbw_gb_s": 183.79,
+              "busbw_gb_s": 321.64,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 11695.6,
+              "algbw_gb_s": 183.61,
+              "busbw_gb_s": 321.33,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 4294967296,
+            "count": 1073741824,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "4294967296",
+              "1073741824",
+              "float",
+              "sum",
+              "-1",
+              "23387.6",
+              "183.64",
+              "321.38",
+              "0",
+              "23394.3",
+              "183.59",
+              "321.28",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 23387.6,
+              "algbw_gb_s": 183.64,
+              "busbw_gb_s": 321.38,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 23394.3,
+              "algbw_gb_s": 183.59,
+              "busbw_gb_s": 321.28,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 8589934592,
+            "count": 2147483648,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "8589934592",
+              "2147483648",
+              "float",
+              "sum",
+              "-1",
+              "46708.4",
+              "183.91",
+              "321.83",
+              "0",
+              "46719.4",
+              "183.86",
+              "321.76",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 46708.4,
+              "algbw_gb_s": 183.91,
+              "busbw_gb_s": 321.83,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 46719.4,
+              "algbw_gb_s": 183.86,
+              "busbw_gb_s": 321.76,
+              "wrong": 0
+            }
+          },
+          {
+            "bytes": 17179869184,
+            "count": 4294967296,
+            "datatype": "float",
+            "operation": "sum",
+            "root": -1,
+            "tokens": [
+              "17179869184",
+              "4294967296",
+              "float",
+              "sum",
+              "-1",
+              "93201.8",
+              "184.33",
+              "322.58",
+              "0",
+              "93206.1",
+              "184.32",
+              "322.56",
+              "0"
+            ],
+            "out_of_place": {
+              "time_us": 93201.8,
+              "algbw_gb_s": 184.33,
+              "busbw_gb_s": 322.58,
+              "wrong": 0
+            },
+            "in_place": {
+              "time_us": 93206.1,
+              "algbw_gb_s": 184.32,
+              "busbw_gb_s": 322.56,
+              "wrong": 0
+            }
+          }
+        ],
+        "average_busbw_gb_s": 321.714,
+        "data_check": "PASS",
+        "network_markers": {
+          "IB": 0,
+          "Socket": 0,
+          "GDRDMA": 0
+        }
+      }
+    ],
+    "initialization_observation": {
+      "failures_recorded": 1,
+      "completed_targeted_retries": 6,
+      "root_cause_status": "NOT_CONFIRMED",
+      "source": "evidence/rccl/initialization-observation.txt"
+    }
+  }
 }

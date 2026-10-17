@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bench_log import parse  # noqa: E402
+from rccl_log import build_evidence as build_rccl_evidence  # noqa: E402
 
 PAIR_KEYS = ("dataset_name", "random_input_len", "random_output_len", "max_concurrency",
              "num_prompts", "warmup_requests", "flush_cache", "seed", "pd_separated",
@@ -340,6 +341,7 @@ def build() -> dict:
         "context_scaling": context_scaling(meta),
         "prefill_replicas": prefill_replicas(meta),
         "accuracy": accuracy(meta),
+        "rccl": build_rccl_evidence(EVIDENCE / "rccl"),
     }
 
 

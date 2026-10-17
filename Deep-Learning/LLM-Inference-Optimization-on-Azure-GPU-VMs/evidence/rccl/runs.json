@@ -1,0 +1,338 @@
+{
+  "schema": 1,
+  "protocol": {
+    "collective": "all_reduce_perf",
+    "hardware": "Standard_ND96isr_MI300X_v5",
+    "gpus_per_vm": 8,
+    "ib_ports_per_vm": 8,
+    "nominal_ib_port_gbps": 400,
+    "command_projection": "Node addresses and executable paths are variables; other recorded arguments are retained.",
+    "log_projection": "Numeric tokens are retained; INFO-interleaved rows are reassembled; host identities are removed.",
+    "container_source": {
+      "repository": "https://github.com/ROCm/rocm-systems",
+      "commit": "1284e5da11f7904e8a6efd902b9de52253785bd0",
+      "subdirectory": "projects/rccl-tests"
+    },
+    "container_base": "rocm/sgl-dev@sha256:8f8dc55398855764d339ff4e2695b9c3c298704999051acaa1a67993fdff62e5",
+    "host_binary": "HPC-image bundled all_reduce_perf; not rebuilt for the host arm.",
+    "driver_boundary": "ROCm version strings report the software stack; the host amdgpu module version was not independently captured.",
+    "scope": "Communication microbenchmark, not model-serving or long-term reliability validation."
+  },
+  "runs": [
+    {
+      "id": "host-performance",
+      "file": "host-performance.txt",
+      "sha256": "797f0553848abe91caeaa38c6f71910ff43490926249427b21016ba9fc20b9b4",
+      "original_sha256": "a7af4d161a215e56c2b5da7b07286a1b71f1137ad01a6bef421dd1cbd430e1a1",
+      "original_command_sha256": "8771662901aeca8b15fee8e30518d23c7701a7b45565db201ea014ed1f52721e",
+      "label": {
+        "en": "Host AllReduce",
+        "cn": "宿主机 AllReduce"
+      },
+      "comparison": "host-vs-container",
+      "environment": {
+        "execution": "host",
+        "nodes": 2,
+        "gpus_per_node": 8,
+        "container_engine": null,
+        "repetitions": 1
+      },
+      "command": "mpirun -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 0 -n 50 -w 20 < /dev/null",
+      "boundary": {
+        "en": "Different ROCm/RCCL and test builds; not an isolated container-overhead experiment.",
+        "cn": "ROCm、RCCL 和测试程序构建不同，不能把差异单独归因于容器开销。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 20,
+          "iterations": 50,
+          "aggregate_iterations": 1,
+          "validation": 0,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.22.3-HEAD:7d8d67c",
+          "HIP": "6.4.43484-123eb5128",
+          "ROCm": "6.4.4.0-129-e7d83f5"
+        }
+      }
+    },
+    {
+      "id": "container-performance",
+      "file": "container-performance.txt",
+      "sha256": "8fd5d90273cc3e11f34f19ba5957c5a6469764eda5a72e926ba32529c35c385e",
+      "original_sha256": "1dbe0002603ba63179e63abcc0974826e0f4e1eee7af6fc914e72db5a8ec5586",
+      "original_command_sha256": "a157c0448746252d9113552755e5a3bf591d49852d12c205b182f7a9b10f3ec2",
+      "label": {
+        "en": "Moby container AllReduce",
+        "cn": "Moby 容器 AllReduce"
+      },
+      "comparison": "host-vs-container",
+      "environment": {
+        "execution": "container",
+        "nodes": 2,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 0 -n 50 -w 20",
+      "boundary": {
+        "en": "One completed sweep; image-default NCCL_MIN_NCHANNELS reached local ranks only.",
+        "cn": "仅一次完成的扫描；镜像默认 NCCL_MIN_NCHANNELS 只传到了本地进程。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 20,
+          "iterations": 50,
+          "aggregate_iterations": 1,
+          "validation": 0,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    },
+    {
+      "id": "container-validation",
+      "file": "container-validation.txt",
+      "sha256": "86b5d41d6b21caaeaa57acccc746d2d510765d8db8640603e87cd49049a851e5",
+      "original_sha256": "34ee4791c0eccc3def34ae7950a1143c1a368398b25e1c2b6ca3e7b182e77f3f",
+      "original_command_sha256": "99a27e2b578e80313259bc188c6a60a0d7b85feb8aa404a9e5d6ebe2d2fc9eea",
+      "label": {
+        "en": "Container correctness and transport",
+        "cn": "容器数据校验与传输路径"
+      },
+      "comparison": "correctness",
+      "environment": {
+        "execution": "container",
+        "nodes": 2,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+      "boundary": {
+        "en": "Validation and INFO logging use a separate run, not the headline performance run.",
+        "cn": "数据校验和 INFO 日志来自独立运行，不能算作主性能运行中的检查。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    },
+    {
+      "id": "socket-validation",
+      "file": "socket-validation.txt",
+      "sha256": "62357bec97e64ee4e388e9eb5b3aa4eb551b1601c650538b3757f81e5cd16e10",
+      "original_sha256": "7fb67f6214a90a3e7db824ae3cffbeef37ddec20eea303554ebaae977824c0e6",
+      "original_command_sha256": "1f952487856073c1448114d672f689fbbd42f7f923b7bc02829067c9b8e1501c",
+      "label": {
+        "en": "No IB device: Socket fallback",
+        "cn": "不映射 IB 设备：退回 Socket"
+      },
+      "comparison": "ib-vs-socket",
+      "environment": {
+        "execution": "container",
+        "nodes": 2,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET --mca btl_tcp_if_include eth0 \\\n  --mca pml ob1 --mca btl 'self,vader,tcp' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 1G -c 1 -n 5 -w 2",
+      "boundary": {
+        "en": "MPI used TCP in both arms; one message size, not the full headline sweep.",
+        "cn": "两组 MPI 都走 TCP；只测一个消息大小，不是主结果的完整扫描。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 1073741824,
+          "factor": 2,
+          "warmup_iterations": 2,
+          "iterations": 5,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    },
+    {
+      "id": "ib-control-validation",
+      "file": "ib-control-validation.txt",
+      "sha256": "64ce65ab4d5a3fa08d0b700d695afc93e383f7cde384211e087088e95751c71f",
+      "original_sha256": "7a7eb26b68cf72e1546bdc6eaf6d433faa9384a8f7fd588ca23fdc663817c0b9",
+      "original_command_sha256": "1f952487856073c1448114d672f689fbbd42f7f923b7bc02829067c9b8e1501c",
+      "label": {
+        "en": "IB device mapped: IB transport",
+        "cn": "映射 IB 设备：使用 IB 传输"
+      },
+      "comparison": "ib-vs-socket",
+      "environment": {
+        "execution": "container",
+        "nodes": 2,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 16 -H ${NODE_A}:8,${NODE_B}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=INFO -x NCCL_DEBUG_SUBSYS=INIT,NET --mca btl_tcp_if_include eth0 \\\n  --mca pml ob1 --mca btl 'self,vader,tcp' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 1G -c 1 -n 5 -w 2",
+      "boundary": {
+        "en": "Same MPI and RCCL arguments as the Socket arm, with the IB device visible.",
+        "cn": "MPI 和 RCCL 参数与 Socket 组相同，差别是容器可以访问 IB 设备。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 1073741824,
+          "factor": 2,
+          "warmup_iterations": 2,
+          "iterations": 5,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 16,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    },
+    {
+      "id": "single-min-channels",
+      "file": "single-min-channels.txt",
+      "sha256": "1dd1a605cbb28a8c2c7e004faf58d9237497b909c4bcb6be0d4f23576728bbaa",
+      "original_sha256": "603077b4eeb5307e2681b9b8b51716ade3dd9195a29f11594932366d0210e41b",
+      "original_command_sha256": "0d5cbcf8b215a8b0da23e4c253cca48912b6168bfc8955c1505ea3bb39f62335",
+      "label": {
+        "en": "One VM: minimum channels 112",
+        "cn": "单机：最少通道数设为 112"
+      },
+      "comparison": "single-channels",
+      "environment": {
+        "execution": "container",
+        "nodes": 1,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION -x NCCL_MIN_NCHANNELS=112 \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+      "boundary": {
+        "en": "One-VM large-message validation; not a claim about model inference throughput.",
+        "cn": "这是单机大消息校验，不代表模型推理吞吐率。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 8,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    },
+    {
+      "id": "single-auto-channels",
+      "file": "single-auto-channels.txt",
+      "sha256": "d826d036f0895ca1b4d36477b85e595d4fe3779a42d4183b3d8d8e759aaee881",
+      "original_sha256": "5dc7d2a88b133f23903c6576e2e867e2309513a95894a1816e698a72af9dda18",
+      "original_command_sha256": "d7ffb1f6590345a1d34cd19fc7fcc6cdf91d6a7434165b9e91c926ee09f01f4f",
+      "label": {
+        "en": "One VM: minimum channels unset",
+        "cn": "单机：不设置最少通道数"
+      },
+      "comparison": "single-channels",
+      "environment": {
+        "execution": "container",
+        "nodes": 1,
+        "gpus_per_node": 8,
+        "container_engine": "Moby 29.8.1",
+        "repetitions": 1
+      },
+      "command": "env -u NCCL_MIN_NCHANNELS mpirun --allow-run-as-root -np 8 -H ${NODE_A}:8 \\\n  -map-by ppr:8:node --bind-to numa \\\n  -x NCCL_IB_HCA=^mlx5_8:1,mlx5_an0:1 \\\n  -x NCCL_IB_PCI_RELAXED_ORDERING=1 \\\n  -x NCCL_DEBUG=VERSION \\\n  --mca pml ucx --mca btl '^vader,tcp,openib,uct' \\\n  --mca plm_rsh_args \"-p 2222\" \\\n  -x PATH -x LD_LIBRARY_PATH \\\n  \"${RCCL_BIN}\" -g 1 -f 2 -b 1G -e 16G -c 1 -n 20 -w 5",
+      "boundary": {
+        "en": "Same one-VM arguments, with NCCL_MIN_NCHANNELS unset.",
+        "cn": "单机测试参数相同，只取消 NCCL_MIN_NCHANNELS。"
+      },
+      "expected": {
+        "parameters": {
+          "threads": 1,
+          "gpus_per_thread": 1,
+          "min_bytes": 1073741824,
+          "max_bytes": 17179869184,
+          "factor": 2,
+          "warmup_iterations": 5,
+          "iterations": 20,
+          "aggregate_iterations": 1,
+          "validation": 1,
+          "graph": 0,
+          "unalign": 0
+        },
+        "ranks": 8,
+        "software": {
+          "RCCL": "2.27.7-HEAD:0d2c4fd",
+          "HIP": "7.2.26015-fc0010cf6a",
+          "ROCm": "7.2.0.0-43-fc0010cf6a"
+        }
+      }
+    }
+  ]
+}

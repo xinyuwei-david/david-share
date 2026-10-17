@@ -1,0 +1,16 @@
+# Public numeric projection of one completed all_reduce_perf run.
+# Host identifiers and unrelated diagnostic lines were removed.
+# nThread 1 nGpus 1 minBytes 1073741824 maxBytes 17179869184 step: 2(factor) warmup iters: 20 iters: 50 agg iters: 1 validation: 0 graph: 0 unalign: 0
+# ranks: 16
+RCCL version : 2.22.3-HEAD:7d8d67c
+ROCm version : 6.4.4.0-129-e7d83f5
+HIP version : 6.4.43484-123eb5128
+# bytes count datatype operation root oop_time_us oop_algbw oop_busbw oop_wrong ip_time_us ip_algbw ip_busbw ip_wrong
+1073741824 268435456 float sum -1 5785.20 185.60 348.00 N/A 5783.58 185.65 348.10 N/A
+2147483648 536870912 float sum -1 11470.1 187.22 351.05 N/A 11468.2 187.25 351.10 N/A
+4294967296 1073741824 float sum -1 22802.8 188.35 353.16 N/A 22609.6 189.96 356.18 N/A
+8589934592 2147483648 float sum -1 45017.4 190.81 357.78 N/A 45020.2 190.80 357.75 N/A
+17179869184 4294967296 float sum -1 89154.9 192.70 361.31 N/A 89163.8 192.68 361.27 N/A
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 354.57
+# Collective test concluded: all_reduce_perf

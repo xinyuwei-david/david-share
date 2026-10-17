@@ -73,7 +73,7 @@ class DeployTests(unittest.TestCase):
             self.assertEqual(used - defined, set(), (profile, role))
 
     def test_reproduction_leads_with_deployment_not_self_checks(self):
-        for name, heading in (("README.md", "## Reproduce in Your Environment"), ("README_CN.md", "## 客户如何复现")):
+        for name, heading in (("README.md", "## Steps"), ("README_CN.md", "## 操作步骤")):
             text = (ROOT / name).read_text(encoding="utf-8")
             section = text.split(heading, 1)[1].split("\n## ", 1)[0]
             blocks = re.findall(r"```bash\n(.*?)```", section, re.S)

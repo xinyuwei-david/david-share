@@ -1,0 +1,18 @@
+# Diagnostic excerpts, not a successful benchmark run.
+# Machine/process identities and fault addresses are omitted.
+init_mutex /rocm_smi_renderD128: unlock timed lock, ret: 1
+Caught signal 11 (Segmentation fault
+librocm_smi64.so.1(rsmi_dev_memory_partition_get+0x102)
+librocm_smi64.so.1(rsmi_init+0xab)
+# Completed targeted retry 1
+# Collective test concluded: all_reduce_perf
+# Completed targeted retry 2
+# Collective test concluded: all_reduce_perf
+# Completed targeted retry 3
+# Collective test concluded: all_reduce_perf
+# Completed targeted retry 4
+# Collective test concluded: all_reduce_perf
+# Completed targeted retry 5
+# Collective test concluded: all_reduce_perf
+# Completed targeted retry 6
+# Collective test concluded: all_reduce_perf

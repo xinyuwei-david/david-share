@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fill the generated blocks of README.md and README_CN.md.
+"""Fill the generated blocks of the operator and reviewer documents.
 
     python tools/build_readme.py          # rewrite the generated blocks in place
     python tools/build_readme.py --check  # fail if either README differs from a fresh render
@@ -20,6 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 READMES = {"en": ROOT / "README.md", "cn": ROOT / "README_CN.md"}
+VALIDATIONS = {"en": ROOT / "VALIDATION.md", "cn": ROOT / "VALIDATION_CN.md"}
+DOCUMENTS = {"readme": READMES, "validation": VALIDATIONS}
 BLOCK = re.compile(r"(<!-- BEGIN GENERATED: (?P<name>[a-z0-9-]+) -->\n)(?P<body>.*?)(<!-- END GENERATED: (?P=name) -->)", re.S)
 
 
@@ -443,6 +445,211 @@ def upstream_table(lang: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+RUN_LABELS = {
+    "stage-before-moe-table": ("MoE tuning: before", "MoE 调优前"),
+    "stage-after-moe-table": ("MoE tuning: after", "MoE 调优后"),
+    "ladder-ck": ("Decode concurrency ladder", "Decode 并发扫描"),
+    "ab-64k-bs16": ("Two-switch 64K A/B", "64K 双开关 A/B"),
+    "baseline-pd-client": ("Graph capture A/B", "图捕获 A/B"),
+    "baseline-pd-summary": ("Baseline stack", "基线软件栈"),
+    "actual-acceptance": ("Actual MTP acceptance", "实际 MTP 接受率"),
+    "context-matrix": ("Context-length sweep", "上下文长度扫描"),
+    "prefill-replicas": ("Prefill replicas", "Prefill 副本"),
+    "accuracy-subset": ("Public accuracy subsets", "公开基准子集准确率"),
+}
+
+
+def _run_heading(identity: str, index: int, lang: str) -> str:
+    return f"{RUN_LABELS[identity][lang == 'cn']} (S{index})"
+
+
+def rccl_headline(lang: str) -> str:
+    runs = {r["id"]: r for r in _json("evidence/measurements.json")["rccl"]["runs"]}
+    rows = []
+    for identity, label in (("host-performance", "Host" if lang == "en" else "宿主机"),
+                            ("container-performance", "Moby container" if lang == "en" else "Moby 容器")):
+        run = runs[identity]
+        largest = next(row for row in run["rows"] if row["bytes"] == 16 * 1024 ** 3)
+        rocm = ".".join(run["software"]["ROCm"].split("-")[0].split(".")[:3])
+        rccl = run["software"]["RCCL"].split("-")[0]
+        rows.append([label, f"ROCm {rocm}<br>RCCL {rccl}", _n(run["average_busbw_gb_s"]),
+                     _n(largest["out_of_place"]["busbw_gb_s"])])
+    header = (["Route", "Software", "Average<br>GB/s", "16 GiB<br>GB/s"] if lang == "en"
+              else ["运行方式", "软件栈", "平均<br>GB/s", "16 GiB<br>GB/s"])
+    return _table(header, rows, ["l", "l", "r", "r"])
+
+
+def run_index(lang: str) -> str:
+    en = lang == "en"
+    meta = _json("evidence/runs.json")["runs"]
+    m = _json("evidence/measurements.json")
+    pre = next(r for r in m["tuned_moe_stage"]["prefill"] if r["input_tokens"] == 8192)
+    ladder = next(r for r in m["concurrency_ladder_8k1k"] if r["concurrency"] == 64)
+    decode = next(r for r in m["cumulative"]["decode"] if r["concurrency"] == 64)
+    context = next(r for r in m["context_scaling"]["rows"] if r["input_tokens"] == 65536)
+    replicas = next(r for r in m["prefill_replicas"] if r["input_tokens"] == 8192)
+    graph = m["cumulative"]["graph_capture"]
+    results = {
+        "stage-before-moe-table": f"8K prefill: {_n(pre['before_input_tok_s'])} input tok/s",
+        "stage-after-moe-table": f"8K prefill: {_n(pre['after_input_tok_s'])} input tok/s",
+        "ladder-ck": f"C=64: {_n(ladder['output_tok_s'])} output tok/s; fixed MTP 3",
+        "ab-64k-bs16": f"{_pct(m['ab_ck_unified_verify_64k']['throughput_delta_pct'])}; N=2/arm",
+        "baseline-pd-client": f"{_n(graph['off_output_tok_s'], 1)} → {_n(graph['on_output_tok_s'], 1)} output tok/s",
+        "baseline-pd-summary": f"C=64, 16K: TPOT {_n(decode['early_mean_tpot_ms'])} ms",
+        "actual-acceptance": f"C=64, 8K: TPOT {_n(decode['real_mean_tpot_ms'])} ms",
+        "context-matrix": f"64K, 1 request: {_n(context['prefill_1req_input_tok_s'])} input tok/s",
+        "prefill-replicas": f"8K, 2 in flight: {_n(replicas['two_in_flight_tok_s'])} input tok/s",
+        "accuracy-subset": f"{len(m['accuracy'])} benchmark subsets; scores in the reviewer page",
+    }
+    if not en:
+        results.update({
+            "ladder-ck": f"并发 64：{_n(ladder['output_tok_s'])} output tok/s；MTP 固定接受 3",
+            "ab-64k-bs16": f"{_pct(m['ab_ck_unified_verify_64k']['throughput_delta_pct'])}；每组 2 次",
+            "context-matrix": f"64K，1 个请求：{_n(context['prefill_1req_input_tok_s'])} input tok/s",
+            "prefill-replicas": f"8K，2 个请求在途：{_n(replicas['two_in_flight_tok_s'])} input tok/s",
+            "accuracy-subset": f"{len(m['accuracy'])} 个基准子集；逐项分数见评审页",
+        })
+    page = VALIDATIONS[lang].name
+    rows = []
+    for i, identity in enumerate(meta, 1):
+        heading = _run_heading(identity, i, lang)
+        rows.append([f"[S{i}]({page}#{slug(heading)})", RUN_LABELS[identity][not en], results[identity]])
+    for i, run in enumerate(m["rccl"]["runs"], 1):
+        result = f"{run['average_busbw_gb_s']:g} GB/s; data check {run['data_check']}"
+        if not en:
+            result = f"{run['average_busbw_gb_s']:g} GB/s；数据校验 {run['data_check']}"
+        rows.append([f"[R{i}]({page}#{slug(run['label'][lang])})", run["label"][lang], result])
+    header = ["Run", "Scenario", "Recorded result / scope"] if en else ["运行", "场景", "记录结果 / 范围"]
+    return _table(header, rows, ["l", "l", "l"])
+
+
+def run_inputs(lang: str) -> str:
+    en = lang == "en"
+    runs = _json("evidence/runs.json")["runs"]
+    out = []
+    for i, (identity, record) in enumerate(runs.items(), 1):
+        title = _run_heading(identity, i, lang)
+        links = ", ".join(f"[{name}](evidence/raw/{name})" for name in record["raw"])
+        raw = record.get("server_flags")
+        if raw:
+            input_text = f"`{raw}`"
+        else:
+            input_text = ("The complete shell invocation was not captured in this bundle; the linked public "
+                          "record retains its available workload/configuration fields." if en else
+                          "这份记录没有保存完整的 shell 调用；下列公开证据保留了当时可获取的负载和配置字段。")
+        if en:
+            out.extend([
+                f"#### {title}\n",
+                f"**Question.** What does the recorded {RUN_LABELS[identity][0].lower()} establish?\n",
+                f"**Recorded input.** {input_text}\n",
+                f"**Variables.** Use the topology, runtime, flags and environment for `{identity}` in "
+                "[the frozen run catalog](evidence/runs.json), not another bundle's configuration.\n",
+                f"**Result.** {links}. The measurement sections below derive their values from these records.\n",
+                "**Boundary.** A public projection supports the retained values, not a byte-for-byte rerun of "
+                "missing private input. Replaying evidence is not a fresh serving experiment.\n",
+            ])
+        else:
+            out.extend([
+                f"#### {title}\n",
+                f"**问题。** 这份“{RUN_LABELS[identity][1]}”记录能够说明什么？\n",
+                f"**记录的输入。** {input_text}\n",
+                f"**变量。** 使用[固定运行目录](evidence/runs.json)中 `{identity}` 对应的拓扑、runtime、开关和环境，不能借用其他组的配置。\n",
+                f"**结果。** {links}。后面的实测章节从这些记录计算结果。\n",
+                "**边界。** 公开投影只能支撑保留下来的数值；缺失的私有输入不能保证逐字节重放。离线复算也不是重新运行推理服务。\n",
+            ])
+    return "\n".join(out)
+
+
+def rccl_runs(lang: str) -> str:
+    en = lang == "en"
+    data = _json("evidence/measurements.json")["rccl"]
+    questions = {
+        "host-vs-container": ("Does a completed container run remain in the same bandwidth range as the host run?",
+                              "容器中完成的运行是否仍与宿主机处于同一带宽水平？"),
+        "correctness": ("Are the collective results correct, and does every rank select IB?",
+                        "集合通信结果是否正确，每个进程是否都选择了 IB？"),
+        "ib-vs-socket": ("Can a run finish while its RCCL traffic falls back to Socket?",
+                         "RCCL 退回 Socket 时，程序是否仍可能正常结束？"),
+        "single-channels": ("What changes when the minimum-channel setting is removed on one VM?",
+                            "单机取消最少通道数设置后，带宽发生了什么变化？"),
+    }
+    out = []
+    for run in data["runs"]:
+        p = run["parameters"]
+        title = run["label"][lang]
+        question = questions[run["comparison"]][not en]
+        if run["id"] == "ib-control-validation":
+            question = ("With the IB device visible, does RCCL choose IB and pass its data check?" if en else
+                        "映射 IB 设备后，RCCL 是否选择 IB 并通过数据校验？")
+        out.append(f"#### {title}\n")
+        if en:
+            out.extend([
+                f"**Question.** {question}\n",
+                "**Recorded input.** The following is the recorded MPI invocation with node addresses and "
+                "the executable path replaced by variables; the other arguments are unchanged.\n",
+                "```bash\n" + run["command"] + "\n```\n",
+                f"**Variables.** {run['environment']['nodes']} VM(s), {run['ranks']} ranks, float/sum; "
+                f"{p['iterations']} timed iterations, {p['warmup_iterations']} warmups, validation={p['validation']}. "
+                f"{run['boundary'][lang]} Each arm is one sweep, not a repeatability estimate.\n",
+                "**Observed result.**\n",
+            ])
+        else:
+            out.extend([
+                f"**问题。** {question}\n",
+                "**记录的输入。** 以下是当时的 MPI 调用，仅将节点地址和程序路径替换为变量，其余参数不变。\n",
+                "```bash\n" + run["command"] + "\n```\n",
+                f"**变量。** {run['environment']['nodes']} 台 VM、{run['ranks']} 个进程，float/sum；"
+                f"计时 {p['iterations']} 次、预热 {p['warmup_iterations']} 次，validation={p['validation']}。"
+                f"{run['boundary'][lang]} 每组仅一次扫描，不能估计重复性。\n",
+                "**观测结果。**\n",
+            ])
+        header = (["Message (GiB)", "Out-of-place<br>GB/s", "In-place<br>GB/s"] if en
+                  else ["消息（GiB）", "Out-of-place<br>GB/s", "In-place<br>GB/s"])
+        rows = [[f"{row['bytes'] / 1024 ** 3:g}", _n(row["out_of_place"]["busbw_gb_s"]),
+                 _n(row["in_place"]["busbw_gb_s"])] for row in run["rows"]]
+        out.append(_table(header, rows, ["r", "r", "r"]))
+        network = run["network_markers"]
+        if run["environment"]["nodes"] == 1:
+            transport_boundary = ("This is intra-VM communication, not a validation of the inter-VM IB path." if en else
+                                  "这是单机通信结果，不能验证跨机 IB 链路。")
+        elif network["IB"] == run["ranks"] and network["GDRDMA"]:
+            transport_boundary = ("This run positively records IB selection and GPU Direct RDMA." if en else
+                                  "本次运行已正向记录 IB 选择和 GPU Direct RDMA。")
+        elif network["Socket"]:
+            transport_boundary = ("This run records Socket fallback, not an IB data path." if en else
+                                  "本次记录的是 Socket 回退，不能作为走 IB 的证明。")
+        else:
+            transport_boundary = ("Zero INFO markers in a VERSION-only log mean not captured, not absence of RDMA." if en else
+                                  "VERSION 级别日志中没有 INFO 标记，只表示未记录，不能判断没有 RDMA。")
+        if en:
+            out.append(f"Reported average: **{run['average_busbw_gb_s']:g} GB/s** across both modes and all sizes. "
+                       f"Data check: **{run['data_check']}**. INFO markers: IB={network['IB']}, "
+                       f"Socket={network['Socket']}, GDRDMA={network['GDRDMA']}.\n")
+            out.append(f"**Boundary.** {transport_boundary} "
+                       f"busbw is normalized collective bandwidth, not measured NIC utilization or model throughput. "
+                       f"[Numeric projection]({run['source']}); [source hashes and conditions](evidence/rccl/runs.json).\n")
+        else:
+            out.append(f"工具报告平均 **{run['average_busbw_gb_s']:g} GB/s**，包含两种模式和全部消息大小。"
+                       f"数据校验：**{run['data_check']}**。INFO 标记：IB={network['IB']}、"
+                       f"Socket={network['Socket']}、GDRDMA={network['GDRDMA']}。\n")
+            out.append(f"**边界。** {transport_boundary}"
+                       f"busbw 是归一化集合通信带宽，不是网卡利用率或模型吞吐率。"
+                       f"[数值投影]({run['source']})；[来源哈希与条件](evidence/rccl/runs.json)。\n")
+    return "\n".join(out)
+
+
+def rccl_observation(lang: str) -> str:
+    item = _json("evidence/measurements.json")["rccl"]["initialization_observation"]
+    failed, retries = item["failures_recorded"], item["completed_targeted_retries"]
+    if lang == "en":
+        return (f"**Initialization observation:** {failed} recorded attempt failed inside rocm_smi; "
+                f"{retries} subsequent targeted retries completed. The root cause is **{item['root_cause_status']}**. "
+                f"These observations establish neither a failure rate nor a fix. [Diagnostic excerpts]({item['source']}).\n")
+    return (f"**初始化观察：** {failed} 次记录的尝试在 rocm_smi 内失败，随后 {retries} 次专项重试完成。"
+            f"根因为 **{item['root_cause_status']}**，不能据此估计失败率或认定已经修复。"
+            f"[诊断摘录]({item['source']})。\n")
+
+
 BLOCKS = {
     "glance": glance,
     "cumulative": cumulative,
@@ -466,22 +673,31 @@ for _t in _json("profiles/techniques.json")["techniques"]:
     BLOCKS[f"card-{_t['id']}"] = (lambda i: (lambda lang: card(i, lang)))(_t["id"])
 for _name in _json("tools/excerpts.json")["excerpts"]:
     BLOCKS[f"excerpt-{_name}"] = (lambda n: (lambda lang: excerpt(n, lang)))(_name)
+LEGACY_BLOCKS = set(BLOCKS)
+BLOCKS.update({"rccl-headline": rccl_headline, "rccl-runs": rccl_runs, "rccl-observation": rccl_observation,
+               "run-index": run_index, "run-inputs": run_inputs})
+REQUIRED_BLOCKS = {
+    "readme": {"headline", "rccl-headline", "run-index"},
+    "validation": LEGACY_BLOCKS | {"rccl-runs", "rccl-observation", "run-inputs"},
+}
 
 
-def render(text: str, lang: str) -> str:
+def render(text: str, lang: str, document: str = "readme") -> str:
     seen = set()
 
     def fill(m: re.Match) -> str:
         name = m.group("name")
         if name not in BLOCKS:
-            raise SystemExit(f"UNKNOWN_BLOCK {name} in {lang} README")
+            raise SystemExit(f"UNKNOWN_BLOCK {name} in {lang} {document}")
+        if name in seen:
+            raise SystemExit(f"DUPLICATE_BLOCK {name} in {lang} {document}")
         seen.add(name)
         return m.group(1) + BLOCKS[name](lang) + m.group(4)
 
     out = BLOCK.sub(fill, text)
-    missing = set(BLOCKS) - seen
+    missing = REQUIRED_BLOCKS[document] - seen
     if missing:
-        raise SystemExit(f"MISSING_BLOCKS in {lang} README: {sorted(missing)}")
+        raise SystemExit(f"MISSING_BLOCKS in {lang} {document}: {sorted(missing)}")
     return out
 
 
@@ -490,21 +706,22 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args(argv)
     stale = []
-    for lang, path in READMES.items():
-        current = path.read_text(encoding="utf-8")
-        fresh = render(current, lang)
-        if args.check:
-            if fresh != current:
-                stale.append(path.name)
-        else:
-            path.write_text(fresh, encoding="utf-8", newline="\n")
+    for document, paths in DOCUMENTS.items():
+        for lang, path in paths.items():
+            current = path.read_text(encoding="utf-8")
+            fresh = render(current, lang, document)
+            if args.check:
+                if fresh != current:
+                    stale.append(path.name)
+            else:
+                path.write_text(fresh, encoding="utf-8", newline="\n")
     if args.check:
         if stale:
             print("STALE " + ", ".join(stale) + "; run tools/build_readme.py")
             return 1
-        print(f"PASS {len(BLOCKS)} generated blocks are current in README.md and README_CN.md")
+        print(f"PASS {len(BLOCKS)} generated blocks are current across four operator/reviewer documents")
         return 0
-    print("rendered README.md and README_CN.md")
+    print("rendered README.md, README_CN.md, VALIDATION.md and VALIDATION_CN.md")
     return 0
 
 

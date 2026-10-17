@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "file": "initialization-observation.txt",
+  "sha256": "0a4f23d9550c99f8dbf498d4e0cbf6ef03745d47358b32a63c2c7d869b3743de",
+  "failure_source_sha256": "0301ec5419746e7c82334b422c67a2e7b7a90dc90497275830ae933325977081",
+  "completed_retry_source_sha256": [
+    "0936f8f82ca29c8b89048aded8cf3db377c2c175c208a1a6aa269027a3c3f84c",
+    "99e490b1354f0965e383b590fce376d5a40b05cdfe142b9333075c76fa1a169c",
+    "3b3b2c9e6936b1bce674d20c7c82e9ef665a68380e685a362a9894b50fabe148",
+    "aa7969d220c0de90c4e7c502416f0bf9dcdcf68f3eb97f00115832050268a60e",
+    "ecba94d68a9acddb5babb946498339e6dab3f5c79662577faf524ab689f54c5b",
+    "8398d8cb049c859b4cd3e9080752a57a365dcb9dedf8bd55c8df121dba5e0080"
+  ],
+  "root_cause_status": "NOT_CONFIRMED",
+  "boundary": "Selected diagnostic excerpts and six completed retries do not establish a failure rate or a fix."
+}

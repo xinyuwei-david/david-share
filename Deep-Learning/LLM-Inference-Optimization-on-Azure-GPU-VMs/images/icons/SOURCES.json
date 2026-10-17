@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "source": "Microsoft Azure architecture icons",
+  "documentation": "https://learn.microsoft.com/azure/architecture/icons/",
+  "download": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+  "terms": "Use in architectural diagrams, training materials and documentation. Do not crop, flip, rotate, recolour or distort the icon, or use it to represent this repository as a Microsoft product.",
+  "icons": [
+    {
+      "file": "vm.png",
+      "source_file": "compute/10021-icon-service-Virtual-Machine.svg",
+      "source_sha256": "092d18ffadec9ec0e5af129186dc7bc2a80544011e55f965604ed4b13873e0fc",
+      "sha256": "ab1c8a66cfafe93e5d9d368e2f88a0b9d62bc1af095caf2405790c0cb407e0d9",
+      "conversion": "SVG rasterized to a transparent 256 by 256 PNG without changing its shape or colours.",
+      "reused_from": "https://github.com/david-xinyuwei/david-share/blob/a769875051b79a5d1a4e3a123cafdedc7fc77385/Deep-Learning/Azure-GPU-Hours-Monitoring/images/icons/vm.png"
+    }
+  ]
+}

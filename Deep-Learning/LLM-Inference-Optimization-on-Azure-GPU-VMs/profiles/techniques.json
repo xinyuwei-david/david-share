@@ -384,9 +384,9 @@
       "rocm_cn": "`bench_serving --max-concurrency 16 ... 256`，固定 prompt、预热请求和 seed",
       "cuda_cn": "同一个客户端",
       "precision": {
-        "class": "measurement-only",
-        "en": "A load pattern, not a model change.",
-        "cn": "一种加载方式，不改变模型。"
+        "class": "same-math",
+        "en": "Changes the number of in-flight requests, not the model or its answers. Scoring eligibility depends on the dataset and whether a synthetic measurement mode is enabled.",
+        "cn": "只改变同时在途的请求数，不改变模型或人为替换回答。能否评分取决于数据集，以及是否开启了模拟测量模式。"
       }
     }
   ],

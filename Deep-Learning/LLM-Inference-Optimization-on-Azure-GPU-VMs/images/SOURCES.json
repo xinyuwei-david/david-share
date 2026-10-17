@@ -1,12 +1,23 @@
 {
-  "schema": 1,
+  "schema": 2,
+  "generator_sha256": "f2c9c0c7ff64e171800140518279fa828d9cb1a5bfe3a8586f24809ce76041f6",
+  "sources": {
+    "evidence/runs.json": "6ddc44517eed3b99e642df5f69a8ab85763413ba0afdc20f219b2ad5b86c5085",
+    "evidence/measurements.json": "544424458f8453517b270b03b9f523f0e9a7139599698ea7377612748733a587",
+    "evidence/rccl/runs.json": "607a4fd45cf469f43c6314bd889e691b454014722169597373db35dca757ab9c",
+    "profiles/techniques.json": "57ffaedeb8d2fea07cc62c76f39eadcc94fa9f0964aabb3b9bc63126d03a2aaa",
+    "images/icons/SOURCES.json": "6e832288be3d71ec67565813170d626a49d4db2cc182cf6ce40123e6827fbbd5"
+  },
   "images": [
     {
       "file": "architecture-en.png",
       "language": "en",
       "kind": "original diagram",
       "generator": "tools/draw_diagrams.py",
-      "sha256": "8135922c2b04e7f406a7c213374fab5df2e3db7109487707bd6e28e79439552d",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "91b7728ca1d4a4be7f8d5f630d9ff2cd341dd5c5abecd6f9fc99943808b695c4",
       "shows": "architecture of the three optimization layers",
       "does_not_show": "measured traffic, latency or production readiness"
     },
@@ -15,7 +26,10 @@
       "language": "cn",
       "kind": "original diagram",
       "generator": "tools/draw_diagrams.py",
-      "sha256": "00085774eb173638409c7ba8c6bd7e2e6f9c6a1217796ef4d9bef5a6588b018d",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "e8be7f807cb46f6cf4412fc60ef8e8af990e4fef9c7525e8ac5a198abfed41b7",
       "shows": "architecture of the three optimization layers",
       "does_not_show": "measured traffic, latency or production readiness"
     },
@@ -24,7 +38,10 @@
       "language": "en",
       "kind": "original diagram",
       "generator": "tools/draw_diagrams.py",
-      "sha256": "c412eb6721f7b8548854aea01a1097a10d3876f2577be0bf62374fd79b406ba4",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "b9e48f5fda60564459d322180838849df40617c6051d923353945a9dd50c5869",
       "shows": "measured 1P1D test topology and measurement points",
       "does_not_show": "measured traffic, latency or production readiness"
     },
@@ -33,8 +50,35 @@
       "language": "cn",
       "kind": "original diagram",
       "generator": "tools/draw_diagrams.py",
-      "sha256": "f8158ae6815f8542f030168632827378e5dcb1a5e5fc83c3de9f97c5f05a8b5c",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "f16dd11c1967eb8d174b0dd0140c35fc4237fa8113b10aa92d0b7286e6f8d884",
       "shows": "measured 1P1D test topology and measurement points",
+      "does_not_show": "measured traffic, latency or production readiness"
+    },
+    {
+      "file": "rccl-topology-en.png",
+      "language": "en",
+      "kind": "original diagram",
+      "generator": "tools/draw_diagrams.py",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "a1896f3b839b0e330f78b563fad6d9e0c374d1aea7dd12d23bba462597c74985",
+      "shows": "independent host and container AllReduce routes",
+      "does_not_show": "measured traffic, latency or production readiness"
+    },
+    {
+      "file": "rccl-topology-cn.png",
+      "language": "cn",
+      "kind": "original diagram",
+      "generator": "tools/draw_diagrams.py",
+      "icons_used": [
+        "icons/vm.png"
+      ],
+      "sha256": "38e24796f8ceef7e48d3d45dff09a468600865b5f0b357cc6f69553865bbba72",
+      "shows": "independent host and container AllReduce routes",
       "does_not_show": "measured traffic, latency or production readiness"
     }
   ]

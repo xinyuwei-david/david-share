@@ -1,0 +1,358 @@
+{
+  "run_id": "e-2026-10-18-ci-host",
+  "what": "the tool's host mode on host c, with no model: one code-interpreter-v1 sandbox reads its kernel, vCPUs and memory while the host's Firecracker processes are listed; 20 sandboxes in turn go through create, two cells, beta_pause, a 5 s wait, Sandbox.connect and a cell that must read the variable back; then sandboxes are created one by one, /proc/meminfo read after each, until a create is refused",
+  "path": "E",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "executor": "code-interpreter",
+  "template": {
+    "name": "code-interpreter-v1",
+    "source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "vcpus": 2,
+    "memory_mb": 2048
+  },
+  "sdk": {
+    "e2b": "2.56.0",
+    "e2b-code-interpreter": "2.11.0"
+  },
+  "tool": {
+    "file": "tools/measure_e2b.py",
+    "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4"
+  },
+  "host": {
+    "name": "c",
+    "vm_sku": "Standard_D4ds_v7",
+    "vcpus": 4,
+    "memory_gib": 16,
+    "zone": "2",
+    "os_disk": "Standard HDD (Standard_LRS), 128 GB",
+    "hugepages": 4096,
+    "e2b_install": "2026-10-16 for e-2026-10-17-ci-agent: README step 7, then HUGEPAGES=4096 in .env; code-interpreter-v1 built there on 2026-10-17"
+  },
+  "command": "measure_e2b.py host --bench 20 --reserve 4",
+  "inputs": {
+    "probe_cell": "import os, platform\nmem_kb = next(int(ln.split()[1]) for ln in open('/proc/meminfo') if ln.startswith('MemTotal:'))\nprint(platform.release(), os.cpu_count(), mem_kb // 1024)",
+    "bench_cells": [
+      "x = 41",
+      "x += 1",
+      "print(x)"
+    ],
+    "bench_expected": "42",
+    "reserve_cell": "print(1 + 1)",
+    "resume_wait_s": 5
+  },
+  "client": "the tool ran on host c itself against its own API (localhost), no network in between",
+  "started_at": "2026-10-18T09:44:27.464Z",
+  "finished_at": "2026-10-18T09:48:43.621Z",
+  "isolation": {
+    "host_kernel": "7.0.0-1017-azure",
+    "guest_kernel": "6.1.177+",
+    "guest_cpus": 2,
+    "guest_mem_total_mb": 1982,
+    "sandbox_info": {
+      "template_name": "code-interpreter-v1",
+      "cpu_count": 2,
+      "memory_mb": 2048
+    },
+    "vmm_processes": [
+      "/fc-versions/v1.14-0.2.0/amd64/firecracker"
+    ],
+    "sandbox_deleted": true
+  },
+  "bench": {
+    "resume_wait_s": 5,
+    "runs": [
+      {
+        "i": 1,
+        "create_s": 0.0881,
+        "first_cell_s": 0.0906,
+        "warm_cell_s": 0.0085,
+        "pause_s": 0.1384,
+        "resume_s": 0.5512,
+        "cell_after_resume_s": 0.0804,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 2,
+        "create_s": 0.0994,
+        "first_cell_s": 0.1012,
+        "warm_cell_s": 0.0085,
+        "pause_s": 2.9902,
+        "resume_s": 0.378,
+        "cell_after_resume_s": 0.0737,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 3,
+        "create_s": 0.0913,
+        "first_cell_s": 0.1022,
+        "warm_cell_s": 0.0106,
+        "pause_s": 0.5346,
+        "resume_s": 0.4033,
+        "cell_after_resume_s": 0.0824,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 4,
+        "create_s": 0.0979,
+        "first_cell_s": 0.1655,
+        "warm_cell_s": 0.043,
+        "pause_s": 3.0676,
+        "resume_s": 5.3059,
+        "cell_after_resume_s": 0.1315,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 5,
+        "create_s": 0.1191,
+        "first_cell_s": 0.0947,
+        "warm_cell_s": 0.0105,
+        "pause_s": 0.8738,
+        "resume_s": 6.2987,
+        "cell_after_resume_s": 0.05,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 6,
+        "create_s": 0.262,
+        "first_cell_s": 0.1735,
+        "warm_cell_s": 0.0477,
+        "pause_s": 0.6214,
+        "resume_s": 6.397,
+        "cell_after_resume_s": 0.0436,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 7,
+        "create_s": 0.1158,
+        "first_cell_s": 0.1145,
+        "warm_cell_s": 0.0182,
+        "pause_s": 3.1518,
+        "resume_s": 4.8377,
+        "cell_after_resume_s": 0.0709,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 8,
+        "create_s": 0.5583,
+        "first_cell_s": 0.0803,
+        "warm_cell_s": 0.0079,
+        "pause_s": 1.0741,
+        "resume_s": 5.5437,
+        "cell_after_resume_s": 0.0621,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 9,
+        "create_s": 0.4766,
+        "first_cell_s": 0.1025,
+        "warm_cell_s": 0.0084,
+        "pause_s": 0.6557,
+        "resume_s": 7.3342,
+        "cell_after_resume_s": 0.1052,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 10,
+        "create_s": 0.1685,
+        "first_cell_s": 0.1417,
+        "warm_cell_s": 0.0108,
+        "pause_s": 1.4784,
+        "resume_s": 5.375,
+        "cell_after_resume_s": 0.0665,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 11,
+        "create_s": 0.1279,
+        "first_cell_s": 0.0948,
+        "warm_cell_s": 0.0085,
+        "pause_s": 0.6664,
+        "resume_s": 10.2404,
+        "cell_after_resume_s": 0.0582,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 12,
+        "create_s": 0.3046,
+        "first_cell_s": 0.107,
+        "warm_cell_s": 0.0076,
+        "pause_s": 1.7981,
+        "resume_s": 4.6769,
+        "cell_after_resume_s": 0.066,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 13,
+        "create_s": 0.1847,
+        "first_cell_s": 0.1153,
+        "warm_cell_s": 0.009,
+        "pause_s": 1.3621,
+        "resume_s": 5.9068,
+        "cell_after_resume_s": 0.1655,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 14,
+        "create_s": 0.2382,
+        "first_cell_s": 0.0937,
+        "warm_cell_s": 0.0235,
+        "pause_s": 1.8481,
+        "resume_s": 4.9924,
+        "cell_after_resume_s": 0.126,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 15,
+        "create_s": 0.1418,
+        "first_cell_s": 0.1222,
+        "warm_cell_s": 0.0181,
+        "pause_s": 3.2733,
+        "resume_s": 3.8411,
+        "cell_after_resume_s": 0.1523,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 16,
+        "create_s": 0.2665,
+        "first_cell_s": 0.1857,
+        "warm_cell_s": 0.0096,
+        "pause_s": 2.034,
+        "resume_s": 4.7003,
+        "cell_after_resume_s": 0.0503,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 17,
+        "create_s": 0.2866,
+        "first_cell_s": 0.166,
+        "warm_cell_s": 0.0081,
+        "pause_s": 0.562,
+        "resume_s": 8.0779,
+        "cell_after_resume_s": 0.0645,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 18,
+        "create_s": 0.3796,
+        "first_cell_s": 0.1019,
+        "warm_cell_s": 0.0094,
+        "pause_s": 1.471,
+        "resume_s": 4.9066,
+        "cell_after_resume_s": 0.1202,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 19,
+        "create_s": 0.1133,
+        "first_cell_s": 0.1253,
+        "warm_cell_s": 0.0308,
+        "pause_s": 1.7353,
+        "resume_s": 6.1575,
+        "cell_after_resume_s": 0.2053,
+        "state_kept": true,
+        "sandbox_deleted": true
+      },
+      {
+        "i": 20,
+        "create_s": 0.1397,
+        "first_cell_s": 0.1758,
+        "warm_cell_s": 0.0246,
+        "pause_s": 3.0589,
+        "resume_s": 4.6116,
+        "cell_after_resume_s": 0.0712,
+        "state_kept": true,
+        "sandbox_deleted": true
+      }
+    ]
+  },
+  "reservation": {
+    "before": {
+      "hugepages_total": 4096,
+      "hugepages_free": 4083,
+      "hugepages_rsvd": 62,
+      "mem_available_mb": 5634
+    },
+    "steps": [
+      {
+        "sandboxes": 1,
+        "create_s": 0.22,
+        "check_ok": true,
+        "hugepages_total": 4096,
+        "hugepages_free": 3815,
+        "hugepages_rsvd": 818,
+        "mem_available_mb": 5628
+      },
+      {
+        "sandboxes": 2,
+        "create_s": 0.135,
+        "check_ok": true,
+        "hugepages_total": 4096,
+        "hugepages_free": 3522,
+        "hugepages_rsvd": 1549,
+        "mem_available_mb": 5623
+      },
+      {
+        "sandboxes": 3,
+        "create_s": 0.08,
+        "check_ok": true,
+        "hugepages_total": 4096,
+        "hugepages_free": 3251,
+        "hugepages_rsvd": 2302,
+        "mem_available_mb": 5631
+      }
+    ],
+    "refused": {
+      "at": 4,
+      "seconds": 0.217,
+      "message": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+    },
+    "sandboxes_deleted": true,
+    "after": {
+      "hugepages_total": 4096,
+      "hugepages_free": 4083,
+      "hugepages_rsvd": 62,
+      "mem_available_mb": 5680
+    }
+  },
+  "leftover_sandboxes": 0,
+  "_sources": [
+    {
+      "file": "e2b-host-20261018T094427Z.json",
+      "sha256": "77efb498fd54c7e66e019fe2c9910fcda5946173deaf1057594e4a51d2eed7e1",
+      "bytes": 7745,
+      "role": "measure_e2b.py host --bench 20 --reserve 4 on host c"
+    },
+    {
+      "file": "measure_e2b.py",
+      "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4",
+      "bytes": 46381,
+      "role": "the frozen tool that produced every 2026-10-18 output"
+    },
+    {
+      "file": "export_public.py",
+      "sha256": "080746afa9b8c84b9a34fc67c8b46c2fd7c876c35398de4a565b4607611688a4",
+      "bytes": 17494,
+      "role": "the private script that projected the raw files into this record"
+    }
+  ]
+}

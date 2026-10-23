@@ -6,7 +6,8 @@
     python tools/measure_responses.py --recovery --observe                            # D: delete one session pod
 
 The endpoint is AGENT_RESPONSES_URL; the token comes from `az account get-access-token --resource
-https://ai.azure.com`. --observe reads the session pods in SESSION_NAMESPACE with kubectl (D only) and never
+https://ai.azure.com`, or the header in RESPONSES_AUTH_HEADER ("Header-Name: value", for example an API Management
+key in front of the project) is sent instead; its value is never printed or written. --observe reads the session pods in SESSION_NAMESPACE with kubectl (D only) and never
 starts, stops or scales the cluster. The inputs are the ones used on 2026-09-29:
 
     cold:   "Reply with exactly COLD-<n>"                       (each a new session)
@@ -48,7 +49,13 @@ def setting(name: str) -> str:
     return value
 
 
-def token() -> str:
+def token() -> str | tuple[str, str]:
+    raw = os.environ.get("RESPONSES_AUTH_HEADER", "").strip()
+    if raw:
+        name, sep, value = raw.partition(":")
+        if not sep or not name.strip() or not value.strip():
+            raise RuntimeError("RESPONSES_AUTH_HEADER must look like 'Header-Name: value'")
+        return name.strip(), value.strip()
     out = subprocess.run(["az", "account", "get-access-token", "--resource", "https://ai.azure.com",
                           "--query", "accessToken", "-o", "tsv"], capture_output=True, text=True,
                          shell=(os.name == "nt"))
@@ -62,12 +69,13 @@ def answer_text(doc: dict) -> str:
                     for c in o.get("content", []))
 
 
-def invoke(endpoint: str, tok: str, text: str, prev: str | None = None, timeout: int = 420) -> dict:
+def invoke(endpoint: str, tok: str | tuple[str, str], text: str, prev: str | None = None, timeout: int = 420) -> dict:
     body = {"input": text}
     if prev:
         body["previous_response_id"] = prev
+    name, value = tok if isinstance(tok, tuple) else ("Authorization", f"Bearer {tok}")
     req = urllib.request.Request(endpoint, data=json.dumps(body).encode(), method="POST",
-                                 headers={"Authorization": f"Bearer {tok}", "Content-Type": "application/json"})
+                                 headers={name: value, "Content-Type": "application/json"})
     t0, started = time.perf_counter(), utc()
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:

@@ -1,0 +1,777 @@
+{
+  "run_id": "e-2026-10-18-ci-scale",
+  "what": "a new Embed install on a Standard_D8ds_v7 whose hugepage pool was sized for eight code-interpreter-v1 sandboxes: README step 7 timed, then the D-matched perf protocol (cold n=5, warm, 4 and 8 at once, replacement) and the hugepage reservation probe up to 9 sandboxes",
+  "path": "E",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "executor": "code-interpreter",
+  "template": {
+    "name": "code-interpreter-v1",
+    "source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "vcpus": 2,
+    "memory_mb": 2048
+  },
+  "sdk": {
+    "e2b": "2.56.0",
+    "e2b-code-interpreter": "2.11.0"
+  },
+  "tool": {
+    "file": "tools/measure_e2b.py",
+    "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4"
+  },
+  "model": "gpt-5.4-mini",
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "host": {
+    "name": "d",
+    "vm_sku": "Standard_D8ds_v7",
+    "vcpus": 8,
+    "memory_gib": 32,
+    "zone": "2",
+    "image": "Canonical ubuntu-24_04-lts server 24.04.202609040",
+    "os_disk": "Standard HDD (Standard_LRS), 128 GB",
+    "hugepages": 8448,
+    "host_kernel": "6.17.0-1022-azure"
+  },
+  "install": {
+    "date_utc": "2026-10-18",
+    "how": "README step 7 as written, on a new VM: Docker Engine from Docker's apt repository; compose.yaml and .env at 588e5b9 (SHA-256 OK); HUGEPAGES appended to .env; docker compose up -d --wait; then the build-workspace row in project_limits, the 300 s wait, a clone of code-interpreter at 162a2a2 and its unchanged build_prod.py",
+    "env_change": "one line appended to .env: HUGEPAGES=8448 instead of README step 7's 4096, room for 8 code-interpreter-v1 sandboxes of 1024 pages each plus 256 pages",
+    "sha256": {
+      "compose.yaml": "658429e02665fa9e1cc23411e0897b1e2db1867e6fa9c47fb551ac5a313b6b74",
+      ".env as downloaded": "484510816c685a4d6d24bff34d00b05c46306146c0be397507dc215390a182fa"
+    },
+    "times_utc": {
+      "start": "2026-10-18T09:32:14Z",
+      "docker_installed": "2026-10-18T09:32:56Z",
+      "compose_up_start": "2026-10-18T09:32:56Z",
+      "compose_up_done": "2026-10-18T09:36:31Z",
+      "project_limits_row": "2026-10-18T09:36:32Z",
+      "sleep_done": "2026-10-18T09:41:32Z",
+      "build_start": "2026-10-18T09:41:39Z",
+      "build_done": "2026-10-18T09:57:08Z"
+    },
+    "install_time": {
+      "docker_engine_s": 42,
+      "compose_up_s": 215,
+      "project_limits_row_and_wait_s": 301,
+      "clone_and_build_env_s": 7,
+      "template_build_s": 929,
+      "total_s": 1494
+    },
+    "build": {
+      "exit_code": 0,
+      "steps": 30,
+      "builder_reported": "15m26s",
+      "attempts": 1
+    },
+    "project_limits_insert": "INSERT 0 1"
+  },
+  "commands": {
+    "perf": "measure_e2b.py perf --cold 5 --scale 4,8 --recovery",
+    "host": "measure_e2b.py host --bench 0 --reserve 9"
+  },
+  "inputs": {
+    "cold": "Use run_in_e2b_sandbox to print COLD-{i}, then reply with exactly COLD-{i}",
+    "warm": [
+      "Use run_in_e2b_sandbox to save the code word LANTERN-7 to /home/user/codeword.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/codeword.txt. What is the code word? Reply with the word only.",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-1",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-2"
+    ],
+    "scale": [
+      "Use run_in_e2b_sandbox to write SCALE-{k} to /home/user/scale.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/scale.txt. What did I ask you to remember? Word only."
+    ],
+    "live": [
+      "Use run_in_e2b_sandbox to write LANTERN-7 to /home/user/live.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/live.txt. What is the code word? Reply with the word only."
+    ],
+    "reserve_cell": "print(1 + 1)"
+  },
+  "client": "the tool ran on host d itself against its own API (localhost), no network in between",
+  "started_at": "2026-10-18T10:01:43.260Z",
+  "finished_at": "2026-10-18T10:03:13.983Z",
+  "cold": [
+    {
+      "i": 1,
+      "host": "d",
+      "started_utc": "10:01:46.752",
+      "sandbox_create_to_ready_s": 0.242,
+      "wall_s": 3.149,
+      "agent_turn_s": 2.83,
+      "sandbox_tool_s": 0.105,
+      "http": 200,
+      "answer": "COLD-1",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 2,
+      "host": "d",
+      "started_utc": "10:01:50.138",
+      "sandbox_create_to_ready_s": 0.068,
+      "wall_s": 2.377,
+      "agent_turn_s": 2.26,
+      "sandbox_tool_s": 0.052,
+      "http": 200,
+      "answer": "COLD-2",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 3,
+      "host": "d",
+      "started_utc": "10:01:52.590",
+      "sandbox_create_to_ready_s": 0.062,
+      "wall_s": 2.673,
+      "agent_turn_s": 2.56,
+      "sandbox_tool_s": 0.05,
+      "http": 200,
+      "answer": "COLD-3",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 4,
+      "host": "d",
+      "started_utc": "10:01:55.336",
+      "sandbox_create_to_ready_s": 0.07,
+      "wall_s": 2.378,
+      "agent_turn_s": 2.26,
+      "sandbox_tool_s": 0.05,
+      "http": 200,
+      "answer": "COLD-4",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 5,
+      "host": "d",
+      "started_utc": "10:01:57.791",
+      "sandbox_create_to_ready_s": 0.06,
+      "wall_s": 2.658,
+      "agent_turn_s": 2.55,
+      "sandbox_tool_s": 0.049,
+      "http": 200,
+      "answer": "COLD-5",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    }
+  ],
+  "warm": {
+    "host": "d",
+    "turns": [
+      {
+        "started_utc": "10:02:00.627",
+        "http": 200,
+        "wall_s": 2.76,
+        "sandbox_tool_s": 0.047,
+        "answer": "OK"
+      },
+      {
+        "started_utc": "10:02:03.385",
+        "http": 200,
+        "wall_s": 2.28,
+        "sandbox_tool_s": 0.013,
+        "answer": "LANTERN-7"
+      },
+      {
+        "started_utc": "10:02:05.665",
+        "http": 200,
+        "wall_s": 2.76,
+        "sandbox_tool_s": 0.01,
+        "answer": "WARM-1"
+      },
+      {
+        "started_utc": "10:02:08.425",
+        "http": 200,
+        "wall_s": 33.32,
+        "sandbox_tool_s": 0.009,
+        "answer": "WARM-2"
+      }
+    ],
+    "sandbox_create_to_ready_s": 0.053,
+    "remembered": true,
+    "sandbox_deleted": true,
+    "conversation_deleted": true
+  },
+  "at_once": [
+    {
+      "sessions_at_once": 4,
+      "answered": 4,
+      "per_host": {
+        "d": {
+          "sessions": 4,
+          "answered": 4
+        }
+      },
+      "wall_s": 8.032,
+      "model_http_statuses": {
+        "200": 16
+      },
+      "sessions": [
+        {
+          "slot": 1,
+          "host": "d",
+          "started_utc": "10:02:41.825",
+          "sandbox_create_to_ready_s": 0.159,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.45,
+            "wall_s": 2.609,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.39,
+            "answer": "SCALE-1",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.073,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 2,
+          "host": "d",
+          "started_utc": "10:02:41.825",
+          "sandbox_create_to_ready_s": 0.11,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 5.65,
+            "wall_s": 5.76,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.16,
+            "answer": "SCALE-2",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 7.967,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 3,
+          "host": "d",
+          "started_utc": "10:02:41.825",
+          "sandbox_create_to_ready_s": 0.092,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.36,
+            "wall_s": 2.452,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.79,
+            "answer": "SCALE-3",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.293,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 4,
+          "host": "d",
+          "started_utc": "10:02:41.826",
+          "sandbox_create_to_ready_s": 0.12,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.37,
+            "wall_s": 2.49,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 1.93,
+            "answer": "SCALE-4",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 4.471,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        }
+      ]
+    },
+    {
+      "sessions_at_once": 8,
+      "answered": 8,
+      "per_host": {
+        "d": {
+          "sessions": 8,
+          "answered": 8
+        }
+      },
+      "wall_s": 10.269,
+      "model_http_statuses": {
+        "200": 32
+      },
+      "sessions": [
+        {
+          "slot": 1,
+          "host": "d",
+          "started_utc": "10:02:49.856",
+          "sandbox_create_to_ready_s": 0.216,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.73,
+            "wall_s": 2.946,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.13,
+            "answer": "SCALE-1",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.148,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 2,
+          "host": "d",
+          "started_utc": "10:02:49.857",
+          "sandbox_create_to_ready_s": 0.131,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.23,
+            "wall_s": 2.361,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 4.28,
+            "answer": "SCALE-2",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 6.694,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 3,
+          "host": "d",
+          "started_utc": "10:02:49.857",
+          "sandbox_create_to_ready_s": 0.322,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 6.34,
+            "wall_s": 6.662,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 3.47,
+            "answer": "SCALE-3",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 10.181,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 4,
+          "host": "d",
+          "started_utc": "10:02:49.857",
+          "sandbox_create_to_ready_s": 0.105,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.68,
+            "wall_s": 2.785,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 3.17,
+            "answer": "SCALE-4",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.99,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 5,
+          "host": "d",
+          "started_utc": "10:02:49.857",
+          "sandbox_create_to_ready_s": 0.183,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.82,
+            "wall_s": 3.003,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.27,
+            "answer": "SCALE-5",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.323,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 6,
+          "host": "d",
+          "started_utc": "10:02:49.857",
+          "sandbox_create_to_ready_s": 0.132,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.25,
+            "wall_s": 2.382,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.43,
+            "answer": "SCALE-6",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 4.852,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 7,
+          "host": "d",
+          "started_utc": "10:02:49.858",
+          "sandbox_create_to_ready_s": 0.337,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.71,
+            "wall_s": 3.047,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.79,
+            "answer": "SCALE-7",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.89,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 8,
+          "host": "d",
+          "started_utc": "10:02:49.858",
+          "sandbox_create_to_ready_s": 0.181,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.79,
+            "wall_s": 2.971,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 2.14,
+            "answer": "SCALE-8",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.227,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        }
+      ]
+    }
+  ],
+  "recovery": {
+    "host": "d",
+    "sandbox_killed_utc": "10:03:02.687",
+    "replacement_ready_s": 0.063,
+    "followup_on_live_session": {
+      "http": 200,
+      "wall_s": 3.5,
+      "answer": "LANTERN-7",
+      "state_preserved": true
+    },
+    "sandboxes_deleted": true,
+    "conversation_deleted": true
+  },
+  "isolation": {
+    "host_kernel": "6.17.0-1022-azure",
+    "guest_kernel": "6.1.177+",
+    "guest_cpus": 2,
+    "guest_mem_total_mb": 1982,
+    "sandbox_info": {
+      "template_name": "code-interpreter-v1",
+      "cpu_count": 2,
+      "memory_mb": 2048
+    },
+    "vmm_processes": [
+      "/fc-versions/v1.14-0.2.0/amd64/firecracker"
+    ],
+    "sandbox_deleted": true
+  },
+  "reservation": {
+    "before": {
+      "hugepages_total": 8448,
+      "hugepages_free": 8175,
+      "hugepages_rsvd": 751,
+      "mem_available_mb": 11899
+    },
+    "steps": [
+      {
+        "sandboxes": 1,
+        "create_s": 0.05,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 8183,
+        "hugepages_rsvd": 759,
+        "mem_available_mb": 11895
+      },
+      {
+        "sandboxes": 2,
+        "create_s": 0.05,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 7908,
+        "hugepages_rsvd": 1508,
+        "mem_available_mb": 11887
+      },
+      {
+        "sandboxes": 3,
+        "create_s": 0.053,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 7640,
+        "hugepages_rsvd": 2264,
+        "mem_available_mb": 11879
+      },
+      {
+        "sandboxes": 4,
+        "create_s": 0.052,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 7372,
+        "hugepages_rsvd": 3020,
+        "mem_available_mb": 11891
+      },
+      {
+        "sandboxes": 5,
+        "create_s": 0.057,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 7103,
+        "hugepages_rsvd": 3775,
+        "mem_available_mb": 11887
+      },
+      {
+        "sandboxes": 6,
+        "create_s": 0.056,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 6830,
+        "hugepages_rsvd": 4526,
+        "mem_available_mb": 11887
+      },
+      {
+        "sandboxes": 7,
+        "create_s": 0.062,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 6565,
+        "hugepages_rsvd": 5285,
+        "mem_available_mb": 11885
+      },
+      {
+        "sandboxes": 8,
+        "create_s": 0.06,
+        "check_ok": true,
+        "hugepages_total": 8448,
+        "hugepages_free": 6286,
+        "hugepages_rsvd": 6030,
+        "mem_available_mb": 11875
+      }
+    ],
+    "refused": {
+      "at": 9,
+      "seconds": 0.047,
+      "message": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+    },
+    "sandboxes_deleted": true,
+    "after": {
+      "hugepages_total": 8448,
+      "hugepages_free": 8448,
+      "hugepages_rsvd": 0,
+      "mem_available_mb": 11931
+    }
+  },
+  "leftover_sandboxes": 0,
+  "agent_version_deleted": true,
+  "_sources": [
+    {
+      "file": "e2b-perf-20261018T100143Z.json",
+      "sha256": "a46d1dc0bb4a1d35511861f8f288be6c7f20ceb6b6fbe19868c9fdc500cf32e6",
+      "bytes": 14975,
+      "role": "measure_e2b.py perf --cold 5 --scale 4,8 --recovery on host d"
+    },
+    {
+      "file": "e2b-host-20261018T100307Z.json",
+      "sha256": "c01b090bc79dea163b79aff448d7908a821c9812734752cb17433fde86ba5d31",
+      "bytes": 3314,
+      "role": "measure_e2b.py host --bench 0 --reserve 9 on host d"
+    },
+    {
+      "file": "e2b-times.txt",
+      "sha256": "ba2a71ee11c13f2172f417a8609713f3aa7958dee2db5eed7dfeccecfe918198",
+      "bytes": 365,
+      "role": "host d's install timestamps"
+    },
+    {
+      "file": "host-d-build-wait-20261018T100051Z.txt",
+      "sha256": "18d7462e89b449f91b23e046a1870f7683e9cbb0426e1dcb27fdad53a311f4e3",
+      "bytes": 947,
+      "role": "host d's build status read after the build: exit code, last builder steps, duration"
+    },
+    {
+      "file": "d-install.sh",
+      "sha256": "d19acbe0d113ef7101e6083cd8b467c5dfcc14f76e7709132429857aae9c5988",
+      "bytes": 4529,
+      "role": "the install script run on host d"
+    },
+    {
+      "file": "measure_e2b.py",
+      "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4",
+      "bytes": 46381,
+      "role": "the frozen tool that produced every 2026-10-18 output"
+    },
+    {
+      "file": "export_public.py",
+      "sha256": "080746afa9b8c84b9a34fc67c8b46c2fd7c876c35398de4a565b4607611688a4",
+      "bytes": 17494,
+      "role": "the private script that projected the raw files into this record"
+    }
+  ]
+}

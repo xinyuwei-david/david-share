@@ -1,0 +1,459 @@
+{
+  "run_id": "e-2026-10-14-perf",
+  "path": "E",
+  "what": "Foundry Prompt Agent + E2B on Azure VM: cold start (n=5), follow-up turns, 4 and 8 concurrent sessions, and sandbox replacement",
+  "date_utc": "2026-10-14",
+  "region": "eastus2",
+  "model": "gpt-5.4-mini",
+  "node_sku": "Standard_D4ds_v7",
+  "host_nodes": 1,
+  "request": "POST <Foundry project>/openai/v1/responses {\"input\": <input>} with Prompt Agent calling E2B sandbox tool",
+  "client": "the E2B host VM in East US 2 (the benchmark driver ran there over SSH) calling the Foundry endpoint in East US 2",
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "inputs": {
+    "cold": "Use run_in_e2b_sandbox to print COLD-{i}, then reply with exactly COLD-{i}",
+    "warm": [
+      "Use run_in_e2b_sandbox to save the code word LANTERN-7 to /home/user/codeword.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/codeword.txt. What is the code word? Reply with the word only.",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-1",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-2"
+    ],
+    "scale": [
+      "Use run_in_e2b_sandbox to write SCALE-{k} to /home/user/scale.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/scale.txt. What did I ask you to remember? Word only."
+    ],
+    "recovery": [
+      "Use run_in_e2b_sandbox to write LANTERN-7 to /home/user/live.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/live.txt. What is the code word? Reply with the word only."
+    ]
+  },
+  "clocks": {
+    "cold_turns.wall_s": "one time.perf_counter() stopwatch around conversation create + Sandbox.create + the turn",
+    "cold_turns.sandbox_create_to_ready_s": "Sandbox.create('base') until it returns (Running)",
+    "cold_turns.agent_turn_s": "first POST /openai/v1/responses until the final answer, every tool round trip included",
+    "sandbox_tool_s": "the sandbox command alone (commands.run), summed over the turn's tool calls",
+    "warm_turns.wall_s": "the turn; turn 1 also includes the Sandbox.create before it",
+    "scalability.turn1.wall_s": "Sandbox.create + turn 1; the conversation create before it is outside",
+    "scalability.turn2.wall_s": "turn 2",
+    "recovery.replacement_ready_s": "kill of one sandbox + Sandbox.create of its replacement until it returns",
+    "recovery.followup_on_live_session.wall_s": "one turn on a different sandbox that stayed alive"
+  },
+  "cold_turns": [
+    {
+      "started_utc": "06:14:58.187",
+      "http": 200,
+      "wall_s": 7.943,
+      "agent_turn_s": 7.75,
+      "sandbox_create_to_ready_s": 0.056,
+      "sandbox_tool_s": 0.121,
+      "status": "completed",
+      "answer": "COLD-1",
+      "sandbox_id": "e2b-cold-1"
+    },
+    {
+      "started_utc": "06:15:06.244",
+      "http": 200,
+      "wall_s": 2.536,
+      "agent_turn_s": 2.28,
+      "sandbox_create_to_ready_s": 0.068,
+      "sandbox_tool_s": 0.106,
+      "status": "completed",
+      "answer": "COLD-2",
+      "sandbox_id": "e2b-cold-2"
+    },
+    {
+      "started_utc": "06:15:08.862",
+      "http": 200,
+      "wall_s": 3.599,
+      "agent_turn_s": 3.44,
+      "sandbox_create_to_ready_s": 0.068,
+      "sandbox_tool_s": 0.128,
+      "status": "completed",
+      "answer": "COLD-3",
+      "sandbox_id": "e2b-cold-3"
+    },
+    {
+      "started_utc": "06:15:12.567",
+      "http": 200,
+      "wall_s": 3.653,
+      "agent_turn_s": 3.52,
+      "sandbox_create_to_ready_s": 0.057,
+      "sandbox_tool_s": 0.134,
+      "status": "completed",
+      "answer": "COLD-4",
+      "sandbox_id": "e2b-cold-4"
+    },
+    {
+      "started_utc": "06:15:16.366",
+      "http": 200,
+      "wall_s": 3.337,
+      "agent_turn_s": 3.19,
+      "sandbox_create_to_ready_s": 0.066,
+      "sandbox_tool_s": 0.116,
+      "status": "completed",
+      "answer": "COLD-5",
+      "sandbox_id": "e2b-cold-5"
+    }
+  ],
+  "warm_turns": [
+    {
+      "started_utc": "06:15:19.941",
+      "http": 200,
+      "wall_s": 2.757,
+      "sandbox_tool_s": 0.137,
+      "status": "completed",
+      "answer": "OK"
+    },
+    {
+      "started_utc": "06:15:22.639",
+      "http": 200,
+      "wall_s": 5.03,
+      "sandbox_tool_s": 0.033,
+      "status": "completed",
+      "answer": "LANTERN-7"
+    },
+    {
+      "started_utc": "06:15:27.665",
+      "http": 200,
+      "wall_s": 3.19,
+      "sandbox_tool_s": 0.029,
+      "status": "completed",
+      "answer": "WARM-1"
+    },
+    {
+      "started_utc": "06:15:30.852",
+      "http": 200,
+      "wall_s": 3.39,
+      "sandbox_tool_s": 0.028,
+      "status": "completed",
+      "answer": "WARM-2"
+    }
+  ],
+  "firecracker_process_count": {
+    "command": "bash -c \"pgrep -fc '/fc-versions/.*firecracker' || true\" from the benchmark driver on the host",
+    "includes": "the bash process that runs pgrep, whose command line matches the pattern; re-checked on 2026-10-15 on the same VM: 1 with no sandbox, 2 with one sandbox"
+  },
+  "scalability": [
+    {
+      "concurrency": 4,
+      "answered": 4,
+      "refused": 0,
+      "max_live_firecracker_processes": 7,
+      "sessions": [
+        {
+          "slot": 1,
+          "sandbox_id": "e2b-c4-1",
+          "sandbox_create_to_ready_s": 0.132,
+          "live_firecracker_processes_seen": 7,
+          "turn1": {
+            "started_utc": "06:15:34.348",
+            "http": 200,
+            "wall_s": 3.902,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:38.336",
+            "http": 200,
+            "wall_s": 2.37,
+            "answer": "SCALE-1",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 2,
+          "sandbox_id": "e2b-c4-2",
+          "sandbox_create_to_ready_s": 0.185,
+          "live_firecracker_processes_seen": 5,
+          "turn1": {
+            "started_utc": "06:15:34.348",
+            "http": 200,
+            "wall_s": 3.115,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:37.560",
+            "http": 200,
+            "wall_s": 4.25,
+            "answer": "SCALE-2",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 3,
+          "sandbox_id": "e2b-c4-3",
+          "sandbox_create_to_ready_s": 0.148,
+          "live_firecracker_processes_seen": 7,
+          "turn1": {
+            "started_utc": "06:15:34.348",
+            "http": 200,
+            "wall_s": 3.898,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:38.337",
+            "http": 200,
+            "wall_s": 4.57,
+            "answer": "SCALE-3",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 4,
+          "sandbox_id": "e2b-c4-4",
+          "sandbox_create_to_ready_s": 0.148,
+          "live_firecracker_processes_seen": 5,
+          "turn1": {
+            "started_utc": "06:15:34.349",
+            "http": 200,
+            "wall_s": 3.168,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:37.657",
+            "http": 200,
+            "wall_s": 3.19,
+            "answer": "SCALE-4",
+            "error_code": null
+          },
+          "remembered": true
+        }
+      ]
+    },
+    {
+      "concurrency": 8,
+      "answered": 8,
+      "refused": 0,
+      "max_live_firecracker_processes": 9,
+      "sessions": [
+        {
+          "slot": 1,
+          "sandbox_id": "e2b-c8-1",
+          "sandbox_create_to_ready_s": 0.279,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.008",
+            "http": 200,
+            "wall_s": 4.589,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:47.705",
+            "http": 200,
+            "wall_s": 3.6,
+            "answer": "SCALE-1",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 2,
+          "sandbox_id": "e2b-c8-2",
+          "sandbox_create_to_ready_s": 0.131,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.008",
+            "http": 200,
+            "wall_s": 2.481,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:45.582",
+            "http": 200,
+            "wall_s": 3.04,
+            "answer": "SCALE-2",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 3,
+          "sandbox_id": "e2b-c8-3",
+          "sandbox_create_to_ready_s": 0.134,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.008",
+            "http": 200,
+            "wall_s": 4.634,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:47.722",
+            "http": 200,
+            "wall_s": 2.95,
+            "answer": "SCALE-3",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 4,
+          "sandbox_id": "e2b-c8-4",
+          "sandbox_create_to_ready_s": 0.124,
+          "live_firecracker_processes_seen": 7,
+          "turn1": {
+            "started_utc": "06:15:43.009",
+            "http": 200,
+            "wall_s": 6.944,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:50.296",
+            "http": 200,
+            "wall_s": 3.91,
+            "answer": "SCALE-4",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 5,
+          "sandbox_id": "e2b-c8-5",
+          "sandbox_create_to_ready_s": 0.288,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.009",
+            "http": 200,
+            "wall_s": 5.398,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:48.510",
+            "http": 200,
+            "wall_s": 3.6,
+            "answer": "SCALE-5",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 6,
+          "sandbox_id": "e2b-c8-6",
+          "sandbox_create_to_ready_s": 0.241,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.009",
+            "http": 200,
+            "wall_s": 3.701,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:46.829",
+            "http": 200,
+            "wall_s": 3.27,
+            "answer": "SCALE-6",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 7,
+          "sandbox_id": "e2b-c8-7",
+          "sandbox_create_to_ready_s": 0.225,
+          "live_firecracker_processes_seen": 7,
+          "turn1": {
+            "started_utc": "06:15:43.009",
+            "http": 200,
+            "wall_s": 7.345,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:50.630",
+            "http": 200,
+            "wall_s": 3.31,
+            "answer": "SCALE-7",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "slot": 8,
+          "sandbox_id": "e2b-c8-8",
+          "sandbox_create_to_ready_s": 0.139,
+          "live_firecracker_processes_seen": 9,
+          "turn1": {
+            "started_utc": "06:15:43.010",
+            "http": 200,
+            "wall_s": 3.819,
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "06:15:46.918",
+            "http": 200,
+            "wall_s": 78.99,
+            "answer": "SCALE-8",
+            "error_code": null
+          },
+          "remembered": true
+        }
+      ]
+    }
+  ],
+  "recovery": {
+    "sandbox_killed_utc": "06:17:09.765",
+    "replacement_ready_s": 0.1,
+    "followup_on_live_session": {
+      "http": 200,
+      "wall_s": 2.61,
+      "answer": "LANTERN-7",
+      "state_preserved": true
+    }
+  },
+  "_corrections": [
+    "2026-10-15: inputs replaced with the prompts the benchmark driver sent; the earlier record listed D's prompts",
+    "2026-10-15: added the agent's instructions and tool schema, and the clock definitions, from the driver source",
+    "2026-10-15: removed cold_turns[*].runtime, a constant the driver wrote rather than read",
+    "2026-10-15: removed max_concurrent_sandboxes_observed; its pgrep count included the counting shell (see firecracker_process_count)"
+  ],
+  "_sources": [
+    {
+      "file": "e-2026-10-14-perf.json",
+      "sha256": "543cb94d67089a5a1f1915b266bd6a35ebad91ff56c403ad3d70ee1a5539e59d",
+      "bytes": 10400,
+      "role": "B/D-matched cold, warm, concurrency and recovery record"
+    },
+    {
+      "file": "run_abcd_matched_benchmarks.py",
+      "sha256": "8e8f6fc5b7b61c707f596666b6d76ce23fa4a5147f5ef38739f621b2b30a20b0",
+      "bytes": 24728,
+      "role": "benchmark driver"
+    }
+  ]
+}

@@ -124,11 +124,12 @@ def port_request(cfg: dict):
                           ip_access_control=PortIpAccessControl(default_action="Deny", rules=rules))
 
 
-CONFIGS = ("builtin", "image", "vnet", "port", "vnetvolume", "full")
+CONFIGS = ("builtin", "image", "vnet", "port", "vnetvolume", "full", "novolume")
 
 
 def config_kwargs(name: str, cfg: dict, disk_image_id: str | None, environment: dict | None) -> dict:
-    """Create arguments for one configuration; 'full' is the spec measured on 2026-09-27 and 2026-10-09."""
+    """Create arguments for one configuration; 'full' is the spec measured on 2026-09-27 and 2026-10-09,
+    'novolume' is 'full' without the Blob volume."""
     if name not in CONFIGS:
         raise ValueError(f"unknown configuration {name!r}; choose from {', '.join(CONFIGS)}")
     base = dict(disk=None, disk_id=None, snapshot_id=None, preset=None, cpu="1000m", memory="2048Mi",
@@ -143,13 +144,13 @@ def config_kwargs(name: str, cfg: dict, disk_image_id: str | None, environment: 
         raise SettingMissing("disk image (run the image step first)")
     base.update(disk_id=disk_image_id, environment=environment,
                 entrypoint=["/bin/sh", "-c"], cmd=["cd /app && exec python -m app.main"])
-    if name in ("vnet", "vnetvolume", "full"):
+    if name in ("vnet", "vnetvolume", "full", "novolume"):
         base["customer_vnet_connection_name"] = cfg["vnet_connection"]
     if name in ("vnetvolume", "full"):
         from azure.containerapps.sandbox import SandboxVolume
 
         base["volumes"] = [SandboxVolume(volume_name=cfg["volume"], mountpoint=STATE_MOUNT)]
-    if name in ("port", "full"):
+    if name in ("port", "full", "novolume"):
         base["ports"] = [port_request(cfg)]
     return base
 
@@ -171,14 +172,19 @@ def poll_state(getter, targets: tuple[str, ...], timeout: float = 300):
 
 
 def reflect_code(question: str) -> str:
-    """Python one-liner run inside the sandbox: POST /reflect to the agent and time it there."""
+    """Python one-liner run inside the sandbox: wait (up to 60 s) until the agent accepts a connection on 8080,
+    then POST /reflect and time it there. Running can come before the agent listens when no volume delays it."""
     payload = json.dumps({"query": question})
-    return ("import json,time,urllib.request as u;"
+    return ("import json,socket,time,urllib.request as u;"
             f"body={payload!r}.encode();"
+            "w=time.time();"
+            "up=lambda:(lambda s:(s.connect_ex(('127.0.0.1',8080))==0,s.close())[0])(socket.socket());"
+            "any(up() or time.sleep(0.1) for _ in range(600));"
+            "w=time.time()-w;"
             "t=time.time();"
             "r=u.Request('http://127.0.0.1:8080/reflect',data=body,headers={'Content-Type':'application/json'});"
             "b=u.urlopen(r,timeout=120).read().decode();"
-            "print(json.dumps({'seconds':round(time.time()-t,3),'body':json.loads(b)}))")
+            "print(json.dumps({'seconds':round(time.time()-t,3),'wait':round(w,3),'body':json.loads(b)}))")
 
 
 def ask(sandbox, question: str) -> dict:
@@ -192,8 +198,8 @@ def ask(sandbox, question: str) -> dict:
     response = body.get("response") if isinstance(body, dict) else None
     if not isinstance(response, str) or not response.strip():
         raise RuntimeError(f"reflect did not return a non-empty answer: {body}")
-    return {"guest_s": round(parsed["seconds"], 2), "exec_wall_s": round(wall, 2),
-            "response": response, "history_length": body.get("history_length")}
+    return {"guest_s": round(parsed["seconds"], 2), "ready_wait_s": round(parsed.get("wait", 0), 2),
+            "exec_wall_s": round(wall, 2), "response": response, "history_length": body.get("history_length")}
 
 
 def step_vnet(cfg: dict, state: dict, _args) -> None:

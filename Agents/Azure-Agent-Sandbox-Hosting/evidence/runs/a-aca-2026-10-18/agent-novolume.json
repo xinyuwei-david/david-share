@@ -1,0 +1,290 @@
+{
+  "run_id": "a-2026-10-18-novolume",
+  "path": "A",
+  "what": "The a-2026-10-09-agent path without the Blob volume, three times: create, first answer, follow-up, stop, resume, answer after resume",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "service": "ACA Sandboxes GA",
+  "sdk": "azure-containerapps-sandbox 0.1.0b4",
+  "client": "Windows VM in Japan East (WSL Ubuntu); SDK calls to the sandbox group in East US 2; answers timed inside the sandbox",
+  "configuration": "custom agent disk image + VNet + OnDemand port, no Blob volume",
+  "sandbox_spec": {
+    "cpu": "1000m",
+    "memory": "2048Mi",
+    "auto_suspend_seconds": 900,
+    "auto_suspend_mode": "Memory",
+    "port": 8080,
+    "port_activation": "OnDemand",
+    "vnet_connection": true,
+    "blob_volume_mount": null,
+    "state_path": "/app/app/data (STATE_MOUNT_PATH as before, now on the sandbox's own disk)",
+    "entrypoint": "cd /app && exec python -m app.main"
+  },
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "warm": "How many questions have I asked before this one? Number only.",
+    "first_after_resume": "How many questions have I asked before this one? Number only.",
+    "warm_after_resume": "How many questions have I asked before this one? Number only.",
+    "request": "POST http://127.0.0.1:8080/reflect {\"query\": <input>}, sent with sandbox exec from inside the sandbox, after 127.0.0.1:8080 accepts a connection"
+  },
+  "clocks": {
+    "create_total_s": "SDK create call until the sandbox reads Running (polled every 0.25 s), wall time on the client",
+    "ready_wait_s": "inside the sandbox, until 127.0.0.1:8080 accepted a TCP connection (checked every 0.1 s, up to 60 s), before the request",
+    "guest_s": "HTTP /reflect duration measured inside the sandbox",
+    "cold_total_s": "create_total_s + first.ready_wait_s + first.guest_s",
+    "resume_total_s": "SDK resume call until Running",
+    "recover_total_s": "resume_total_s + first_after_resume.ready_wait_s + first_after_resume.guest_s"
+  },
+  "tools": [
+    {
+      "file": "tools/measure_aca.py",
+      "sha256": "993a12723f9fb4b7eaa1476ad5926c912f41986daee3d3809ef1007379651d4d"
+    },
+    {
+      "file": "tools/aca_sandbox.py",
+      "sha256": "06b5f9af800cd8dc75739a7bc9ceefc59c27b1c4e757089b8a30ab88b303f778"
+    }
+  ],
+  "runs": [
+    {
+      "run": 1,
+      "config": "novolume",
+      "started_at": "2026-10-18T07:11:09.187Z",
+      "put_s": 1.96,
+      "create_total_s": 2.15,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 8.11,
+      "stop_post_s": 20.06,
+      "stop_total_s": 20.23,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 1.06,
+      "resume_total_s": 1.22,
+      "state_after_resume": "Running",
+      "recover_total_s": 2.96,
+      "state_kept": true,
+      "delete_post_s": 8.09,
+      "finished_at": "2026-10-18T07:11:57.649Z",
+      "first": {
+        "ready_wait_s": 0.0,
+        "guest_s": 5.96,
+        "exec_wall_s": 6.45,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.02,
+        "exec_wall_s": 1.44,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.74,
+        "exec_wall_s": 2.24,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.23,
+        "exec_wall_s": 1.65,
+        "response": "4",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 2,
+      "config": "novolume",
+      "started_at": "2026-10-18T07:12:00.653Z",
+      "put_s": 1.19,
+      "create_total_s": 1.35,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 4.86,
+      "stop_post_s": 10.5,
+      "stop_total_s": 10.67,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 4.3,
+      "resume_total_s": 4.46,
+      "state_after_resume": "Running",
+      "recover_total_s": 6.78,
+      "state_kept": true,
+      "delete_post_s": 9.2,
+      "finished_at": "2026-10-18T07:12:41.242Z",
+      "first": {
+        "ready_wait_s": 0.0,
+        "guest_s": 3.51,
+        "exec_wall_s": 3.98,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "ready_wait_s": 0.0,
+        "guest_s": 0.84,
+        "exec_wall_s": 1.26,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 2.32,
+        "exec_wall_s": 2.9,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.36,
+        "exec_wall_s": 1.78,
+        "response": "4",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 3,
+      "config": "novolume",
+      "started_at": "2026-10-18T07:12:44.244Z",
+      "put_s": 1.06,
+      "create_total_s": 1.22,
+      "initial_state": "Running",
+      "polls": 1,
+      "vmm_type": "cloudhypervisor",
+      "cold_total_s": 4.35,
+      "stop_post_s": 9.7,
+      "stop_total_s": 9.88,
+      "state_after_stop": "Stopped",
+      "resume_post_s": 0.66,
+      "resume_total_s": 0.82,
+      "state_after_resume": "Running",
+      "recover_total_s": 2.7,
+      "state_kept": true,
+      "delete_post_s": 9.47,
+      "finished_at": "2026-10-18T07:13:19.063Z",
+      "first": {
+        "ready_wait_s": 0.0,
+        "guest_s": 3.13,
+        "exec_wall_s": 3.56,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "ready_wait_s": 0.0,
+        "guest_s": 0.67,
+        "exec_wall_s": 1.15,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.88,
+        "exec_wall_s": 2.29,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "ready_wait_s": 0.0,
+        "guest_s": 1.03,
+        "exec_wall_s": 1.44,
+        "response": "4",
+        "history_length": 4
+      }
+    }
+  ],
+  "leftover_sandboxes": 0,
+  "earlier_attempts": [
+    {
+      "label": "smoke",
+      "note": "one run with a tool revision that sent the first request as soon as the sandbox read Running",
+      "tools": [
+        {
+          "file": "tools/measure_aca.py",
+          "sha256": "970e4cdcc05937e977b78f4f9378ed64cfc38efb741501fc5e71de299189bf3e"
+        },
+        {
+          "file": "tools/aca_sandbox.py",
+          "sha256": "bb7e681feab84e28c22e69ae9db15fed71468860e5f40f4d4be795a5701237be"
+        }
+      ],
+      "runs": 1,
+      "completed": 1,
+      "cold_total_s": [
+        5.03
+      ],
+      "recover_total_s": [
+        10.67
+      ],
+      "state_kept": 1,
+      "failures": [],
+      "leftover_sandboxes": 0,
+      "_source": {
+        "file": "raw/smoke/aca-agent-20261018T070737Z.json",
+        "sha256": "1a4c5f4fffce16817de8db1efeae787ca1679f775e67f2ca3d27069309f770a9",
+        "bytes": 1590,
+        "role": "measure_aca.py agent --config novolume output (smoke)"
+      }
+    },
+    {
+      "label": "first set",
+      "note": "three runs with the same revision; the third sandbox read Running before the agent listened, so the first request was refused; the tool now waits for the agent port",
+      "tools": [
+        {
+          "file": "tools/measure_aca.py",
+          "sha256": "7b3a492a3368e77bcf63c3d23ef4c7bc43b8d90deca0023b58e1eb27a9afff9e"
+        },
+        {
+          "file": "tools/aca_sandbox.py",
+          "sha256": "bb7e681feab84e28c22e69ae9db15fed71468860e5f40f4d4be795a5701237be"
+        }
+      ],
+      "runs": 3,
+      "completed": 2,
+      "cold_total_s": [
+        4.33,
+        4.8
+      ],
+      "recover_total_s": [
+        2.73,
+        2.57
+      ],
+      "state_kept": 2,
+      "failures": [
+        {
+          "run": 3,
+          "create_total_s": 2.18,
+          "error": "urllib.error.URLError: <urlopen error [Errno 111] Connection refused>"
+        }
+      ],
+      "leftover_sandboxes": 0,
+      "_source": {
+        "file": "raw/attempt1/aca-agent-20261018T071000Z.json",
+        "sha256": "66f7de240d2f7fa9f8e957a6c197b78d1ac2624d297e754feed80db99cdec82a",
+        "bytes": 5588,
+        "role": "measure_aca.py agent --config novolume output (first set)"
+      }
+    }
+  ],
+  "_sources": [
+    {
+      "file": "raw/aca-agent-20261018T071322Z.json",
+      "sha256": "0f501b40be9c427940e5645da5a1c506634e64c3d563062021537aa2e2c06569",
+      "bytes": 4355,
+      "role": "measure_aca.py agent --runs 3 --config novolume output"
+    },
+    {
+      "file": "raw/sdk-version.txt",
+      "sha256": "0fb50124d514e87a3e7a2bdf9dd5f72131dec968cf065d591e4ebea741010dfd",
+      "bytes": 51,
+      "role": "pip show azure-containerapps-sandbox on the client"
+    },
+    {
+      "file": "scratch/export_a_novolume.py",
+      "sha256": "e0ed9744fe120d9bab5a7eb17d0e1f3fd4bdd123869b18d098dc73a2a853ec82",
+      "bytes": 8634,
+      "role": "this projection (private run folder): field selection"
+    }
+  ]
+}

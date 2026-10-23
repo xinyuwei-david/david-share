@@ -27,7 +27,7 @@ IMAGES = ROOT / "images"
 LEDGER = IMAGES / "SOURCES.json"
 CLAIMS = ROOT / "evidence" / "claims.json"
 
-W, H = 1600, 1036
+W, H = 1960, 1036
 PNG_SCALE = 2
 AZURE_BLUE = "#0078D4"
 MS_ZONE = "#F3F2F1"
@@ -39,9 +39,9 @@ SUBTEXT = "#605E5C"
 STATUS = {"ga": "#107C10", "oss": "#0078D4", "preview": "#5C2D91"}
 FONT = "'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif"
 
-GAP, MARGIN = 16, 24
-COL_W = (W - 2 * MARGIN - 3 * GAP) // 4
-COL_X = [MARGIN + i * (COL_W + GAP) for i in range(4)]
+GAP, MARGIN = 14, 24
+COL_W = (W - 2 * MARGIN - 4 * GAP) // 5
+COL_X = [MARGIN + i * (COL_W + GAP) for i in range(5)]
 HEAD_Y, ENTRY_Y = 112, 196
 MS_Y, MS_H = 244, 236
 SUB_Y, SUB_H = 496, 424
@@ -59,8 +59,8 @@ I_NSG = "10067-icon-service-Network-Security-Groups.svg"
 # Each card: (icon or None for the micro-VM boundary, title, detail)
 LAYOUT = {
     "en": {
-        "title": "Four ways to host an agent sandbox on Azure",
-        "subtitle": "Who runs the lifecycle, and where each session's micro-VM runs. A/C/D placement is from our "
+        "title": "Five ways to host an agent sandbox on Azure",
+        "subtitle": "Who runs the lifecycle, and where each session's micro-VM runs. A/C/D/E placement is from our "
                     "read-backs; B's VM-isolated boundary is from Learn.",
         "ms": "MICROSOFT-MANAGED",
         "sub": "YOUR SUBSCRIPTION",
@@ -92,16 +92,23 @@ LAYOUT = {
                      (I_AKS, "foundry-system on your AKS", "9 fixed pods + 4 DaemonSets that scale with Kata nodes"),
                      (None, "Kata pod VM per session", "runtimeClass kata-vm-isolation · one Deployment each"),
                      (I_ACR, "Container Registry · Storage", "agent image · session state")]},
+            {"letter": "E", "name": "E2B on Azure VM", "status": ("E2B Embed OSS", "oss"),
+             "entry": "Client → Foundry agent endpoint + E2B API :3000",
+             "ms": [(I_AGENT, "Foundry Agent Service", "Prompt Agent · Responses API · function tool call")],
+             "sub": [(I_NSG, "Azure VM + Subnet NSG", "Standard_D4ds_v7 · /dev/kvm · allow :3000/:3002"),
+                     (I_ACA, "E2B Embed Compose stack", "api · orchestrator · client-proxy · postgres · redis"),
+                     (None, "Firecracker per sandbox", "own kernel 6.1.177+ · pause/resume memory+disk snapshot"),
+                     (I_STORAGE, "VM OS disk", "templates · pause snapshots · no persistent data volume")]},
         ],
-        "model": "Model inference stays on Foundry Models in all four paths; the agent calls it from inside its sandbox.",
+        "model": "Model inference stays on Foundry Models in all five paths; A–D call it inside the sandbox, E's Prompt Agent calls E2B as a tool.",
         "legend": ["Microsoft-managed", "Your subscription", "One micro-VM per sandbox or session"],
         "footer": "Original explanatory diagram. Sources: Microsoft Learn (Container Apps Sandboxes overview, Hosted "
-                  "agents in Foundry Agent Service, Pod sandboxing with AKS), agent-sandbox v0.5.2, and the runs in "
-                  "evidence/runs/. Icons: Azure Architecture Icons V24, unmodified.",
+                  "agents in Foundry Agent Service, Pod sandboxing with AKS), agent-sandbox v0.5.2, e2b-dev/runtime @ 588e5b9, "
+                  "and the runs in evidence/runs/. Icons: Azure Architecture Icons V24, unmodified.",
     },
     "zh": {
-        "title": "在 Azure 上托管 agent 沙箱的四种方式",
-        "subtitle": "谁负责生命周期，每个会话的 micro-VM 跑在哪里。A/C/D 的落点来自实测读回，B 的 VM 级"
+        "title": "在 Azure 上托管 agent 沙箱的五种方式",
+        "subtitle": "谁负责生命周期，每个会话的 micro-VM 跑在哪里。A/C/D/E 的落点来自实测读回，B 的 VM 级"
                     "隔离边界来自 Learn。",
         "ms": "微软托管",
         "sub": "你的订阅",
@@ -133,11 +140,18 @@ LAYOUT = {
                      (I_AKS, "你的 AKS 上的 foundry-system", "9 个固定 pod + 4 个随 Kata 节点扩展的 DaemonSet"),
                      (None, "每会话一个 Kata pod VM", "runtimeClass kata-vm-isolation · 每个会话一个 Deployment"),
                      (I_ACR, "Container Registry · Storage", "agent 镜像 · 会话状态")]},
+            {"letter": "E", "name": "E2B on Azure VM", "status": ("E2B Embed 开源", "oss"),
+             "entry": "客户端 → Foundry agent 端点 + E2B API :3000",
+             "ms": [(I_AGENT, "Foundry Agent Service", "Prompt Agent · Responses API · 函数工具调用")],
+             "sub": [(I_NSG, "Azure VM + 子网 NSG", "Standard_D4ds_v7 · /dev/kvm · 放行 :3000/:3002"),
+                     (I_ACA, "E2B Embed Compose 栈", "api · orchestrator · client-proxy · postgres · redis"),
+                     (None, "每个沙箱一个 Firecracker", "独立内核 6.1.177+ · 暂停/恢复内存+磁盘快照"),
+                     (I_STORAGE, "VM 系统盘", "模板 · 暂停快照 · 无持久数据卷")]},
         ],
-        "model": "四条路径的模型推理都在 Foundry Models 上；agent 在自己的沙箱里调用模型。",
+        "model": "五条路径的模型推理都在 Foundry Models 上；A–D 在沙箱内调用模型，E 由 Prompt Agent 把 E2B 作为工具调用。",
         "legend": ["微软托管", "你的订阅", "每个沙箱或会话一个 micro-VM"],
         "footer": "原创解释图。来源：Microsoft Learn（Container Apps Sandboxes 概览、Foundry Agent Service 的 "
-                  "Hosted agents、AKS Pod sandboxing）、agent-sandbox v0.5.2，以及 evidence/runs/ 中的实测记录。"
+                  "Hosted agents、AKS Pod sandboxing）、agent-sandbox v0.5.2、e2b-dev/runtime @ 588e5b9，以及 evidence/runs/ 中的实测记录。"
                   "图标：Azure Architecture Icons V24，未做修改。",
     },
 }

@@ -1,0 +1,319 @@
+{
+  "run_id": "a-2026-10-18-scale",
+  "path": "A",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "what": "4, then 8 agent sandboxes created at the same time with the full specification; each answers a write turn and a read turn, then is deleted",
+  "client": "Windows VM in Japan East (WSL Ubuntu); SDK calls to the sandbox group in East US 2; answers timed inside each sandbox",
+  "configuration": "custom agent disk image + VNet + Blob volume + OnDemand port; cpu 1000m, memory 2048Mi, auto-suspend 900 s in Memory mode (the a-2026-10-09-agent specification)",
+  "inputs": {
+    "write": "Remember SCALE-{k}. Reply only OK.",
+    "read": "What did I ask you to remember? Word only.",
+    "request": "POST http://127.0.0.1:8080/reflect {\"query\": <input>}, sent with sandbox exec from inside the sandbox"
+  },
+  "clocks": {
+    "create_to_running_s": "_do_create_sandbox call until get_sandbox reads Running, per sandbox",
+    "guest_s": "the /reflect request timed inside the sandbox",
+    "session_s": "create call until the sandbox's second answer and delete call returned",
+    "wall_s": "all sandboxes of the level, from the first create call until the last session ended"
+  },
+  "tool": {
+    "file": "tools/measure_aca.py",
+    "sha256": "714a6f12c76b768cf3c1cb8e2b717c8d4694d0348792f08df752c20e8b56bdaa"
+  },
+  "levels": [
+    {
+      "sessions_at_once": 4,
+      "answered": 4,
+      "wall_s": 32.9,
+      "sessions": [
+        {
+          "slot": 0,
+          "started_at": "2026-10-18T04:02:49.566Z",
+          "create_to_running_s": 15.66,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 4.54,
+            "exec_wall_s": 4.98,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.07,
+            "exec_wall_s": 1.48,
+            "response": "SCALE-0",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 22.12,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:03:16.014Z"
+        },
+        {
+          "slot": 1,
+          "started_at": "2026-10-18T04:02:49.568Z",
+          "create_to_running_s": 24.38,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 2.58,
+            "exec_wall_s": 3.09,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 0.93,
+            "exec_wall_s": 1.4,
+            "response": "SCALE-1",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 28.87,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:03:22.113Z"
+        },
+        {
+          "slot": 2,
+          "started_at": "2026-10-18T04:02:49.572Z",
+          "create_to_running_s": 16.26,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.76,
+            "exec_wall_s": 4.18,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.11,
+            "exec_wall_s": 1.52,
+            "response": "SCALE-2",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 21.96,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:03:15.055Z"
+        },
+        {
+          "slot": 3,
+          "started_at": "2026-10-18T04:02:49.573Z",
+          "create_to_running_s": 24.55,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.15,
+            "exec_wall_s": 3.61,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.1,
+            "exec_wall_s": 1.54,
+            "response": "SCALE-3",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 29.7,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:03:22.466Z"
+        }
+      ]
+    },
+    {
+      "sessions_at_once": 8,
+      "answered": 8,
+      "wall_s": 33.91,
+      "sessions": [
+        {
+          "slot": 0,
+          "started_at": "2026-10-18T04:03:42.467Z",
+          "create_to_running_s": 24.25,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.02,
+            "exec_wall_s": 3.58,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.73,
+            "exec_wall_s": 2.26,
+            "response": "SCALE-0",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 30.09,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:16.378Z"
+        },
+        {
+          "slot": 1,
+          "started_at": "2026-10-18T04:03:42.468Z",
+          "create_to_running_s": 21.37,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 2.75,
+            "exec_wall_s": 3.22,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.3,
+            "exec_wall_s": 1.73,
+            "response": "SCALE-1",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 26.32,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:12.618Z"
+        },
+        {
+          "slot": 2,
+          "started_at": "2026-10-18T04:03:42.470Z",
+          "create_to_running_s": 16.08,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.21,
+            "exec_wall_s": 3.63,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.06,
+            "exec_wall_s": 1.49,
+            "response": "SCALE-2",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 21.19,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:06.932Z"
+        },
+        {
+          "slot": 3,
+          "started_at": "2026-10-18T04:03:42.471Z",
+          "create_to_running_s": 23.28,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.47,
+            "exec_wall_s": 3.89,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.2,
+            "exec_wall_s": 1.75,
+            "response": "SCALE-3",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 28.92,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:14.952Z"
+        },
+        {
+          "slot": 4,
+          "started_at": "2026-10-18T04:03:42.472Z",
+          "create_to_running_s": 15.9,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 2.7,
+            "exec_wall_s": 3.13,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.11,
+            "exec_wall_s": 1.57,
+            "response": "SCALE-4",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 20.59,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:06.621Z"
+        },
+        {
+          "slot": 5,
+          "started_at": "2026-10-18T04:03:42.473Z",
+          "create_to_running_s": 21.77,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.68,
+            "exec_wall_s": 4.18,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.01,
+            "exec_wall_s": 1.45,
+            "response": "SCALE-5",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 27.39,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:14.010Z"
+        },
+        {
+          "slot": 6,
+          "started_at": "2026-10-18T04:03:42.475Z",
+          "create_to_running_s": 23.85,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 2.94,
+            "exec_wall_s": 3.46,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.36,
+            "exec_wall_s": 1.79,
+            "response": "SCALE-6",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 29.09,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:15.330Z"
+        },
+        {
+          "slot": 7,
+          "started_at": "2026-10-18T04:03:42.476Z",
+          "create_to_running_s": 15.49,
+          "vmm_type": "cloudhypervisor",
+          "turn1": {
+            "guest_s": 3.08,
+            "exec_wall_s": 3.55,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.74,
+            "exec_wall_s": 2.14,
+            "response": "SCALE-7",
+            "history_length": 2
+          },
+          "remembered": true,
+          "session_s": 21.17,
+          "deleted": true,
+          "finished_at": "2026-10-18T04:04:07.418Z"
+        }
+      ]
+    }
+  ],
+  "leftover_sandboxes": 0,
+  "_sources": [
+    {
+      "file": "aca-scale-20261018T040416Z.json",
+      "sha256": "0d059ac8269e4c8efa5aa8c6768a526f8f0e30bea66e5ee886052db38bb99976",
+      "bytes": 8231,
+      "role": "measure_aca.py scale --scale 4,8 output"
+    },
+    {
+      "file": "export_20261018.py",
+      "sha256": "38751e2132bafea4b4a092375ddc0277f7ae85f562e431af58d88b648656618c",
+      "bytes": 18495,
+      "role": "this projection (private run folder): field selection and neutral labels"
+    }
+  ]
+}

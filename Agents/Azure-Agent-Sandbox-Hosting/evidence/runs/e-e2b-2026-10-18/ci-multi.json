@@ -1,0 +1,855 @@
+{
+  "run_id": "e-2026-10-18-ci-multi",
+  "what": "two independent Embed installs with the code-interpreter executor: the A-matched 3-run agent protocol on host a, 4 sessions at once on host a alone, 4 per host on hosts a and c at the same time, and host a's E2B stack stopped while host c keeps serving",
+  "path": "E",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "executor": "code-interpreter",
+  "template": {
+    "name": "code-interpreter-v1",
+    "source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "vcpus": 2,
+    "memory_mb": 2048
+  },
+  "sdk": {
+    "e2b": "2.56.0",
+    "e2b-code-interpreter": "2.11.0"
+  },
+  "tool": {
+    "file": "tools/measure_e2b.py",
+    "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4"
+  },
+  "model": "gpt-5.4-mini",
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "hosts": {
+    "a": {
+      "vm_sku": "Standard_D4ds_v7",
+      "vcpus": 4,
+      "memory_gib": 16,
+      "zone": "1",
+      "os_disk": "Standard HDD (Standard_LRS), 128 GB",
+      "hugepages": 4096,
+      "e2b_install": "2026-10-14 for e-2026-10-14-agent; HUGEPAGES raised to 4096, the build workspace row added, the OS disk grown to 128 GB and code-interpreter-v1 built there on 2026-10-15 (e-2026-10-15-latest)"
+    },
+    "c": {
+      "vm_sku": "Standard_D4ds_v7",
+      "vcpus": 4,
+      "memory_gib": 16,
+      "zone": "2",
+      "os_disk": "Standard HDD (Standard_LRS), 128 GB",
+      "hugepages": 4096,
+      "e2b_install": "2026-10-16 for e-2026-10-17-ci-agent: README step 7, then HUGEPAGES=4096 in .env; code-interpreter-v1 built there on 2026-10-17"
+    }
+  },
+  "network": "one virtual network, host a in zone 1 and host c in zone 2; the tool ran on host a and reached host c's ports 3000 and 3002 over the private network; host c's NSG admitted only host a's private address on those two ports and denied every other inbound connection",
+  "client": "every phase ran the tool on host a; each host's API key came from an environment variable named in the hosts file and was never written to an output",
+  "commands": {
+    "agent": "measure_e2b.py agent --runs 3 --hosts <hosts a and c> --host a",
+    "one_host": "measure_e2b.py scale --hosts <host a only> --per-host 4",
+    "two_hosts": "measure_e2b.py scale --hosts <hosts a and c> --per-host 4",
+    "host_loss": "measure_e2b.py hostloss --hosts <hosts a and c> --lose a --stop-cmd \"cd /opt/e2b && docker compose stop\" --start-cmd \"cd /opt/e2b && docker compose up -d --wait\""
+  },
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "count": "How many questions have I asked before this one? Number only.",
+    "cold": "Use run_in_e2b_sandbox to print COLD-{i}, then reply with exactly COLD-{i}",
+    "warm": [
+      "Use run_in_e2b_sandbox to save the code word LANTERN-7 to /home/user/codeword.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/codeword.txt. What is the code word? Reply with the word only.",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-1",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-2"
+    ],
+    "scale": [
+      "Use run_in_e2b_sandbox to write SCALE-{k} to /home/user/scale.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/scale.txt. What did I ask you to remember? Word only."
+    ],
+    "live": [
+      "Use run_in_e2b_sandbox to write LANTERN-7 to /home/user/live.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/live.txt. What is the code word? Reply with the word only."
+    ],
+    "paused": [
+      "Use run_in_e2b_sandbox to write PAUSED-{h} to /home/user/paused.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/paused.txt. What does it say? Word only."
+    ],
+    "resume_wait_s": 5
+  },
+  "phases": [
+    {
+      "phase": "agent",
+      "started_at": "2026-10-18T09:53:33.646Z",
+      "finished_at": "2026-10-18T09:54:46.462Z"
+    },
+    {
+      "phase": "one_host",
+      "started_at": "2026-10-18T09:54:48.267Z",
+      "finished_at": "2026-10-18T09:55:00.263Z"
+    },
+    {
+      "phase": "two_hosts",
+      "started_at": "2026-10-18T09:55:00.598Z",
+      "finished_at": "2026-10-18T09:55:11.653Z"
+    },
+    {
+      "phase": "host_loss",
+      "started_at": "2026-10-18T09:55:11.982Z",
+      "finished_at": "2026-10-18T09:58:34.377Z"
+    }
+  ],
+  "agent_runs_host_a": [
+    {
+      "run": 1,
+      "host": "a",
+      "started_at": "2026-10-18T09:53:37.610Z",
+      "create_total_s": 10.53,
+      "first": {
+        "started_utc": "09:53:48.205",
+        "http": 200,
+        "wall_s": 2.95,
+        "sandbox_tool_s": 0.21,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 13.48,
+      "warm": {
+        "started_utc": "09:53:51.153",
+        "http": 200,
+        "wall_s": 3.03,
+        "sandbox_tool_s": 0.574,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 2.08,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.39,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "09:54:01.657",
+        "http": 200,
+        "wall_s": 3.91,
+        "sandbox_tool_s": 0.044,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 4.3,
+      "warm_after_resume": {
+        "started_utc": "09:54:05.569",
+        "http": 200,
+        "wall_s": 3.16,
+        "sandbox_tool_s": 0.016,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-18T09:54:09.247Z"
+    },
+    {
+      "run": 2,
+      "host": "a",
+      "started_at": "2026-10-18T09:54:09.247Z",
+      "create_total_s": 0.09,
+      "first": {
+        "started_utc": "09:54:09.383",
+        "http": 200,
+        "wall_s": 2.65,
+        "sandbox_tool_s": 0.054,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 2.74,
+      "warm": {
+        "started_utc": "09:54:12.035",
+        "http": 200,
+        "wall_s": 4.02,
+        "sandbox_tool_s": 0.013,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 0.16,
+      "state_after_stop": "Paused",
+      "resume_total_s": 1.46,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "09:54:22.673",
+        "http": 200,
+        "wall_s": 2.68,
+        "sandbox_tool_s": 0.144,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 4.14,
+      "warm_after_resume": {
+        "started_utc": "09:54:25.351",
+        "http": 200,
+        "wall_s": 2.62,
+        "sandbox_tool_s": 0.088,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-18T09:54:28.162Z"
+    },
+    {
+      "run": 3,
+      "host": "a",
+      "started_at": "2026-10-18T09:54:28.163Z",
+      "create_total_s": 0.22,
+      "first": {
+        "started_utc": "09:54:28.583",
+        "http": 200,
+        "wall_s": 2.5,
+        "sandbox_tool_s": 0.07,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital city of Thailand.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 2.72,
+      "warm": {
+        "started_utc": "09:54:31.080",
+        "http": 200,
+        "wall_s": 2.59,
+        "sandbox_tool_s": 0.014,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 0.15,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.38,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "09:54:39.198",
+        "http": 200,
+        "wall_s": 3.36,
+        "sandbox_tool_s": 0.045,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 3.74,
+      "warm_after_resume": {
+        "started_utc": "09:54:42.554",
+        "http": 200,
+        "wall_s": 2.88,
+        "sandbox_tool_s": 0.082,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-18T09:54:45.533Z"
+    }
+  ],
+  "one_host": {
+    "sessions_at_once": 4,
+    "answered": 3,
+    "per_host": {
+      "a": {
+        "sessions": 4,
+        "answered": 3
+      }
+    },
+    "wall_s": 8.354,
+    "model_http_statuses": {
+      "200": 12
+    },
+    "sessions": [
+      {
+        "slot": 1,
+        "host": "a",
+        "started_utc": "09:54:50.903",
+        "sandbox_create_to_ready_s": 0.279,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 3.2,
+          "wall_s": 3.479,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.59,
+          "answer": "SCALE-1",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 6.131,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 2,
+        "host": "a",
+        "started_utc": "09:54:50.903",
+        "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+        "remembered": false,
+        "failed_turn_http_statuses": [],
+        "session_s": 0.565,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 3,
+        "host": "a",
+        "started_utc": "09:54:50.903",
+        "sandbox_create_to_ready_s": 0.282,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 3.25,
+          "wall_s": 3.532,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 4.57,
+          "answer": "SCALE-3",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 8.164,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 4,
+        "host": "a",
+        "started_utc": "09:54:50.904",
+        "sandbox_create_to_ready_s": 0.31,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 4.03,
+          "wall_s": 4.34,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.5,
+          "answer": "SCALE-4",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 6.895,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      }
+    ]
+  },
+  "two_hosts": {
+    "sessions_at_once": 8,
+    "answered": 6,
+    "per_host": {
+      "a": {
+        "sessions": 4,
+        "answered": 3
+      },
+      "c": {
+        "sessions": 4,
+        "answered": 3
+      }
+    },
+    "wall_s": 7.194,
+    "model_http_statuses": {
+      "200": 24
+    },
+    "sessions": [
+      {
+        "slot": 1,
+        "host": "a",
+        "started_utc": "09:55:03.203",
+        "sandbox_create_to_ready_s": 0.245,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 2.73,
+          "wall_s": 2.975,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.23,
+          "answer": "SCALE-1",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 5.246,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 2,
+        "host": "c",
+        "started_utc": "09:55:03.204",
+        "sandbox_create_to_ready_s": 0.256,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 2.79,
+          "wall_s": 3.046,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.4,
+          "answer": "SCALE-2",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 5.508,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 3,
+        "host": "a",
+        "started_utc": "09:55:03.204",
+        "sandbox_create_to_ready_s": 0.242,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 3.08,
+          "wall_s": 3.322,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 3.6,
+          "answer": "SCALE-3",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 6.963,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 4,
+        "host": "c",
+        "started_utc": "09:55:03.204",
+        "sandbox_create_to_ready_s": 0.25,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 2.95,
+          "wall_s": 3.2,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.97,
+          "answer": "SCALE-4",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 6.241,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 5,
+        "host": "a",
+        "started_utc": "09:55:03.204",
+        "sandbox_create_to_ready_s": 0.246,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 3.67,
+          "wall_s": 3.916,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.94,
+          "answer": "SCALE-5",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 6.898,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 6,
+        "host": "c",
+        "started_utc": "09:55:03.205",
+        "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+        "remembered": false,
+        "failed_turn_http_statuses": [],
+        "session_s": 0.385,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 7,
+        "host": "a",
+        "started_utc": "09:55:03.205",
+        "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+        "remembered": false,
+        "failed_turn_http_statuses": [],
+        "session_s": 0.338,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      },
+      {
+        "slot": 8,
+        "host": "c",
+        "started_utc": "09:55:03.205",
+        "sandbox_create_to_ready_s": 0.265,
+        "turn1": {
+          "http": 200,
+          "agent_turn_s": 4.44,
+          "wall_s": 4.705,
+          "answer": "OK",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "turn2": {
+          "http": 200,
+          "wall_s": 2.38,
+          "answer": "SCALE-8",
+          "http_statuses": [
+            200,
+            200
+          ]
+        },
+        "remembered": true,
+        "session_s": 7.128,
+        "sandbox_deleted": true,
+        "conversation_deleted": true
+      }
+    ]
+  },
+  "host_loss": {
+    "lost_host": "a",
+    "other_hosts": [
+      "c"
+    ],
+    "before": {
+      "a": {
+        "health": 200,
+        "live_and_paused": 2
+      },
+      "c": {
+        "health": 200,
+        "live_and_paused": 2
+      }
+    },
+    "after_loss": {
+      "c": {
+        "live_session_read": {
+          "ok": true,
+          "seconds": 2.77,
+          "value": "LANTERN-7"
+        },
+        "new_session": {
+          "ok": true,
+          "seconds": 2.52,
+          "value": {
+            "i": 1,
+            "host": "c",
+            "started_utc": "09:57:14.663",
+            "sandbox_create_to_ready_s": 0.135,
+            "wall_s": 2.427,
+            "agent_turn_s": 2.24,
+            "sandbox_tool_s": 0.063,
+            "http": 200,
+            "answer": "COLD-1",
+            "correct": true,
+            "sandbox_deleted": true,
+            "conversation_deleted": true
+          }
+        },
+        "connect_lost_hosts_paused_sandbox": {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "SandboxNotFoundException: Paused sandbox <sandbox id> not found"
+        }
+      },
+      "a": {
+        "create": {
+          "ok": false,
+          "seconds": 2.03,
+          "error": "ConnectError: Request failed: error sending request for url (http://<host a>:3000/v2/sandboxes): client error (Connect): tcp connect error: Connection refused (os error 111)"
+        },
+        "connect_own_paused_sandbox": {
+          "ok": false,
+          "seconds": 1.65,
+          "error": "ConnectError: Request failed: error sending request for url (http://<host a>:3000/v2/sandboxes/<sandbox id>/connect): client error (Connect): tcp connect error: Connection refused (os error 111)"
+        }
+      }
+    },
+    "after_restart": {
+      "a": {
+        "resume_own_paused_sandbox": {
+          "ok": true,
+          "seconds": 4.78,
+          "value": "PAUSED-a"
+        },
+        "live_sandbox_before_loss": {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "SandboxNotFoundException: Paused sandbox <sandbox id> not found"
+        },
+        "new_session": {
+          "ok": true,
+          "seconds": 4.47,
+          "value": {
+            "i": 2,
+            "host": "a",
+            "started_utc": "09:58:28.788",
+            "sandbox_create_to_ready_s": 1.514,
+            "wall_s": 4.287,
+            "agent_turn_s": 2.73,
+            "sandbox_tool_s": 0.207,
+            "http": 200,
+            "answer": "COLD-2",
+            "correct": true,
+            "sandbox_deleted": true,
+            "conversation_deleted": true
+          }
+        }
+      }
+    },
+    "stop": {
+      "exit_code": 0,
+      "seconds": 77.86,
+      "tail": "ner e2b-postgres-1 Stopped \n Container e2b-orchestrator-1 Stopped \n Container e2b-redis-1 Stopping \n Container e2b-fetch-artifacts-1 Stopping \n Container e2b-clickhouse-migrator-1 Stopping \n Container e2b-vector-1 Stopping \n Container e2b-fetch-artifacts-1 Stopped \n Container e2b-host-setup-1 Stopping \n Container e2b-clickhouse-migrator-1 Stopped \n Container e2b-host-setup-1 Stopped \n Container e2b-preflight-1 Stopping \n Container e2b-preflight-1 Stopped \n Container e2b-vector-1 Stopped \n Container e2b-clickhouse-1 Stopping \n Container e2b-redis-1 Stopped \n Container e2b-clickhouse-1 Stopped \n",
+      "health_down": {
+        "status": 0,
+        "seconds": 0.0
+      }
+    },
+    "start": {
+      "exit_code": 0,
+      "seconds": 63.14,
+      "tail": " Healthy \n Container e2b-preflight-1 Exited \n Container e2b-dashboard-1 Healthy \n Container e2b-orchestrator-1 Healthy \n Container e2b-client-proxy-1 Healthy \n Container e2b-clickhouse-migrator-1 Exited \n Container e2b-api-secrets-1 Exited \n Container e2b-fetch-artifacts-1 Exited \n Container e2b-clickhouse-1 Healthy \n Container e2b-base-template-1 Exited \n Container e2b-redis-1 Healthy \n Container e2b-host-setup-1 Exited \n Container e2b-seed-1 Exited \n Container e2b-ready-1 Healthy \n Container e2b-dashboard-api-1 Healthy \n Container e2b-db-migrator-1 Exited \n Container e2b-postgres-1 Healthy \n",
+      "health_up": {
+        "status": 200,
+        "seconds": 0.0
+      }
+    },
+    "left_after_cleanup": {
+      "a": 0,
+      "c": 0
+    },
+    "conversations_deleted": true
+  },
+  "leftover_sandboxes": 0,
+  "agent_versions_deleted": true,
+  "_sources": [
+    {
+      "file": "e2b-agent-20261018T095333Z.json",
+      "sha256": "7d7a2840805bc99efe670ceef823f0001f44cefcc89264e48bc7bfa32a6732db",
+      "bytes": 8770,
+      "role": "measure_e2b.py agent --runs 3 on host a"
+    },
+    {
+      "file": "e2b-scale-20261018T095448Z.json",
+      "sha256": "e6ffa4876d2103939e33a6f65b39da970c6a38f501dd76b57d9cefd0d62de5fa",
+      "bytes": 5569,
+      "role": "measure_e2b.py scale --per-host 4, host a only"
+    },
+    {
+      "file": "e2b-scale-20261018T095500Z.json",
+      "sha256": "7a81150e1549e659dfe20f51f7e18f8a655ee8ff92a4f16a096592d532e24944",
+      "bytes": 8156,
+      "role": "measure_e2b.py scale --per-host 4, hosts a and c"
+    },
+    {
+      "file": "e2b-hostloss-20261018T095511Z.json",
+      "sha256": "593bdda850c22d56d04f26561a2925739faa2cf5cab837c8cf83f1d3dfbcd0d6",
+      "bytes": 7335,
+      "role": "measure_e2b.py hostloss --lose a"
+    },
+    {
+      "file": "stopA.sh",
+      "sha256": "ecac759b46d8d2ab837bd5bd69ec9010052cfc99a8cd9cdf52974c045932d4dc",
+      "bytes": 163,
+      "role": "--stop-cmd on host a"
+    },
+    {
+      "file": "startA.sh",
+      "sha256": "af3f5c8df2817daf94d0a818a346808c84d5b5b887ac8eace2592f8fa2fd9f28",
+      "bytes": 182,
+      "role": "--start-cmd on host a"
+    },
+    {
+      "file": "measure_e2b.py",
+      "sha256": "aca40d17e315fe3349a90cf3c00fd1220a4ad7f9e5d0f867de1a2f6a30cdd0f4",
+      "bytes": 46381,
+      "role": "the frozen tool that produced every 2026-10-18 output"
+    },
+    {
+      "file": "export_public.py",
+      "sha256": "080746afa9b8c84b9a34fc67c8b46c2fd7c876c35398de4a565b4607611688a4",
+      "bytes": 17494,
+      "role": "the private script that projected the raw files into this record"
+    }
+  ]
+}

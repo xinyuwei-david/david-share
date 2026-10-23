@@ -1,30 +1,35 @@
 {
-  "schema": 1,
-  "comparison_contract": {
-    "model": "gpt-5.4-mini",
-    "same_container_across_all_paths": false,
-    "ac_workload": "agenthost workshop module-03 reflection agent at commit 905f2c2",
-    "b_workload": "agenthost workshop module-02 Agent Framework agent with ResponsesHostServer at commit 905f2c2",
-    "d_workload": "BYO-AKS private-preview sample agent",
-    "common_behavior": "new stateful session, follow-up in the same session, and lifecycle or recovery where the path exposes it",
-    "general_managed_start": "B",
-    "long_running_per_user_start": "A"
-  },
   "measurement_scope": {
     "region": "East US 2",
     "first_date": "2026-09-22",
-    "last_date": "2026-10-09"
+    "last_date": "2026-10-18"
   },
   "run_order": [
     "a-2026-09-27-setup",
     "a-2026-10-09-agent",
     "a-2026-10-09-attribution",
     "a-2026-10-09-late-mount",
+    "a-2026-10-18-scale",
+    "a-2026-10-18-novolume",
     "b-2026-09-27",
+    "b-2026-10-15-sessions",
+    "b-2026-10-18-perf",
+    "b-2026-10-18-idle",
     "c-2026-09-27",
+    "c-2026-10-18-perf",
     "d-2026-09-29-placement",
     "d-2026-09-29-perf",
-    "d-2026-09-29-recovery"
+    "d-2026-09-29-recovery",
+    "d-2026-10-18-sessions",
+    "e-2026-10-14-agent",
+    "e-2026-10-14-perf",
+    "e-2026-10-15-latest",
+    "e-2026-10-15-multi",
+    "e-2026-10-17-ci-agent",
+    "e-2026-10-17-ci-perf",
+    "e-2026-10-18-ci-host",
+    "e-2026-10-18-ci-multi",
+    "e-2026-10-18-ci-scale"
   ],
   "letter_mapping": {
     "A": {
@@ -43,9 +48,10 @@
       "upstream_solution_letter": "B"
     },
     "D": {
-      "name": "BYO-AKS",
-      "upstream_module": "private-preview sample",
-      "upstream_solution_letter": null
+      "name": "BYO-AKS"
+    },
+    "E": {
+      "name": "E2B on Azure VM"
     }
   },
   "paths": {
@@ -60,10 +66,12 @@
       "session_location_zh": "服务托管的算力",
       "memory_suspend_en": "Yes",
       "memory_suspend_zh": "支持",
-      "selectable_compute_en": "XS: 0.25 vCPU / 0.5 GB<br>S: 0.5 vCPU / 1 GB<br>M (default): 1 vCPU / 2 GB<br>L: 2 vCPU / 4 GB<br>XL: 4 vCPU / 8 GB",
-      "selectable_compute_zh": "XS：0.25 vCPU / 0.5 GB<br>S：0.5 vCPU / 1 GB<br>M（默认）：1 vCPU / 2 GB<br>L：2 vCPU / 4 GB<br>XL：4 vCPU / 8 GB",
-      "idle_policy_en": "[Docs](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#lifecycle-states): configurable idle auto-suspend; Memory or Disk snapshot mode",
-      "idle_policy_zh": "[官网](https://learn.microsoft.com/azure/container-apps/sandboxes-overview#lifecycle-states)：可配置空闲自动挂起；可选 Memory 或 Disk 快照模式",
+      "state_storage_en": "Not needed (optional): the Memory snapshot keeps memory and disk; without a volume the conversation was kept 3/3 (2026-10-18)",
+      "state_storage_zh": "不需要（可选）：Memory 快照同时保住内存和磁盘；不挂卷时对话保住 3/3（2026-10-18）",
+      "selectable_compute_en": "XS: 0.25 vCPU / 0.5 GiB<br>S: 0.5 vCPU / 1 GiB<br>M (default): 1 vCPU / 2 GiB<br>L: 2 vCPU / 4 GiB<br>XL: 4 vCPU / 8 GiB<br>2XL: 8 vCPU / 16 GiB<br>3XL: 16 vCPU / 32 GiB",
+      "selectable_compute_zh": "XS：0.25 vCPU / 0.5 GiB<br>S：0.5 vCPU / 1 GiB<br>M（默认）：1 vCPU / 2 GiB<br>L：2 vCPU / 4 GiB<br>XL：4 vCPU / 8 GiB<br>2XL：8 vCPU / 16 GiB<br>3XL：16 vCPU / 32 GiB",
+      "selectable_compute_source": "https://learn.microsoft.com/en-us/azure/container-apps/sandboxes-overview#resource-tiers",
+      "selectable_compute_verified_on": "2026-10-23",
       "boundary_en": "One micro-VM per sandbox",
       "boundary_zh": "每个沙箱一个 micro-VM",
       "node_owner_en": "Microsoft",
@@ -80,10 +88,10 @@
       "session_location_zh": "微软托管的算力",
       "memory_suspend_en": "No: idle releases compute, `$HOME` and `/files` are restored",
       "memory_suspend_zh": "不支持：空闲后释放算力，恢复时还原 `$HOME` 和 `/files`",
+      "state_storage_en": "Not needed (optional): the platform keeps `$HOME` and `/files`; the file written before the stop was read back 3/3",
+      "state_storage_zh": "不需要（可选）：平台保留 `$HOME` 和 `/files`；停止前写入的文件读回 3/3",
       "selectable_compute_en": "0.5 vCPU / 1 GiB<br>1 vCPU / 2 GiB<br>2 vCPU / 4 GiB<br>No VM SKU to choose",
       "selectable_compute_zh": "0.5 vCPU / 1 GiB<br>1 vCPU / 2 GiB<br>2 vCPU / 4 GiB<br>不选择 VM SKU",
-      "idle_policy_en": "[Docs](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions): 2–60 min idle timeout (default 15); compute released, $HOME and /files persisted; session deleted after 30 days of inactivity",
-      "idle_policy_zh": "[官网](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions)：空闲超时 2–60 min（默认 15）后释放算力，保留 $HOME 和 /files；30 天不活跃后删除会话",
       "boundary_en": "Per-session VM-isolated sandbox (Learn)",
       "boundary_zh": "每会话一个 VM 级隔离的沙箱（Learn）",
       "node_owner_en": "Microsoft",
@@ -100,10 +108,10 @@
       "session_location_zh": "你的 Kata 节点池",
       "memory_suspend_en": "No memory snapshot: you patch `operatingMode`; the pod goes, file state comes back from Blob",
       "memory_suspend_zh": "不保存内存快照：你修改 `operatingMode`；pod 被删除，文件状态从 Blob 恢复",
+      "state_storage_en": "**Required**: suspend deletes the pod and keeps no memory snapshot; with the Blob PVC the conversation went on 3/3. Without a volume the state goes with the pod (inferred from Kubernetes, not tested)",
+      "state_storage_zh": "**必须**：挂起会删除 pod，也不保存内存快照；挂 Blob PVC 时对话接着继续 3/3。不挂卷时状态随 pod 一起删除（按 Kubernetes 规则推断，未实测）",
       "selectable_compute_en": "Kata-compatible Gen2 VM SKUs, such as the Dsv3 series; Azure Linux and nested virtualization required",
       "selectable_compute_zh": "支持 Kata 的 Gen2 VM SKU，如 Dsv3 系列；须使用 Azure Linux 并支持嵌套虚拟化",
-      "idle_policy_en": "[Official API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md): shutdownTime is scheduled expiry, not request-idle detection; implement request-idle recycling yourself",
-      "idle_policy_zh": "[官方 API](https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md)：shutdownTime 是定时到期回收，不是按请求检测空闲；空闲回收需自行实现",
       "boundary_en": "One Kata pod VM per Sandbox",
       "boundary_zh": "每个 Sandbox 一个 Kata pod VM",
       "node_owner_en": "You",
@@ -118,14 +126,34 @@
       "lifecycle_owner_zh": "Foundry，运行在你的集群上",
       "session_location_en": "Your Kata node pool",
       "session_location_zh": "你的 Kata 节点池",
-      "memory_suspend_en": "Not exercised; confirm preview suspend support with the product group",
-      "memory_suspend_zh": "未测；预览版是否支持挂起须向产品组确认",
+      "memory_suspend_en": "No memory snapshot: the session API's `:stop` ends the session pod; the next request starts a new pod and the file written before the stop is still there (2026-10-18)",
+      "memory_suspend_zh": "不保存内存快照：会话 API 的 `:stop` 结束会话 pod；下一次请求启动新 pod，停止前写入的文件仍在（2026-10-18）",
+      "state_storage_en": "Not needed (optional): `:stop` ends the session pod, and the file written before it was read back on the new pod 3/3 (2026-10-18)",
+      "state_storage_zh": "不需要（可选）：`:stop` 结束会话 pod，停止前写入的文件在新 pod 上读回 3/3（2026-10-18）",
       "selectable_compute_en": "Kata node SKUs within the approved preview requirements; confirm the selectable list with the product group",
       "selectable_compute_zh": "在预览开通条件内选择 Kata 节点 SKU；具体可选清单须向产品组确认",
-      "idle_policy_en": "No verified public official idle policy; confirm with the product group",
-      "idle_policy_zh": "未找到可核实的官方公开空闲策略；须向产品组确认",
       "boundary_en": "One Kata pod VM per session",
       "boundary_zh": "每个会话一个 Kata pod VM",
+      "node_owner_en": "You",
+      "node_owner_zh": "你"
+    },
+    "E": {
+      "status_en": "E2B Embed open source (`588e5b9`) on Azure Gen2 VM",
+      "status_zh": "E2B Embed 开源版（`588e5b9`），运行在 Azure Gen2 VM 上",
+      "diagram_status_en": "E2B Embed OSS",
+      "diagram_status_zh": "E2B Embed 开源",
+      "lifecycle_owner_en": "You: E2B orchestrator on your VM, called as a Foundry agent tool",
+      "lifecycle_owner_zh": "你自己：你的 VM 上的 E2B 编排器，作为 Foundry agent 工具被调用",
+      "session_location_en": "Your Azure VM with nested virtualization (`/dev/kvm`)",
+      "session_location_zh": "你开启嵌套虚拟化（`/dev/kvm`）的 Azure VM",
+      "memory_suspend_en": "Yes: `beta_pause` saves Firecracker memory and disk (`vm_state` + `mem_file`)",
+      "memory_suspend_zh": "支持：`beta_pause` 保存 Firecracker 内存和磁盘快照（`vm_state` + `mem_file`）",
+      "state_storage_en": "Not needed (optional): the pause snapshot stays on the host VM's OS disk and could not resume on a second host (`e-2026-10-18-ci-multi`); the sandbox history kept growing 3/3",
+      "state_storage_zh": "不需要（可选）：暂停快照存在宿主 VM 的系统盘上，在第二台主机上恢复不了（`e-2026-10-18-ci-multi`）；沙箱内的历史持续增长 3/3",
+      "selectable_compute_en": "Gen2 VM SKUs with nested virtualization, such as `Standard_D4ds_v7` or `Standard_D8ds_v7`; E2B's `code-interpreter-v1` template is 2 vCPU / 2 GiB, and each sandbox takes 2 GiB of the VM's hugepage pool",
+      "selectable_compute_zh": "支持嵌套虚拟化的 Gen2 VM SKU，如 `Standard_D4ds_v7` 或 `Standard_D8ds_v7`；E2B 的 `code-interpreter-v1` 模板为 2 vCPU / 2 GiB，每个沙箱占 VM 大页池里的 2 GiB",
+      "boundary_en": "One Firecracker per sandbox",
+      "boundary_zh": "每个沙箱一个 Firecracker",
       "node_owner_en": "You",
       "node_owner_zh": "你"
     }
@@ -133,25 +161,6 @@
   "d_runtime_topology": {
     "fixed_deployment_pods": 9,
     "daemonsets": 4,
-    "total_with_one_matching_node": 13,
-    "daemonsets_scale_with_matching_nodes": true
-  },
-  "sources": {
-    "aca_sandboxes": "https://learn.microsoft.com/azure/container-apps/sandboxes-overview",
-    "hosted_agents": "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents",
-    "hosted_agent_deployment": "https://learn.microsoft.com/azure/foundry/agents/how-to/deploy-hosted-agent",
-    "pod_sandboxing": "https://learn.microsoft.com/azure/aks/use-pod-sandboxing",
-    "agent_sandbox_api_v052": "https://github.com/kubernetes-sigs/agent-sandbox/blob/v0.5.2/docs/api.md",
-    "agent_sandbox_v052": "https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v0.5.2",
-    "workshop_905f2c2": "https://github.com/oxcp/ainotes/tree/905f2c2/agenthost",
-    "workshop_b_source": "https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-02/agent-src/main.py",
-    "workshop_ac_source": "https://github.com/oxcp/ainotes/blob/905f2c2/agenthost/module-03/agent-src/app/main.py",
-    "aca_quotas": "https://sandboxes.azure.com/docs/sandboxes/limits",
-    "aca_ga_announcement": "https://techcommunity.microsoft.com/blog/appsonazureblog/azure-container-apps-sandboxes-now-generally-available/4559125",
-    "hosted_agents_ga_announcement": "https://azure.microsoft.com/updates?id=563596",
-    "hosted_agent_sizes": "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sandbox-sizes",
-    "aks_pod_sandboxing_ga": "https://azure.microsoft.com/updates?id=526237",
-    "aks_compute_isolation_scope": "https://learn.microsoft.com/azure/aks/concepts-pod-sandboxing",
-    "aks_stop_start": "https://learn.microsoft.com/azure/aks/start-stop-cluster"
+    "total_with_one_matching_node": 13
   }
 }

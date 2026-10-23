@@ -1,0 +1,377 @@
+{
+  "run_id": "e-2026-10-17-ci-agent",
+  "what": "Foundry Prompt Agent whose one function tool runs the model's Python with E2B's Code Interpreter (run_code) in a code-interpreter-v1 sandbox; the A-matched 3-run protocol",
+  "path": "E",
+  "date_utc": "2026-10-17",
+  "region": "eastus2",
+  "host": "host c: Standard_D4ds_v7 (4 vCPU, 16 GiB), eastus2 zone 2, Ubuntu 24.04 LTS Gen2, 128 GB OS disk",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "executor": "code-interpreter",
+  "template": {
+    "name": "code-interpreter-v1",
+    "source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "vcpus": 2,
+    "memory_mb": 2048,
+    "build_sdk": "e2b 2.32.0 in the build environment (template/requirements-dev.txt)"
+  },
+  "model": "gpt-5.4-mini",
+  "sdk": {
+    "e2b": "2.56.0",
+    "e2b-code-interpreter": "2.11.0"
+  },
+  "tool": {
+    "file": "tools/measure_e2b.py",
+    "sha256": "cbc96f273c0736d470297cde9a8fcb87aa21c22f1b1939c6d3a4298ba7e0c69a"
+  },
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "command": "measure_e2b.py agent --runs 3 --executor code-interpreter",
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "count": "How many questions have I asked before this one? Number only.",
+    "resume_wait_s": 5
+  },
+  "runs": [
+    {
+      "run": 1,
+      "host": "c",
+      "started_at": "2026-10-17T16:54:32.344Z",
+      "create_total_s": 0.22,
+      "first": {
+        "started_utc": "16:54:32.640",
+        "http": 200,
+        "wall_s": 3.14,
+        "sandbox_tool_s": 0.123,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 3.36,
+      "warm": {
+        "started_utc": "16:54:35.779",
+        "http": 200,
+        "wall_s": 4.09,
+        "sandbox_tool_s": 0.012,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 0.29,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.63,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "16:54:45.792",
+        "http": 200,
+        "wall_s": 4.33,
+        "sandbox_tool_s": 0.055,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 4.96,
+      "warm_after_resume": {
+        "started_utc": "16:54:50.122",
+        "http": 200,
+        "wall_s": 4.14,
+        "sandbox_tool_s": 0.011,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-17T16:54:54.566Z"
+    },
+    {
+      "run": 2,
+      "host": "c",
+      "started_at": "2026-10-17T16:54:54.566Z",
+      "create_total_s": 0.08,
+      "first": {
+        "started_utc": "16:54:54.706",
+        "http": 200,
+        "wall_s": 3.85,
+        "sandbox_tool_s": 0.045,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital of Thailand in Southeast Asia.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 3.93,
+      "warm": {
+        "started_utc": "16:54:58.554",
+        "http": 200,
+        "wall_s": 4.17,
+        "sandbox_tool_s": 0.011,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 0.09,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.64,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "16:55:08.450",
+        "http": 200,
+        "wall_s": 4.64,
+        "sandbox_tool_s": 0.057,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 5.28,
+      "warm_after_resume": {
+        "started_utc": "16:55:13.091",
+        "http": 200,
+        "wall_s": 4.16,
+        "sandbox_tool_s": 0.012,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-17T16:55:17.315Z"
+    },
+    {
+      "run": 3,
+      "host": "c",
+      "started_at": "2026-10-17T16:55:17.315Z",
+      "create_total_s": 0.07,
+      "first": {
+        "started_utc": "16:55:17.451",
+        "http": 200,
+        "wall_s": 4.55,
+        "sandbox_tool_s": 0.044,
+        "tool_calls": 1,
+        "response": "Bangkok is the capital of Thailand.",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 1,
+        "guest_kernel": "6.1.177+"
+      },
+      "cold_total_s": 4.62,
+      "warm": {
+        "started_utc": "16:55:22.000",
+        "http": 200,
+        "wall_s": 3.61,
+        "sandbox_tool_s": 0.012,
+        "tool_calls": 1,
+        "response": "1",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 2,
+        "guest_kernel": "6.1.177+"
+      },
+      "stop_total_s": 0.08,
+      "state_after_stop": "Paused",
+      "resume_total_s": 1.43,
+      "state_after_resume": "Running",
+      "first_after_resume": {
+        "started_utc": "16:55:32.121",
+        "http": 200,
+        "wall_s": 4.77,
+        "sandbox_tool_s": 0.086,
+        "tool_calls": 1,
+        "response": "2",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 3,
+        "guest_kernel": "6.1.177+"
+      },
+      "recover_total_s": 6.2,
+      "warm_after_resume": {
+        "started_utc": "16:55:36.892",
+        "http": 200,
+        "wall_s": 6.08,
+        "sandbox_tool_s": 0.012,
+        "tool_calls": 1,
+        "response": "3",
+        "http_statuses": [
+          200,
+          200
+        ],
+        "history_length": 4,
+        "guest_kernel": "6.1.177+"
+      },
+      "history_lengths": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_kept": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true,
+      "finished_at": "2026-10-17T16:55:43.417Z"
+    }
+  ],
+  "leftover_sandboxes": 0,
+  "agent_version_deleted": true,
+  "install": {
+    "date_utc": "2026-10-16",
+    "how": "compose.yaml and .env at 588e5b9, the two files README step 7 downloads (SHA-256 below), then docker compose up -d --wait",
+    "sha256": {
+      "compose.yaml": "658429e02665fa9e1cc23411e0897b1e2db1867e6fa9c47fb551ac5a313b6b74",
+      ".env as downloaded": "484510816c685a4d6d24bff34d00b05c46306146c0be397507dc215390a182fa"
+    },
+    "env_change": "one line appended to .env: HUGEPAGES=4096 (the downloaded .env has no HUGEPAGES line, so Compose uses its default 2048); nothing else in .env differs"
+  },
+  "build": {
+    "settings": [
+      {
+        "setting": "HUGEPAGES in the Compose .env",
+        "value": 4096
+      },
+      {
+        "setting": "disk_mb of the test team, a project_limits row",
+        "value": 8192
+      },
+      {
+        "setting": "OS disk size, GB",
+        "value": 128
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "result": "failed",
+        "step": 8,
+        "steps": 30,
+        "seconds": 181,
+        "error": "pip install --no-cache-dir -r requirements.txt: [Errno 28] No space left on device",
+        "note": "started 16 s after the project_limits row was added; attempt 2, the same build started about 5 minutes after the row, passed step 8"
+      },
+      {
+        "attempt": 2,
+        "result": "failed",
+        "step": 20,
+        "steps": 30,
+        "seconds": 840,
+        "error": "error building step 20: resume sandbox: failed to start FC: error setting fc metrics",
+        "settings_changed_before": "none"
+      },
+      {
+        "attempt": 3,
+        "result": "built",
+        "step": 30,
+        "steps": 30,
+        "seconds": 92,
+        "builder_reported": "1m25s",
+        "cached_steps": [
+          1,
+          19
+        ],
+        "settings_changed_before": "none; the VM had been deallocated by a subscription automation and started again",
+        "trace": {
+          "min_hugepages_free": 3717,
+          "min_mem_available_kb": 6041812,
+          "max_firecracker_processes": 1
+        }
+      }
+    ]
+  },
+  "_sources": [
+    {
+      "file": "e2b-agent-20261017T165428Z.json",
+      "sha256": "2d4a226734ed2dd7ae3934be7f67f939182cde00f3a97bfb84830fb02cdb3f13",
+      "bytes": 8646,
+      "role": "measure_e2b.py agent --runs 3 --executor code-interpreter"
+    },
+    {
+      "file": "builds.json",
+      "sha256": "ba3059e64c7218dc43fe345489ed239369d3ed98152e2d0ad23f9fda84e5c845",
+      "bytes": 2660,
+      "role": "host c settings and the template build attempts, from the VM"
+    },
+    {
+      "file": "measure_e2b.py",
+      "sha256": "cbc96f273c0736d470297cde9a8fcb87aa21c22f1b1939c6d3a4298ba7e0c69a",
+      "bytes": 40765,
+      "role": "the frozen tool that produced both outputs"
+    }
+  ]
+}

@@ -1,0 +1,1130 @@
+{
+  "run_id": "e-2026-10-15-latest",
+  "path": "E",
+  "what": "the newest E2B Python SDK on the measured protocol, and E2B's official code-interpreter template built and checked on the measured Embed install",
+  "date_utc": "2026-10-15",
+  "region": "eastus2",
+  "host": "host a of e-2026-10-15-multi (Standard_D4ds_v7)",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "model": "gpt-5.4-mini",
+  "sdk_check": {
+    "started_at": "2026-10-15T13:56:34.905Z",
+    "finished_at": "2026-10-15T13:58:48.420Z",
+    "sdk": "e2b 2.56.0",
+    "python": "3.12.3",
+    "tool": {
+      "file": "tools/measure_e2b.py",
+      "sha256": "036dc81db6070a08e17faa1b21240ccc5e3cafbb528ace8683acf269ebdc159e",
+      "command": "agent --runs 3"
+    },
+    "agent": {
+      "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+      "tools": [
+        {
+          "type": "function",
+          "name": "run_in_e2b_sandbox",
+          "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "python_code": {
+                "type": "string",
+                "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+              }
+            },
+            "required": [
+              "python_code"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    },
+    "inputs": {
+      "first": "Where is Bangkok? Answer in one short sentence.",
+      "count": "How many questions have I asked before this one? Number only.",
+      "resume_wait_s": 5
+    },
+    "runs": [
+      {
+        "run": 1,
+        "host": "a",
+        "started_at": "2026-10-15T13:56:38.481Z",
+        "create_total_s": 0.1,
+        "first": {
+          "started_utc": "13:56:38.636",
+          "http": 200,
+          "wall_s": 5.24,
+          "sandbox_tool_s": 0.118,
+          "tool_calls": 1,
+          "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 1,
+          "guest_kernel": "6.1.177+"
+        },
+        "cold_total_s": 5.34,
+        "warm": {
+          "started_utc": "13:56:43.878",
+          "http": 200,
+          "wall_s": 3.7,
+          "sandbox_tool_s": 0.028,
+          "tool_calls": 1,
+          "response": "1",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 2,
+          "guest_kernel": "6.1.177+"
+        },
+        "stop_total_s": 0.15,
+        "state_after_stop": "Paused",
+        "resume_total_s": 0.08,
+        "state_after_resume": "Running",
+        "first_after_resume": {
+          "started_utc": "13:56:52.807",
+          "http": 200,
+          "wall_s": 6.72,
+          "sandbox_tool_s": 0.028,
+          "tool_calls": 1,
+          "response": "2",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 3,
+          "guest_kernel": "6.1.177+"
+        },
+        "recover_total_s": 6.8,
+        "warm_after_resume": {
+          "started_utc": "13:56:59.522",
+          "http": 200,
+          "wall_s": 14.75,
+          "sandbox_tool_s": 0.029,
+          "tool_calls": 1,
+          "response": "3",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 4,
+          "guest_kernel": "6.1.177+"
+        },
+        "history_lengths": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "state_kept": true,
+        "sandbox_deleted": true,
+        "conversation_deleted": true,
+        "finished_at": "2026-10-15T13:57:14.553Z"
+      },
+      {
+        "run": 2,
+        "host": "a",
+        "started_at": "2026-10-15T13:57:14.553Z",
+        "create_total_s": 0.06,
+        "first": {
+          "started_utc": "13:57:14.665",
+          "http": 200,
+          "wall_s": 4.93,
+          "sandbox_tool_s": 0.138,
+          "tool_calls": 1,
+          "response": "Bangkok is the capital city of Thailand.",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 1,
+          "guest_kernel": "6.1.177+"
+        },
+        "cold_total_s": 4.99,
+        "warm": {
+          "started_utc": "13:57:19.594",
+          "http": 200,
+          "wall_s": 4.24,
+          "sandbox_tool_s": 0.029,
+          "tool_calls": 1,
+          "response": "1",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 2,
+          "guest_kernel": "6.1.177+"
+        },
+        "stop_total_s": 0.14,
+        "state_after_stop": "Paused",
+        "resume_total_s": 0.08,
+        "state_after_resume": "Running",
+        "first_after_resume": {
+          "started_utc": "13:57:29.052",
+          "http": 200,
+          "wall_s": 6.2,
+          "sandbox_tool_s": 0.03,
+          "tool_calls": 1,
+          "response": "2",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 3,
+          "guest_kernel": "6.1.177+"
+        },
+        "recover_total_s": 6.28,
+        "warm_after_resume": {
+          "started_utc": "13:57:35.249",
+          "http": 200,
+          "wall_s": 5.94,
+          "sandbox_tool_s": 0.028,
+          "tool_calls": 1,
+          "response": "3",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 4,
+          "guest_kernel": "6.1.177+"
+        },
+        "history_lengths": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "state_kept": true,
+        "sandbox_deleted": true,
+        "conversation_deleted": true,
+        "finished_at": "2026-10-15T13:57:41.302Z"
+      },
+      {
+        "run": 3,
+        "host": "a",
+        "started_at": "2026-10-15T13:57:41.302Z",
+        "create_total_s": 0.06,
+        "first": {
+          "started_utc": "13:57:41.447",
+          "http": 200,
+          "wall_s": 4.0,
+          "sandbox_tool_s": 0.13,
+          "tool_calls": 1,
+          "response": "Bangkok is the capital city of Thailand.",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 1,
+          "guest_kernel": "6.1.177+"
+        },
+        "cold_total_s": 4.06,
+        "warm": {
+          "started_utc": "13:57:45.447",
+          "http": 200,
+          "wall_s": 35.02,
+          "sandbox_tool_s": 0.027,
+          "tool_calls": 1,
+          "response": "2",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 2,
+          "guest_kernel": "6.1.177+"
+        },
+        "stop_total_s": 0.17,
+        "state_after_stop": "Paused",
+        "resume_total_s": 0.11,
+        "state_after_resume": "Running",
+        "first_after_resume": {
+          "started_utc": "13:58:25.747",
+          "http": 200,
+          "wall_s": 8.14,
+          "sandbox_tool_s": 0.029,
+          "tool_calls": 1,
+          "response": "3",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 3,
+          "guest_kernel": "6.1.177+"
+        },
+        "recover_total_s": 8.25,
+        "warm_after_resume": {
+          "started_utc": "13:58:33.883",
+          "http": 200,
+          "wall_s": 13.2,
+          "sandbox_tool_s": 0.028,
+          "tool_calls": 1,
+          "response": "4",
+          "http_statuses": [
+            200,
+            200
+          ],
+          "history_length": 4,
+          "guest_kernel": "6.1.177+"
+        },
+        "history_lengths": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "state_kept": true,
+        "sandbox_deleted": true,
+        "conversation_deleted": true,
+        "finished_at": "2026-10-15T13:58:47.168Z"
+      }
+    ],
+    "leftover_sandboxes": {
+      "a": 0,
+      "b": 0
+    },
+    "agent_version_deleted": true
+  },
+  "code_interpreter": {
+    "template_source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "template": "code-interpreter-v1",
+    "template_resources": {
+      "vcpus": 2,
+      "memory_mb": 2048
+    },
+    "build_sdk": "e2b 2.32.0 in the build environment",
+    "client": {
+      "e2b": "2.56.0",
+      "e2b-code-interpreter": "2.11.0",
+      "python": "3.12.3"
+    },
+    "builds": [
+      {
+        "attempt": 1,
+        "hugepages": 2048,
+        "build_disk_mb": 512,
+        "os_disk_gb": 50,
+        "result": "failed",
+        "step": 6,
+        "steps": 30,
+        "seconds": 104.5,
+        "error": "resume sandbox: failed to start FC: error loading snapshot: mmap memfd: cannot allocate memory"
+      },
+      {
+        "attempt": 2,
+        "hugepages": 4096,
+        "build_disk_mb": 512,
+        "os_disk_gb": 50,
+        "result": "failed",
+        "step": 8,
+        "steps": 30,
+        "seconds": 56.5,
+        "error": "pip install --no-cache-dir -r requirements.txt: [Errno 28] No space left on device"
+      },
+      {
+        "attempt": 3,
+        "hugepages": 4096,
+        "build_disk_mb": 8192,
+        "os_disk_gb": 50,
+        "result": "stopped",
+        "step": 12,
+        "steps": 30,
+        "seconds": 501.0,
+        "os_disk_free_mib": 5084,
+        "written_mib": {
+          "templates": 12839,
+          "orchestrator": 10140
+        },
+        "why": "stopped by us below 8 GiB free on the OS disk, which also holds the E2B database"
+      },
+      {
+        "attempt": 4,
+        "hugepages": 4096,
+        "build_disk_mb": 8192,
+        "os_disk_gb": 128,
+        "result": "built",
+        "step": 30,
+        "steps": 30,
+        "seconds": 426,
+        "builder_reported": "7m3s",
+        "cached_steps": [
+          1,
+          11
+        ],
+        "os_disk_free_gib_before": 93,
+        "os_disk_free_gib_after": 64
+      }
+    ],
+    "changes_for_the_build": [
+      {
+        "setting": "HUGEPAGES in the Compose .env",
+        "from": 2048,
+        "to": 4096,
+        "how": "edit .env, then docker compose up -d --wait; host-setup re-applies the sysctl"
+      },
+      {
+        "setting": "disk_mb of the test team (build workspace), a row added to Embed's project_limits table",
+        "from": 512,
+        "to": 8192,
+        "how": "one INSERT; no other column changed"
+      },
+      {
+        "setting": "OS disk size, GB",
+        "from": 50,
+        "to": 128,
+        "how": "deallocate, snapshot, az disk update --size-gb 128, start; the root filesystem grew on boot"
+      }
+    ],
+    "not_reverted": "the hugepage and project_limits changes and the built template were still on host a when a subscription automation deallocated it at 2026-10-15T16:48Z, before cleanup; the disk stays 128 GB",
+    "check_tool": {
+      "file": "tools/measure_code_interpreter.py",
+      "measured_as": "ci_test.py on host a",
+      "sha256_run_1": "6298d683c02a50fc5a41550c35781488681306d5114b095207902b2ff9540ea0",
+      "sha256_runs_2_to_4": "8d6fd85f3158746a5457510b1fe3615cc8bb16e3e98f46b1023bc43fbe463d35",
+      "difference": "run 1's revision did not record stdout, stderr and the full error; steps and checks are the same. The repository tool runs the steps, checks and waits of runs 2-4 and reads E2B_API_URL, E2B_SANDBOX_URL and E2B_API_KEY instead of the loopback addresses"
+    },
+    "check_runs": [
+      {
+        "run": 1,
+        "started_at": "2026-10-15T16:06:11.138Z",
+        "finished_at": "2026-10-15T16:06:25.406Z",
+        "tool_sha256": "6298d683c02a50fc5a41550c35781488681306d5114b095207902b2ff9540ea0",
+        "python": "3.12.3",
+        "steps": [
+          {
+            "step": "create (default template)",
+            "ok": true,
+            "seconds": 0.187,
+            "observed": {
+              "sdk_default_template": "code-interpreter-v1",
+              "template_name": "code-interpreter-v1",
+              "cpu_count": 2,
+              "memory_mb": 2048
+            }
+          },
+          {
+            "step": "README: x = 1",
+            "ok": true,
+            "seconds": 0.082,
+            "observed": {
+              "text": ""
+            }
+          },
+          {
+            "step": "README: x+=1; x",
+            "ok": true,
+            "seconds": 0.011,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "pandas sum",
+            "ok": true,
+            "seconds": 1.303,
+            "observed": {
+              "text": "10",
+              "error": null
+            }
+          },
+          {
+            "step": "matplotlib png",
+            "ok": true,
+            "seconds": 3.317,
+            "observed": {
+              "results": [
+                [
+                  "text",
+                  "png",
+                  "chart"
+                ]
+              ],
+              "png_bytes_base64": [
+                22868
+              ]
+            }
+          },
+          {
+            "step": "javascript kernel",
+            "ok": false,
+            "seconds": 0.03,
+            "observed": {
+              "text": "",
+              "error": "TypeError"
+            }
+          },
+          {
+            "step": "exception",
+            "ok": true,
+            "seconds": 0.038,
+            "observed": {
+              "error": "ZeroDivisionError"
+            }
+          },
+          {
+            "step": "pause",
+            "ok": true,
+            "seconds": 0.4,
+            "observed": {
+              "returned": true
+            }
+          },
+          {
+            "step": "connect (resume)",
+            "ok": true,
+            "seconds": 0.233,
+            "observed": {}
+          },
+          {
+            "step": "x after resume",
+            "ok": true,
+            "seconds": 0.088,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "kill",
+            "ok": true,
+            "seconds": 0.432,
+            "observed": {
+              "returned": true
+            }
+          }
+        ],
+        "leftover_sandboxes": 0
+      },
+      {
+        "run": 2,
+        "started_at": "2026-10-15T16:13:19.398Z",
+        "finished_at": "2026-10-15T16:13:31.073Z",
+        "tool_sha256": "8d6fd85f3158746a5457510b1fe3615cc8bb16e3e98f46b1023bc43fbe463d35",
+        "python": "3.12.3",
+        "steps": [
+          {
+            "step": "create (default template)",
+            "ok": true,
+            "seconds": 0.116,
+            "observed": {
+              "sdk_default_template": "code-interpreter-v1",
+              "template_name": "code-interpreter-v1",
+              "cpu_count": 2,
+              "memory_mb": 2048
+            }
+          },
+          {
+            "step": "README: x = 1",
+            "ok": true,
+            "seconds": 0.086,
+            "observed": {
+              "text": ""
+            }
+          },
+          {
+            "step": "README: x+=1; x",
+            "ok": true,
+            "seconds": 0.012,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "pandas sum",
+            "ok": true,
+            "seconds": 0.588,
+            "observed": {
+              "text": "10",
+              "error": null
+            }
+          },
+          {
+            "step": "matplotlib png",
+            "ok": true,
+            "seconds": 1.072,
+            "observed": {
+              "results": [
+                [
+                  "text",
+                  "png",
+                  "chart"
+                ]
+              ],
+              "png_bytes_base64": [
+                22868
+              ]
+            }
+          },
+          {
+            "step": "javascript kernel",
+            "ok": false,
+            "seconds": 0.063,
+            "observed": {
+              "text": "",
+              "error": "TypeError"
+            },
+            "error": {
+              "name": "TypeError",
+              "value": "\"<template id>\"[(1 , 2 , 3)].reduce is not a function"
+            }
+          },
+          {
+            "step": "exception",
+            "ok": true,
+            "seconds": 0.041,
+            "observed": {
+              "error": "ZeroDivisionError"
+            }
+          },
+          {
+            "step": "pause",
+            "ok": true,
+            "seconds": 0.232,
+            "observed": {
+              "returned": true
+            }
+          },
+          {
+            "step": "connect (resume)",
+            "ok": true,
+            "seconds": 0.623,
+            "observed": {}
+          },
+          {
+            "step": "x after resume",
+            "ok": true,
+            "seconds": 0.088,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "kill",
+            "ok": true,
+            "seconds": 0.746,
+            "observed": {
+              "returned": true
+            }
+          }
+        ],
+        "leftover_sandboxes": 0
+      },
+      {
+        "run": 3,
+        "started_at": "2026-10-15T16:13:35.468Z",
+        "finished_at": "2026-10-15T16:13:47.654Z",
+        "tool_sha256": "8d6fd85f3158746a5457510b1fe3615cc8bb16e3e98f46b1023bc43fbe463d35",
+        "python": "3.12.3",
+        "steps": [
+          {
+            "step": "create (default template)",
+            "ok": true,
+            "seconds": 0.13,
+            "observed": {
+              "sdk_default_template": "code-interpreter-v1",
+              "template_name": "code-interpreter-v1",
+              "cpu_count": 2,
+              "memory_mb": 2048
+            }
+          },
+          {
+            "step": "README: x = 1",
+            "ok": true,
+            "seconds": 0.098,
+            "observed": {
+              "text": ""
+            }
+          },
+          {
+            "step": "README: x+=1; x",
+            "ok": true,
+            "seconds": 0.012,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "pandas sum",
+            "ok": true,
+            "seconds": 0.565,
+            "observed": {
+              "text": "10",
+              "error": null
+            }
+          },
+          {
+            "step": "matplotlib png",
+            "ok": true,
+            "seconds": 0.977,
+            "observed": {
+              "results": [
+                [
+                  "text",
+                  "png",
+                  "chart"
+                ]
+              ],
+              "png_bytes_base64": [
+                22868
+              ]
+            }
+          },
+          {
+            "step": "javascript kernel",
+            "ok": false,
+            "seconds": 0.062,
+            "observed": {
+              "text": "",
+              "error": "TypeError"
+            },
+            "error": {
+              "name": "TypeError",
+              "value": "\"<template id>\"[(1 , 2 , 3)].reduce is not a function"
+            }
+          },
+          {
+            "step": "exception",
+            "ok": true,
+            "seconds": 0.039,
+            "observed": {
+              "error": "ZeroDivisionError"
+            }
+          },
+          {
+            "step": "pause",
+            "ok": true,
+            "seconds": 0.157,
+            "observed": {
+              "returned": true
+            }
+          },
+          {
+            "step": "connect (resume)",
+            "ok": true,
+            "seconds": 0.902,
+            "observed": {}
+          },
+          {
+            "step": "x after resume",
+            "ok": true,
+            "seconds": 0.652,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "kill",
+            "ok": true,
+            "seconds": 0.059,
+            "observed": {
+              "returned": true
+            }
+          }
+        ],
+        "leftover_sandboxes": 0
+      },
+      {
+        "run": 4,
+        "started_at": "2026-10-15T16:13:55.881Z",
+        "finished_at": "2026-10-15T16:14:07.811Z",
+        "tool_sha256": "8d6fd85f3158746a5457510b1fe3615cc8bb16e3e98f46b1023bc43fbe463d35",
+        "python": "3.12.3",
+        "steps": [
+          {
+            "step": "create (default template)",
+            "ok": true,
+            "seconds": 0.194,
+            "observed": {
+              "sdk_default_template": "code-interpreter-v1",
+              "template_name": "code-interpreter-v1",
+              "cpu_count": 2,
+              "memory_mb": 2048
+            }
+          },
+          {
+            "step": "README: x = 1",
+            "ok": true,
+            "seconds": 0.11,
+            "observed": {
+              "text": ""
+            }
+          },
+          {
+            "step": "README: x+=1; x",
+            "ok": true,
+            "seconds": 0.012,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "pandas sum",
+            "ok": true,
+            "seconds": 0.727,
+            "observed": {
+              "text": "10",
+              "error": null
+            }
+          },
+          {
+            "step": "matplotlib png",
+            "ok": true,
+            "seconds": 1.678,
+            "observed": {
+              "results": [
+                [
+                  "text",
+                  "png",
+                  "chart"
+                ]
+              ],
+              "png_bytes_base64": [
+                22868
+              ]
+            }
+          },
+          {
+            "step": "javascript kernel",
+            "ok": false,
+            "seconds": 0.064,
+            "observed": {
+              "text": "",
+              "error": "TypeError"
+            },
+            "error": {
+              "name": "TypeError",
+              "value": "\"<template id>\"[(1 , 2 , 3)].reduce is not a function"
+            }
+          },
+          {
+            "step": "exception",
+            "ok": true,
+            "seconds": 0.042,
+            "observed": {
+              "error": "ZeroDivisionError"
+            }
+          },
+          {
+            "step": "pause",
+            "ok": true,
+            "seconds": 0.375,
+            "observed": {
+              "returned": true
+            }
+          },
+          {
+            "step": "connect (resume)",
+            "ok": true,
+            "seconds": 0.47,
+            "observed": {}
+          },
+          {
+            "step": "x after resume",
+            "ok": true,
+            "seconds": 0.153,
+            "observed": {
+              "text": "2"
+            }
+          },
+          {
+            "step": "kill",
+            "ok": true,
+            "seconds": 0.057,
+            "observed": {
+              "returned": true
+            }
+          }
+        ],
+        "leftover_sandboxes": 0
+      }
+    ],
+    "javascript_failure": {
+      "cause": "on the first execution in a context the template server prepends one process.env['KEY'] = 'VALUE' line per environment variable, without a semicolon, joined to the user code with a newline; code that starts with [ then continues the previous line",
+      "source": {
+        "repo": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e",
+        "file": "template/server/messaging.py",
+        "lines": {
+          "160": "process.env['{key}'] = '{value}' (no semicolon)",
+          "183-191": "snippets joined with a newline",
+          "351-361": "prepended to the first execution of a context"
+        }
+      },
+      "repro": [
+        {
+          "case": "JavaScript as the first cell of a new sandbox, then the same cell again",
+          "cells": [
+            {
+              "language": "javascript",
+              "code": "[1, 2, 3].reduce((a, b) => a + b)",
+              "text": null,
+              "error": {
+                "name": "TypeError",
+                "value": "Cannot read properties of undefined (reading 'reduce')"
+              }
+            },
+            {
+              "language": "javascript",
+              "code": "[1, 2, 3].reduce((a, b) => a + b)",
+              "text": "6",
+              "error": null
+            }
+          ]
+        },
+        {
+          "case": "a Python cell, then the JavaScript cell (the order of the check)",
+          "cells": [
+            {
+              "language": "python",
+              "code": "x = 1",
+              "text": null,
+              "error": null
+            },
+            {
+              "language": "javascript",
+              "code": "[1, 2, 3].reduce((a, b) => a + b)",
+              "text": null,
+              "error": {
+                "name": "TypeError",
+                "value": "\"<template id>\"[(1 , 2 , 3)].reduce is not a function"
+              }
+            }
+          ]
+        },
+        {
+          "case": "the JavaScript cell with a leading semicolon",
+          "cells": [
+            {
+              "language": "javascript",
+              "code": ";[1, 2, 3].reduce((a, b) => a + b)",
+              "text": "6",
+              "error": null
+            }
+          ]
+        }
+      ],
+      "other_cells": [
+        {
+          "language": "js",
+          "code": "console.log('Hello, World!')",
+          "text": null,
+          "stdout": [
+            "Hello, World!\n"
+          ],
+          "stderr": [],
+          "error": null,
+          "seconds": 0.098
+        },
+        {
+          "language": "javascript",
+          "code": "console.log('Hello, World!')",
+          "text": null,
+          "stdout": [
+            "Hello, World!\n"
+          ],
+          "stderr": [],
+          "error": null,
+          "seconds": 0.009
+        },
+        {
+          "language": "js",
+          "code": "[1, 2, 3].reduce((a, b) => a + b)",
+          "text": "6",
+          "stdout": [],
+          "stderr": [],
+          "error": null,
+          "seconds": 0.012
+        },
+        {
+          "language": "javascript",
+          "code": "[1, 2, 3].reduce((a, b) => a + b)",
+          "text": "6",
+          "stdout": [],
+          "stderr": [],
+          "error": null,
+          "seconds": 0.01
+        },
+        {
+          "language": "javascript",
+          "code": "1 + 2",
+          "text": "3",
+          "stdout": [],
+          "stderr": [],
+          "error": null,
+          "seconds": 0.009
+        }
+      ]
+    }
+  },
+  "clocks": {
+    "sdk_check": "as in e-2026-10-14-agent and e-2026-10-15-multi (time.perf_counter() in the tool on host a)",
+    "check_runs.steps.seconds": "time.perf_counter() around each SDK call; the 5 s wait after pause is outside",
+    "builds.seconds": "attempts 1-3: elapsed time on the builder's last log line; attempt 4: build_prod.py start to exit"
+  },
+  "leftover_sandboxes": 0,
+  "_sources": [
+    {
+      "file": "e2b-agent-20261015T135634Z.json",
+      "sha256": "5b2fce1c6c1fd95977fa3b17e5b79bd9549267d11d588aebd4fa9dd73a731450",
+      "bytes": 8626,
+      "role": "measure_e2b.py agent --runs 3 with e2b 2.56.0 on host a"
+    },
+    {
+      "file": "pip-freeze-sdk256.txt",
+      "sha256": "67336ed2df93011f69e2123886c2152906a1bd26439354bbbdecafb457258b93",
+      "bytes": 458,
+      "role": "pip freeze of the e2b 2.56.0 environment"
+    },
+    {
+      "file": "ci-test-20261015T160625Z.json",
+      "sha256": "bfee4942c99729b93b85b22973110b48d788dfd85fc9e25c660c5208ab113e38",
+      "bytes": 2715,
+      "role": "code-interpreter check, run 1 (ci_test.v1.py)"
+    },
+    {
+      "file": "ci-test-20261015T161331Z.json",
+      "sha256": "d050b139a94cf9c6aa11b70e0d7d560cc919ce6339f00f4129dca071b0c2a74d",
+      "bytes": 4399,
+      "role": "code-interpreter check, run 2"
+    },
+    {
+      "file": "ci-test-20261015T161347Z.json",
+      "sha256": "9d74ac602c34cc44c6305d566f9f00a7cae315f620e562d7700de9b05ab38317",
+      "bytes": 4398,
+      "role": "code-interpreter check, run 3"
+    },
+    {
+      "file": "ci-test-20261015T161407Z.json",
+      "sha256": "8bccaf251b0c43297a2183f867b34a12a042068064f357d653eb848bce25ab09",
+      "bytes": 4397,
+      "role": "code-interpreter check, run 4"
+    },
+    {
+      "file": "pip-freeze-ci.txt",
+      "sha256": "d2f0a98f35e6f273b288db2d4346433184078e073e2844f5256eb0ff6c300b2e",
+      "bytes": 487,
+      "role": "pip freeze of the code-interpreter check environment"
+    },
+    {
+      "file": "js-repro-20261015T161833Z.json",
+      "sha256": "50801f84549f68e1c707fe3a33a5a8654545f9ca704dedf2de37d78f086c584c",
+      "bytes": 1239,
+      "role": "JavaScript failure, minimal reproduction in new sandboxes"
+    },
+    {
+      "file": "js-diag-20261015T160917Z.json",
+      "sha256": "5ddb9bcf05ad4b25cbdf984d850aaf4b40ccf37434fb7b7faa594b4e0d036994",
+      "bytes": 1086,
+      "role": "JavaScript kernel cells that start with console.log, the same reduce call and 1 + 2"
+    },
+    {
+      "file": "js-source-20261015T161833Z.txt",
+      "sha256": "b0c5b3a4758e26b8abe6fee52fa8df1a27bca8fc83fd28a531d4d7f919a787c9",
+      "bytes": 5379,
+      "role": "template/server excerpt at e2b-dev/code-interpreter@162a2a2"
+    },
+    {
+      "file": "orchestrator-errors.log",
+      "sha256": "2ebcbe71eac5950922464437d7dbe5082b4c760515d1c39704c49a6bbc010eca",
+      "bytes": 1034,
+      "role": "orchestrator errors of build attempt 1"
+    },
+    {
+      "file": "build-attempt1.log",
+      "sha256": "36e305429a8f51fc7dad2bcae45140446f1bea76924058606a26bf784dfd07f1",
+      "bytes": 17645,
+      "role": "build attempt 1 log"
+    },
+    {
+      "file": "build-attempt2.log",
+      "sha256": "2c9a9a5c855e306af1dbe5e8a85943383ad92f4b7f50e9550bfc6ee60d76e152",
+      "bytes": 84290,
+      "role": "build attempt 2 log"
+    },
+    {
+      "file": "build-attempt3.log",
+      "sha256": "7b804102000b1647d946c22c5d7e938b16594174e77cc2ad5c89a29db0a21f88",
+      "bytes": 373209,
+      "role": "build attempt 3 log"
+    },
+    {
+      "file": "build.log",
+      "sha256": "8e64781f2865ef4dec6980c61c19b4dbe6965bef3a3225f500b3d85e6e26e7bc",
+      "bytes": 60072,
+      "role": "build attempt 4 log"
+    },
+    {
+      "file": "build.seconds",
+      "sha256": "ffab722c4165f59136c1fab84214789efd376d3851cc4195e3555c3755201e7e",
+      "bytes": 4,
+      "role": "build attempt 4: build_prod.py start to exit, seconds"
+    },
+    {
+      "file": "a-ci-build-launch_20261015-220046.txt",
+      "sha256": "24679d44615acd8dc72514414b22bb93b88b6df2ae8ba5ba7219623a9d7f6900",
+      "bytes": 433,
+      "role": "build attempt 1 launch: build SDK version"
+    },
+    {
+      "file": "a-hugepages-4096_20261015-224342.txt",
+      "sha256": "66b809f1b7c4cacfe4c92dee5e2824e4aeea6ce513b68a0148455961d8695fc2",
+      "bytes": 890,
+      "role": "HUGEPAGES 2048 -> 4096 on host a"
+    },
+    {
+      "file": "a-project-limits-set_20261015-231108.txt",
+      "sha256": "c1f40498b77e6e48a20802ac6bb50ba44cfab3f4b24b520313922c9895319480",
+      "bytes": 778,
+      "role": "test team project_limits row: disk_mb 512 -> 8192"
+    },
+    {
+      "file": "a-ci-build3-stop_20261015-232202.txt",
+      "sha256": "3960caadea42cd637da58ce6ed2c8c3957fa8f10f92db54e43c064ff57264ada",
+      "bytes": 526,
+      "role": "build attempt 3 stopped: OS disk free space and data written"
+    },
+    {
+      "file": "a-expand-2-resize_20261015-234656.txt",
+      "sha256": "bcba4b72aebcc15f92006d00db4c1fb16417eb13c763c3168732592489afb146",
+      "bytes": 171,
+      "role": "OS disk 50 -> 128 GB"
+    },
+    {
+      "file": "a-expand-3c-check_20261015-235233.txt",
+      "sha256": "cb163fa71f00b54ab59236eb1bbd67e96c6f6af183a8a03e57d2cfa43ff50543",
+      "bytes": 491,
+      "role": "host a after the disk resize: hugepages, team disk_mb, free disk"
+    },
+    {
+      "file": "a-ci-build4-progress_20261016-000122.txt",
+      "sha256": "2a4abb4f7a25d4a8eab6b960626f488e19c39bafee0c2ec30ea1153ec5dab943",
+      "bytes": 469,
+      "role": "build attempt 4 finished: free disk after the build"
+    },
+    {
+      "file": "a-unexpected-stop_20261016-005848.txt",
+      "sha256": "aadab90d696e507013f6b8772cc62e8a1868ed5c75ad0c1757537e584534674a",
+      "bytes": 2536,
+      "role": "host a deallocated before cleanup: activity log extract"
+    },
+    {
+      "file": "ci_test.v1.py",
+      "sha256": "6298d683c02a50fc5a41550c35781488681306d5114b095207902b2ff9540ea0",
+      "bytes": 6437,
+      "role": "check script, run 1"
+    },
+    {
+      "file": "ci_test.py",
+      "sha256": "8d6fd85f3158746a5457510b1fe3615cc8bb16e3e98f46b1023bc43fbe463d35",
+      "bytes": 7386,
+      "role": "check script, runs 2-4"
+    },
+    {
+      "file": "run_build.sh",
+      "sha256": "9c5969ae1fb2318a31b832954b05fb2ea8b962328aa74588db16ed791a8c2267",
+      "bytes": 676,
+      "role": "build launcher (unchanged build_prod.py)"
+    }
+  ]
+}

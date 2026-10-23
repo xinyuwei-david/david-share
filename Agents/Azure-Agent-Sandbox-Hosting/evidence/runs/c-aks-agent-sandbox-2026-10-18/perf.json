@@ -1,0 +1,649 @@
+{
+  "run_id": "c-2026-10-18-perf",
+  "path": "C",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "what": "Sandboxes copied from the workshop's agent-host spec: 3 without a volume (apply, two answers, delete), 3 with the Blob PVC (plus pod loss and a suspend/resume cycle), then 4 and 8 at once",
+  "client": "Windows VM in Japan East (WSL Ubuntu); kubectl against the cluster in East US 2; answers timed inside the pod with kubectl exec",
+  "cluster": {
+    "kubernetes": "1.35.8",
+    "tier": "Free",
+    "system_pool": "1 x standard_d4ads_v7 Ubuntu",
+    "kata_pool": "Standard_D4s_v3 AzureLinux KataVmIsolation, autoscale 1-10, 1 node at start",
+    "agent_sandbox": "v0.5.2 (controller image read back 2026-10-18)",
+    "note": "the cluster of c-2026-09-27, started for this run; the workshop's own agent-host Sandbox kept running on the Kata node throughout"
+  },
+  "namespace": "agent",
+  "template": "agent-host",
+  "image": "<registry>.azurecr.io/agent-host:latest",
+  "runtime_class": "kata-vm-isolation",
+  "resources": {
+    "limits": {
+      "cpu": "2000m",
+      "memory": "2Gi"
+    },
+    "requests": {
+      "cpu": "500m",
+      "memory": "512Mi"
+    }
+  },
+  "kata_nodes_at_start": [
+    {
+      "name": "node-1",
+      "vm_size": "Standard_D4s_v3",
+      "kubelet": "v1.35.8",
+      "kernel": "6.6.137.mshv2-2.azl3"
+    }
+  ],
+  "kata_nodes_at_end": [
+    "node-1",
+    "node-2"
+  ],
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "follow_up": "How many questions have I asked before this one? Number only.",
+    "scale_write": "Remember SCALE-{k}. Reply only OK.",
+    "scale_read": "What did I ask you to remember? Word only.",
+    "request": "POST http://127.0.0.1:8080/reflect {\"query\": <input>}, sent with kubectl exec python3 inside the agent container"
+  },
+  "clocks": {
+    "apply_to_ready_s": "kubectl apply until the Sandbox and its pod read Ready (polled every 0.5 s)",
+    "guest_s": "the /reflect request timed inside the pod",
+    "exec_wall_s": "the kubectl exec round trip on the client, for reference",
+    "pod_delete_to_ready_s": "kubectl delete pod until a new pod of the Sandbox reads Ready",
+    "suspend_to_pod_gone_s": "operatingMode Suspended patch until the pod no longer exists",
+    "resume_to_ready_s": "operatingMode Running patch until a new pod reads Ready",
+    "cold_total_s": "apply_to_ready_s + first answer guest_s",
+    "resume_to_answer_s": "resume_to_ready_s + the next answer's guest_s"
+  },
+  "tool": {
+    "file": "tools/measure_c.py",
+    "sha256": "5e160a7b4d1104a99b2da6fbd30fdd94b811d3f65eeddb0973f8987d5c4f4f6b"
+  },
+  "started_at": "2026-10-18T04:11:00.000Z",
+  "finished_at": "2026-10-18T04:24:41.661Z",
+  "cold": [
+    {
+      "run": 1,
+      "pvc": false,
+      "started_at": "2026-10-18T04:11:00.000Z",
+      "apply_to_ready_s": 18.9,
+      "first": {
+        "guest_s": 8.44,
+        "exec_wall_s": 11.17,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 27.34,
+      "follow_up": {
+        "guest_s": 1.08,
+        "exec_wall_s": 3.92,
+        "response": "2",
+        "history_length": 2
+      },
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:11:35.935Z",
+      "sandbox": "cold-1",
+      "server": {
+        "sandbox_created": "2026-10-18T04:11:04Z",
+        "sandbox_ready": "2026-10-18T04:11:17Z",
+        "pod_created": "2026-10-18T04:11:04Z",
+        "pod_ready": "2026-10-18T04:11:17Z",
+        "node": "node-1"
+      }
+    },
+    {
+      "run": 2,
+      "pvc": false,
+      "started_at": "2026-10-18T04:11:55.936Z",
+      "apply_to_ready_s": 15.32,
+      "first": {
+        "guest_s": 8.5,
+        "exec_wall_s": 11.71,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 23.82,
+      "follow_up": {
+        "guest_s": 1.0,
+        "exec_wall_s": 3.59,
+        "response": "2",
+        "history_length": 2
+      },
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:12:28.520Z",
+      "sandbox": "cold-2",
+      "server": {
+        "sandbox_created": "2026-10-18T04:11:57Z",
+        "sandbox_ready": "2026-10-18T04:12:10Z",
+        "pod_created": "2026-10-18T04:11:57Z",
+        "pod_ready": "2026-10-18T04:12:10Z",
+        "node": "node-1"
+      }
+    },
+    {
+      "run": 3,
+      "pvc": false,
+      "started_at": "2026-10-18T04:12:48.521Z",
+      "apply_to_ready_s": 16.45,
+      "first": {
+        "guest_s": 7.82,
+        "exec_wall_s": 10.49,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 24.27,
+      "follow_up": {
+        "guest_s": 1.03,
+        "exec_wall_s": 3.67,
+        "response": "2",
+        "history_length": 2
+      },
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:13:21.102Z",
+      "sandbox": "cold-3",
+      "server": {
+        "sandbox_created": "2026-10-18T04:12:49Z",
+        "sandbox_ready": "2026-10-18T04:13:03Z",
+        "pod_created": "2026-10-18T04:12:49Z",
+        "pod_ready": "2026-10-18T04:13:03Z",
+        "node": "node-1"
+      }
+    }
+  ],
+  "pvc": [
+    {
+      "run": 1,
+      "pvc": true,
+      "started_at": "2026-10-18T04:13:41.103Z",
+      "apply_to_ready_s": 16.81,
+      "first": {
+        "guest_s": 7.38,
+        "exec_wall_s": 10.09,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 24.19,
+      "follow_up": {
+        "guest_s": 36.73,
+        "exec_wall_s": 39.34,
+        "response": "2",
+        "history_length": 2
+      },
+      "pod_delete_to_ready_s": 25.24,
+      "after_pod_delete": {
+        "guest_s": 7.72,
+        "exec_wall_s": 10.7,
+        "response": "3",
+        "history_length": 3
+      },
+      "suspend_to_pod_gone_s": 9.24,
+      "suspended_condition": {
+        "status": "False",
+        "reason": "SandboxSuspended"
+      },
+      "resume_to_ready_s": 15.87,
+      "after_resume": {
+        "guest_s": 7.47,
+        "exec_wall_s": 10.05,
+        "response": "4",
+        "history_length": 4
+      },
+      "resume_to_answer_s": 23.34,
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:16:08.335Z",
+      "sandbox": "pvc-1",
+      "server": {
+        "sandbox_created": "2026-10-18T04:13:42Z",
+        "sandbox_ready": "2026-10-18T04:13:56Z",
+        "pod_created": "2026-10-18T04:13:42Z",
+        "pod_ready": "2026-10-18T04:13:56Z",
+        "node": "node-1"
+      }
+    },
+    {
+      "run": 2,
+      "pvc": true,
+      "started_at": "2026-10-18T04:16:28.337Z",
+      "apply_to_ready_s": 16.26,
+      "first": {
+        "guest_s": 10.42,
+        "exec_wall_s": 12.98,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 26.68,
+      "follow_up": {
+        "guest_s": 1.78,
+        "exec_wall_s": 4.5,
+        "response": "2",
+        "history_length": 2
+      },
+      "pod_delete_to_ready_s": 24.79,
+      "after_pod_delete": {
+        "guest_s": 7.66,
+        "exec_wall_s": 10.19,
+        "response": "3",
+        "history_length": 3
+      },
+      "suspend_to_pod_gone_s": 9.1,
+      "suspended_condition": {
+        "status": "False",
+        "reason": "SandboxSuspended"
+      },
+      "resume_to_ready_s": 15.93,
+      "after_resume": {
+        "guest_s": 6.52,
+        "exec_wall_s": 9.08,
+        "response": "4",
+        "history_length": 4
+      },
+      "resume_to_answer_s": 22.45,
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:18:20.757Z",
+      "sandbox": "pvc-2",
+      "server": {
+        "sandbox_created": "2026-10-18T04:16:29Z",
+        "sandbox_ready": "2026-10-18T04:16:43Z",
+        "pod_created": "2026-10-18T04:16:29Z",
+        "pod_ready": "2026-10-18T04:16:43Z",
+        "node": "node-1"
+      }
+    },
+    {
+      "run": 3,
+      "pvc": true,
+      "started_at": "2026-10-18T04:18:40.758Z",
+      "apply_to_ready_s": 16.46,
+      "first": {
+        "guest_s": 7.58,
+        "exec_wall_s": 10.14,
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "cold_total_s": 24.04,
+      "follow_up": {
+        "guest_s": 1.22,
+        "exec_wall_s": 3.78,
+        "response": "2",
+        "history_length": 2
+      },
+      "pod_delete_to_ready_s": 23.25,
+      "after_pod_delete": {
+        "guest_s": 7.11,
+        "exec_wall_s": 9.66,
+        "response": "3",
+        "history_length": 3
+      },
+      "suspend_to_pod_gone_s": 9.45,
+      "suspended_condition": {
+        "status": "False",
+        "reason": "SandboxSuspended"
+      },
+      "resume_to_ready_s": 17.28,
+      "after_resume": {
+        "guest_s": 6.95,
+        "exec_wall_s": 9.62,
+        "response": "4",
+        "history_length": 4
+      },
+      "resume_to_answer_s": 24.23,
+      "history_grew": true,
+      "deleted": true,
+      "finished_at": "2026-10-18T04:20:29.929Z",
+      "sandbox": "pvc-3",
+      "server": {
+        "sandbox_created": "2026-10-18T04:18:41Z",
+        "sandbox_ready": "2026-10-18T04:18:55Z",
+        "pod_created": "2026-10-18T04:18:41Z",
+        "pod_ready": "2026-10-18T04:18:55Z",
+        "node": "node-1"
+      }
+    }
+  ],
+  "scale": [
+    {
+      "sessions_at_once": 4,
+      "answered": 4,
+      "wall_s": 42.15,
+      "deleted": 4,
+      "nodes": [
+        "node-1"
+      ],
+      "sessions": [
+        {
+          "slot": 0,
+          "apply_to_ready_s": 18.83,
+          "turn1": {
+            "guest_s": 13.47,
+            "exec_wall_s": 18.02,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 0.97,
+            "exec_wall_s": 4.02,
+            "response": "SCALE-0",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale4-0",
+          "server": {
+            "sandbox_created": "2026-10-18T04:20:51Z",
+            "sandbox_ready": "2026-10-18T04:21:07Z",
+            "pod_created": "2026-10-18T04:20:51Z",
+            "pod_ready": "2026-10-18T04:21:07Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 1,
+          "apply_to_ready_s": 18.32,
+          "turn1": {
+            "guest_s": 14.27,
+            "exec_wall_s": 16.89,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.34,
+            "exec_wall_s": 4.13,
+            "response": "SCALE-1",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale4-1",
+          "server": {
+            "sandbox_created": "2026-10-18T04:20:51Z",
+            "sandbox_ready": "2026-10-18T04:21:07Z",
+            "pod_created": "2026-10-18T04:20:51Z",
+            "pod_ready": "2026-10-18T04:21:07Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 2,
+          "apply_to_ready_s": 19.54,
+          "turn1": {
+            "guest_s": 14.18,
+            "exec_wall_s": 17.09,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.09,
+            "exec_wall_s": 3.83,
+            "response": "SCALE-2",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale4-2",
+          "server": {
+            "sandbox_created": "2026-10-18T04:20:52Z",
+            "sandbox_ready": "2026-10-18T04:21:08Z",
+            "pod_created": "2026-10-18T04:20:52Z",
+            "pod_ready": "2026-10-18T04:21:08Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 3,
+          "apply_to_ready_s": 19.96,
+          "turn1": {
+            "guest_s": 10.34,
+            "exec_wall_s": 13.89,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.68,
+            "exec_wall_s": 4.38,
+            "response": "SCALE-3",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale4-3",
+          "server": {
+            "sandbox_created": "2026-10-18T04:20:52Z",
+            "sandbox_ready": "2026-10-18T04:21:08Z",
+            "pod_created": "2026-10-18T04:20:52Z",
+            "pod_ready": "2026-10-18T04:21:08Z",
+            "node": "node-1"
+          }
+        }
+      ]
+    },
+    {
+      "sessions_at_once": 8,
+      "answered": 8,
+      "wall_s": 159.28,
+      "deleted": 8,
+      "nodes": [
+        "node-1",
+        "node-2"
+      ],
+      "sessions": [
+        {
+          "slot": 0,
+          "apply_to_ready_s": 18.52,
+          "turn1": {
+            "guest_s": 15.08,
+            "exec_wall_s": 18.28,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.36,
+            "exec_wall_s": 5.36,
+            "response": "SCALE-0",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-0",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:56Z",
+            "sandbox_ready": "2026-10-18T04:22:12Z",
+            "pod_created": "2026-10-18T04:21:56Z",
+            "pod_ready": "2026-10-18T04:22:12Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 1,
+          "apply_to_ready_s": 22.34,
+          "turn1": {
+            "guest_s": 19.5,
+            "exec_wall_s": 22.58,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.22,
+            "exec_wall_s": 3.8,
+            "response": "SCALE-1",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-1",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:57Z",
+            "sandbox_ready": "2026-10-18T04:22:14Z",
+            "pod_created": "2026-10-18T04:21:57Z",
+            "pod_ready": "2026-10-18T04:22:14Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 2,
+          "apply_to_ready_s": 21.22,
+          "turn1": {
+            "guest_s": 19.84,
+            "exec_wall_s": 22.67,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 0.86,
+            "exec_wall_s": 3.41,
+            "response": "SCALE-2",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-2",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:57Z",
+            "sandbox_ready": "2026-10-18T04:22:14Z",
+            "pod_created": "2026-10-18T04:21:57Z",
+            "pod_ready": "2026-10-18T04:22:14Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 3,
+          "apply_to_ready_s": 23.56,
+          "turn1": {
+            "guest_s": 15.04,
+            "exec_wall_s": 18.78,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.74,
+            "exec_wall_s": 4.4,
+            "response": "SCALE-3",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-3",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:58Z",
+            "sandbox_ready": "2026-10-18T04:22:17Z",
+            "pod_created": "2026-10-18T04:21:58Z",
+            "pod_ready": "2026-10-18T04:22:17Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 4,
+          "apply_to_ready_s": 22.35,
+          "turn1": {
+            "guest_s": 14.24,
+            "exec_wall_s": 17.52,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.21,
+            "exec_wall_s": 4.59,
+            "response": "SCALE-4",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-4",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:58Z",
+            "sandbox_ready": "2026-10-18T04:22:16Z",
+            "pod_created": "2026-10-18T04:21:58Z",
+            "pod_ready": "2026-10-18T04:22:16Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 5,
+          "apply_to_ready_s": 24.21,
+          "turn1": {
+            "guest_s": 18.62,
+            "exec_wall_s": 22.37,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 2.28,
+            "exec_wall_s": 4.91,
+            "response": "SCALE-5",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-5",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:59Z",
+            "sandbox_ready": "2026-10-18T04:22:18Z",
+            "pod_created": "2026-10-18T04:21:59Z",
+            "pod_ready": "2026-10-18T04:22:18Z",
+            "node": "node-1"
+          }
+        },
+        {
+          "slot": 6,
+          "apply_to_ready_s": 141.79,
+          "turn1": {
+            "guest_s": 8.95,
+            "exec_wall_s": 11.92,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 0.86,
+            "exec_wall_s": 3.74,
+            "response": "SCALE-6",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-6",
+          "server": {
+            "sandbox_created": "2026-10-18T04:21:59Z",
+            "sandbox_ready": "2026-10-18T04:24:15Z",
+            "pod_created": "2026-10-18T04:21:59Z",
+            "pod_ready": "2026-10-18T04:24:15Z",
+            "node": "node-2"
+          }
+        },
+        {
+          "slot": 7,
+          "apply_to_ready_s": 141.55,
+          "turn1": {
+            "guest_s": 9.0,
+            "exec_wall_s": 11.89,
+            "response": "OK",
+            "history_length": 1
+          },
+          "turn2": {
+            "guest_s": 1.48,
+            "exec_wall_s": 4.29,
+            "response": "SCALE-7",
+            "history_length": 2
+          },
+          "remembered": true,
+          "sandbox": "scale8-7",
+          "server": {
+            "sandbox_created": "2026-10-18T04:22:00Z",
+            "sandbox_ready": "2026-10-18T04:24:15Z",
+            "pod_created": "2026-10-18T04:22:00Z",
+            "pod_ready": "2026-10-18T04:24:15Z",
+            "node": "node-2"
+          }
+        }
+      ]
+    }
+  ],
+  "leftover_sandboxes": 0,
+  "_sources": [
+    {
+      "file": "c-20261018t041058.json",
+      "sha256": "502e6b34da732197255c756f4805691ea44c7e3c01c27b2bc31fe503afbfd621",
+      "bytes": 17970,
+      "role": "measure_c.py --cold 3 --pvc 3 --scale 4,8 output"
+    },
+    {
+      "file": "export_20261018.py",
+      "sha256": "38751e2132bafea4b4a092375ddc0277f7ae85f562e431af58d88b648656618c",
+      "bytes": 18495,
+      "role": "this projection (private run folder): field selection and neutral labels"
+    }
+  ]
+}

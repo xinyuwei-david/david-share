@@ -28,8 +28,8 @@ def test_extra_readme_section_fails():
 def test_missing_b_from_isolation_table_fails():
     p = pages()
     p["README_CN.md"] = p["README_CN.md"].replace(
-        "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |",
-        "| | A · ACA Sandboxes | C · AKS + agent-sandbox | D · BYO-AKS |",
+        "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS | E · E2B on Azure VM |",
+        "| | A · ACA Sandboxes | C · AKS + agent-sandbox | D · BYO-AKS | E · E2B on Azure VM |",
         1,
     )
     assert any("A, B, C and D" in e for e in vd.check_four_path_tables(p))
@@ -38,7 +38,7 @@ def test_missing_b_from_isolation_table_fails():
 def test_same_container_claim_fails_information_alignment():
     p = pages()
     p["README.md"] = p["README.md"].replace(
-        "This repository applies one comparable stateful interaction contract to all four paths",
+        "This repository applies one comparable stateful interaction contract to all five paths",
         "This repository puts the same sample agent on all four",
         1,
     )
@@ -76,26 +76,6 @@ def test_selectable_compute_drift_fails_information_alignment(name, lang):
     assert value in p[name]
     p[name] = p[name].replace(value, "Choose any Azure VM SKU", 1)
     assert any("selectable_compute" in error for error in vd.check_information_alignment(p))
-
-
-@pytest.mark.parametrize("name,lang", (("README.md", "en"), ("README_CN.md", "zh")))
-def test_scheduled_expiry_cannot_be_renamed_request_idle_timeout(name, lang):
-    p = pages()
-    claims = json.loads(vd.read("evidence/claims.json"))
-    value = claims["paths"]["C"][f"idle_policy_{lang}"]
-    assert value in p[name]
-    p[name] = p[name].replace(value, value.replace("shutdownTime", "idleTimeout"), 1)
-    assert any("official idle-policy" in error for error in vd.check_information_alignment(p))
-
-
-@pytest.mark.parametrize("name,lang", (("README.md", "en"), ("README_CN.md", "zh")))
-def test_byoaks_unverified_idle_policy_cannot_become_a_timeout(name, lang):
-    p = pages()
-    claims = json.loads(vd.read("evidence/claims.json"))
-    value = claims["paths"]["D"][f"idle_policy_{lang}"]
-    assert value in p[name]
-    p[name] = p[name].replace(value, "87 min idle reclamation timeout", 1)
-    assert any("official idle-policy" in error for error in vd.check_information_alignment(p))
 
 
 def test_table_before_input_fails():
@@ -163,7 +143,7 @@ def test_swapped_numbers_with_unchanged_totals_fail():
     start = p["README_CN.md"].index("<!-- BEGIN GENERATED: comparison -->")
     end = p["README_CN.md"].index("<!-- END GENERATED: comparison -->", start)
     block = p["README_CN.md"][start:end]
-    changed = block.replace("28.0", "__SWAP__", 1).replace("25.49", "28.0", 1).replace("__SWAP__", "25.49", 1)
+    changed = block.replace("24.25", "__SWAP__", 1).replace("15.93", "24.25", 1).replace("__SWAP__", "15.93", 1)
     p["README_CN.md"] = p["README_CN.md"][:start] + changed + p["README_CN.md"][end:]
     assert vd.numbers(p["README.md"]) == vd.numbers(p["README_CN.md"])
     assert vd.check_numbers(p)
@@ -179,7 +159,7 @@ def test_resume_clock_drift_fails(name):
     assert any(name in error for error in vd.check_information_alignment(p))
 
 
-@pytest.mark.parametrize("name", PAGES)
+@pytest.mark.parametrize("name", ("VALIDATION.md", "VALIDATION_CN.md"))
 def test_pod_age_is_not_an_idle_duration(name):
     p = pages()
     if name.endswith("_CN.md"):
@@ -223,6 +203,13 @@ def test_c_deployment_requires_a_real_application_request(name):
     assert any("real invocation" in error for error in vd.check_commands(p))
 
 
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+def test_e_deployment_requires_a_real_application_call(name):
+    p = pages()
+    p[name] = p[name].replace("python tools/e2b_agent.py", "python -c 'import e2b'", 1)
+    assert any("real invocation" in error for error in vd.check_commands(p))
+
+
 @pytest.mark.parametrize("name,old,new", (("README.md", "| GA (2026-06) |", "| Public preview |"),
                                           ("README_CN.md", "| GA（2026-06） |", "| 公开预览 |")))
 def test_b_status_cannot_revert_to_preview(name, old, new):
@@ -238,6 +225,16 @@ def test_steps_cannot_close_the_readers_shell(name, closing):
     p = pages()
     p[name] = p[name].replace("git clone --filter=blob:none", closing + "git clone --filter=blob:none", 1)
     assert any("interactive shell" in e for e in vd.check_commands(p))
+
+
+@pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
+def test_steps_bash_blocks_parse(name):
+    p = pages()
+    assert vd.check_shell_syntax(p) == []
+    guard = '  echo "C_ALLOW_CIDR is not set: put your public egress CIDR in .env, reload it and run this block again" >&2\n'
+    assert guard in p[name]
+    p[name] = p[name].replace(guard, "", 1)
+    assert any(f"{name}: bash block" in e for e in vd.check_shell_syntax(p))
 
 
 @pytest.mark.parametrize("name", ("README.md", "README_CN.md"))
@@ -262,7 +259,9 @@ def test_resource_group_delete_stays_alone_and_confirmed(name, fault):
 
 def test_private_content_fails(tmp_path):
     for leak in ("subscription 12345678-1234-1234-1234-123456789abc", "router at 20.242.33.10",
-                 "mail someone@contoso.com", "cluster aks-byoaks", "sessions were not observed on the cluster"):
+                 "mail someone@contoso.com", "cluster aks-byoaks", "sessions were not observed on the cluster",
+                 "ran from /home/alice/work", "metadata at 169.254.169.253", "resource group e2b-embed-vm",
+                 "source host-check-e2b-vm.txt", "evidence e2b-vm2-refusal.txt"):
         f = tmp_path / "leak.md"
         f.write_text(f"# x\n\n{leak}\n", encoding="utf-8")
         assert vd.check_private({}, [f]), leak
@@ -270,5 +269,7 @@ def test_private_content_fails(tmp_path):
 
 def test_clean_text_passes_private(tmp_path):
     f = tmp_path / "ok.md"
-    f.write_text("# x\n\nPOST http://127.0.0.1:8080/reflect with 10.225.1.0/24 and user@example.com\n", encoding="utf-8")
+    f.write_text("# x\n\nPOST http://127.0.0.1:8080/reflect with 10.225.1.0/24 and user@example.com\n"
+                 "token from http://169.254.169.254/metadata, file /home/user/scale.txt in the sandbox\n"
+                 "E2B_VM_NAME=YOUR-E2B-VM-NAME\n", encoding="utf-8")
     assert vd.check_private({}, [f]) == []

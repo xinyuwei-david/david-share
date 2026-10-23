@@ -1,0 +1,416 @@
+{
+  "run_id": "b-2026-10-18-perf",
+  "path": "B",
+  "date_utc": "2026-10-18",
+  "region": "eastus2",
+  "what": "D's protocol on the hosted agent: 5 new sessions, one session with follow-ups, 4 and 8 new sessions at once",
+  "client": "Windows VM in Japan East (WSL Ubuntu) calling the Foundry project in East US 2 through an Azure API Management gateway (the path of b-2026-10-15-sessions)",
+  "agent": {
+    "name": "maf-agent",
+    "version": "2",
+    "kind": "hosted",
+    "cpu": "0.5",
+    "memory": "1Gi",
+    "model_routing": "direct",
+    "model": "gpt-5.4-mini",
+    "version_note": "no version pinned in the requests; the endpoint's only rule sends 100% to @latest, which read back as version 2 on 2026-10-18"
+  },
+  "request": "POST <gateway>/agents/<agent>/endpoint/protocols/openai/responses {\"input\": <input>} with previous_response_id for follow-ups",
+  "token": "an API Management subscription key header (RESPONSES_AUTH_HEADER) instead of an Entra token; nothing to acquire inside or outside the timed requests",
+  "inputs": {
+    "cold": "Reply with exactly COLD-{i}",
+    "warm_first": "Remember the code word LANTERN-7. Reply only OK.",
+    "warm_followup_1": "What is the code word? Reply with the word only.",
+    "warm_followup_n": "Reply with exactly WARM-{i}",
+    "scale_turn1": "Remember SCALE-{i}. Reply only OK.",
+    "scale_turn2": "What did I ask you to remember? Word only."
+  },
+  "clocks": {
+    "wall_s": "client POST until the full response body was read",
+    "first_byte_s": "client POST until the first response byte"
+  },
+  "tool": {
+    "file": "tools/measure_responses.py",
+    "sha256": "1a9c69540e9e6f20f3d98cfe8db287c036f742661fa44dedb184c1d8f03ac53d"
+  },
+  "started_utc": "2026-10-18T03:49:28.502260+00:00",
+  "finished_utc": "2026-10-18T03:52:45.012584+00:00",
+  "cold_turns": [
+    {
+      "started_utc": "03:49:28.502",
+      "http": 200,
+      "wall_s": 11.485,
+      "first_byte_s": 11.485,
+      "status": "completed",
+      "answer": "COLD-1",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:49:42.988",
+      "http": 200,
+      "wall_s": 11.028,
+      "first_byte_s": 11.028,
+      "status": "completed",
+      "answer": "COLD-2",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:49:57.018",
+      "http": 200,
+      "wall_s": 11.567,
+      "first_byte_s": 11.566,
+      "status": "completed",
+      "answer": "COLD-3",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:50:11.586",
+      "http": 200,
+      "wall_s": 10.98,
+      "first_byte_s": 10.98,
+      "status": "completed",
+      "answer": "COLD-4",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:50:25.567",
+      "http": 200,
+      "wall_s": 11.003,
+      "first_byte_s": 11.003,
+      "status": "completed",
+      "answer": "COLD-5",
+      "error_code": null
+    }
+  ],
+  "warm_turns": [
+    {
+      "started_utc": "03:50:59.571",
+      "http": 200,
+      "wall_s": 11.053,
+      "first_byte_s": 11.053,
+      "status": "completed",
+      "answer": "OK",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:51:10.625",
+      "http": 200,
+      "wall_s": 3.937,
+      "first_byte_s": 3.936,
+      "status": "completed",
+      "answer": "LANTERN-7",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:51:14.562",
+      "http": 200,
+      "wall_s": 4.077,
+      "first_byte_s": 4.077,
+      "status": "completed",
+      "answer": "WARM-1",
+      "error_code": null
+    },
+    {
+      "started_utc": "03:51:18.641",
+      "http": 200,
+      "wall_s": 3.879,
+      "first_byte_s": 3.879,
+      "status": "completed",
+      "answer": "WARM-2",
+      "error_code": null
+    }
+  ],
+  "warm_remembered": true,
+  "scalability": [
+    {
+      "concurrency": 4,
+      "answered": 4,
+      "sessions": [
+        {
+          "i": 0,
+          "turn1": {
+            "started_utc": "03:51:42.525",
+            "http": 200,
+            "wall_s": 10.953,
+            "first_byte_s": 10.953,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:51:53.478",
+            "http": 200,
+            "wall_s": 4.149,
+            "first_byte_s": 4.148,
+            "status": "completed",
+            "answer": "SCALE-0",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 1,
+          "turn1": {
+            "started_utc": "03:51:42.526",
+            "http": 200,
+            "wall_s": 11.586,
+            "first_byte_s": 11.586,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:51:54.112",
+            "http": 200,
+            "wall_s": 4.053,
+            "first_byte_s": 4.052,
+            "status": "completed",
+            "answer": "SCALE-1",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 2,
+          "turn1": {
+            "started_utc": "03:51:42.526",
+            "http": 200,
+            "wall_s": 11.356,
+            "first_byte_s": 11.356,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:51:53.882",
+            "http": 200,
+            "wall_s": 4.282,
+            "first_byte_s": 4.282,
+            "status": "completed",
+            "answer": "SCALE-2",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 3,
+          "turn1": {
+            "started_utc": "03:51:42.527",
+            "http": 200,
+            "wall_s": 12.32,
+            "first_byte_s": 12.32,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:51:54.848",
+            "http": 200,
+            "wall_s": 3.489,
+            "first_byte_s": 3.488,
+            "status": "completed",
+            "answer": "SCALE-3",
+            "error_code": null
+          },
+          "remembered": true
+        }
+      ]
+    },
+    {
+      "concurrency": 8,
+      "answered": 8,
+      "sessions": [
+        {
+          "i": 0,
+          "turn1": {
+            "started_utc": "03:52:23.344",
+            "http": 200,
+            "wall_s": 10.524,
+            "first_byte_s": 10.524,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:33.869",
+            "http": 200,
+            "wall_s": 4.103,
+            "first_byte_s": 4.103,
+            "status": "completed",
+            "answer": "SCALE-0",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 1,
+          "turn1": {
+            "started_utc": "03:52:23.345",
+            "http": 200,
+            "wall_s": 11.611,
+            "first_byte_s": 11.611,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:34.956",
+            "http": 200,
+            "wall_s": 4.487,
+            "first_byte_s": 4.487,
+            "status": "completed",
+            "answer": "SCALE-1",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 2,
+          "turn1": {
+            "started_utc": "03:52:23.345",
+            "http": 200,
+            "wall_s": 10.015,
+            "first_byte_s": 10.015,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:33.360",
+            "http": 200,
+            "wall_s": 4.128,
+            "first_byte_s": 4.128,
+            "status": "completed",
+            "answer": "SCALE-2",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 3,
+          "turn1": {
+            "started_utc": "03:52:23.346",
+            "http": 200,
+            "wall_s": 11.222,
+            "first_byte_s": 11.222,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:34.567",
+            "http": 200,
+            "wall_s": 3.993,
+            "first_byte_s": 3.993,
+            "status": "completed",
+            "answer": "SCALE-3",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 4,
+          "turn1": {
+            "started_utc": "03:52:23.346",
+            "http": 200,
+            "wall_s": 12.633,
+            "first_byte_s": 12.632,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:35.979",
+            "http": 200,
+            "wall_s": 4.03,
+            "first_byte_s": 4.028,
+            "status": "completed",
+            "answer": "SCALE-4",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 5,
+          "turn1": {
+            "started_utc": "03:52:23.346",
+            "http": 200,
+            "wall_s": 11.661,
+            "first_byte_s": 11.661,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:35.008",
+            "http": 200,
+            "wall_s": 3.854,
+            "first_byte_s": 3.853,
+            "status": "completed",
+            "answer": "SCALE-5",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 6,
+          "turn1": {
+            "started_utc": "03:52:23.347",
+            "http": 200,
+            "wall_s": 11.721,
+            "first_byte_s": 11.721,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:35.068",
+            "http": 200,
+            "wall_s": 4.375,
+            "first_byte_s": 4.374,
+            "status": "completed",
+            "answer": "SCALE-6",
+            "error_code": null
+          },
+          "remembered": true
+        },
+        {
+          "i": 7,
+          "turn1": {
+            "started_utc": "03:52:23.347",
+            "http": 200,
+            "wall_s": 11.712,
+            "first_byte_s": 11.712,
+            "status": "completed",
+            "answer": "OK",
+            "error_code": null
+          },
+          "turn2": {
+            "started_utc": "03:52:35.059",
+            "http": 200,
+            "wall_s": 4.384,
+            "first_byte_s": 4.384,
+            "status": "completed",
+            "answer": "SCALE-7",
+            "error_code": null
+          },
+          "remembered": true
+        }
+      ]
+    }
+  ],
+  "_sources": [
+    {
+      "file": "responses-20261018T035245Z.json",
+      "sha256": "9463486cc2351d10d7d3cbd7594fea9fb6767014d4b0df7241ed4651392fa33a",
+      "bytes": 12178,
+      "role": "measure_responses.py --cold 5 --warm-turns 3 --scale 4,8 output"
+    },
+    {
+      "file": "export_20261018.py",
+      "sha256": "38751e2132bafea4b4a092375ddc0277f7ae85f562e431af58d88b648656618c",
+      "bytes": 18495,
+      "role": "this projection (private run folder): field selection and neutral labels"
+    }
+  ]
+}

@@ -18,6 +18,7 @@ Rules (each prints CHECK <rule> PASS|FAIL <detail>):
   commands            Steps commands use variables, not subscription IDs, GUIDs or literal resource IDs; they
                       install into a virtual environment, never close the reader's shell (set -e, exit), and
                       keep az group delete alone in its block with its confirmation prompt
+  shell-syntax        every bash block in both READMEs parses with bash -n
   private             no GUID, IPv4 address, email, token, internal name or retired claim in the delivered tree
 """
 from __future__ import annotations
@@ -25,6 +26,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -33,7 +36,7 @@ import render_docs as rd
 
 ROOT = Path(__file__).resolve().parents[1]
 
-README_HEADINGS = {"README.md": ["Purpose", "Steps", "Results"], "README_CN.md": ["目的", "操作步骤", "实现效果"]}
+README_HEADINGS = {"README.md": ["Purpose", "Results", "Steps"], "README_CN.md": ["目的", "实现效果", "操作步骤"]}
 VALIDATION_HEADINGS = {
     "VALIDATION.md": ["Architecture and Metrics", "What the Scripts Run", "Measured Runs", "Tests and Offline Checks",
                       "Limits, Assets and Sources"],
@@ -41,13 +44,17 @@ VALIDATION_HEADINGS = {
 }
 RUN_PARTS = {"en": ["**Question.**", "**Input.**", "**Varied and fixed.**", "**Result.**", "**Boundary.**"],
              "zh": ["**问题。**", "**输入。**", "**变量与固定项。**", "**结果。**", "**边界。**"]}
-RUN_ID_PATTERN = r"[a-d]-\d{4}-\d{2}-\d{2}(?:-[a-z]+)*"
+RUN_ID_PATTERN = r"[a-e]-\d{4}-\d{2}-\d{2}(?:-[a-z]+)*"
 RUN_SECTION_RE = re.compile(rf"(?ms)^### ({RUN_ID_PATTERN})[:：].*?(?=^### |^## |\Z)")
 SUPPORT_RUNS = {"abc-2026-09-27-foundation", "d-2026-09-29-cold-early", "d-2026-09-29-model-direct",
                 "d-2026-09-29-capacity", "d-2026-09-22-field"}
 PAIRS = [("README.md", "README_CN.md"), ("VALIDATION.md", "VALIDATION_CN.md")]
 
-ALLOWED_IPV4 = {"127.0.0.1"}
+# Loopback, and the fixed link-local address of the Azure instance metadata service (the same on every Azure VM;
+# measure_e2b.py reads the VM's managed identity token from it).
+ALLOWED_IPV4 = {"127.0.0.1", "169.254.169.254"}
+# Fixed home directory of the default user inside an E2B sandbox, not a machine of the author.
+ALLOWED_LOCAL_PATHS = {"/home/user/"}
 # The ACR token username the SDK expects; documented as a fixed value, not an identity.
 ALLOWED_GUIDS = {"00000000-0000-0000-0000-000000000000"}
 PRIVATE_PATTERNS = {
@@ -59,7 +66,10 @@ PRIVATE_PATTERNS = {
 }
 # Names from the author's environment; stored as plain fragments because they are not secrets but must not ship.
 INTERNAL_NAMES = ["7d645c", "5mliuz7m6nn64", "bfe2665ff6", "33546699", "byoaks-v3", "aks-byoaks", "rg-byoaks",
-                  "MCAPS", "XINYU-SUR", "adcproxy.io", "caresp_", "a6186e7a", "kylerc", "bowen", "reply-to-ken"]
+                  "MCAPS", "XINYU-SUR", "adcproxy.io", "caresp_", "a6186e7a", "kylerc", "bowen", "reply-to-ken",
+                  "e2b-embed-vm"]
+# Matched with case: the author's E2B VMs are lowercase e2b-vm*, and config/.env.example has YOUR-E2B-VM-NAME.
+INTERNAL_NAMES_CASED = ["e2b-vm"]
 RETIRED_CLAIMS = ["not observed on the cluster", "Sessions on cluster-not observed", "NOT_ON_CLUSTER",
                   "24–26 s", "11–16 s", "Managed, per agent",
                   "same sample agent on all four", "同一个示例 agent 部署到四条路径",
@@ -101,30 +111,28 @@ def check_readme_sections(pages: dict[str, str]) -> list[str]:
 
 def check_four_path_tables(pages: dict[str, str]) -> list[str]:
     expected = {
-        "README.md": "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |",
-        "README_CN.md": "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS |",
+        "README.md": "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS | E · E2B on Azure VM |",
+        "README_CN.md": "| | A · ACA Sandboxes | B · Foundry hosted agent | C · AKS + agent-sandbox | D · BYO-AKS | E · E2B on Azure VM |",
     }
     errors = []
     for name, header in expected.items():
         if header not in pages[name]:
-            errors.append(f"{name}: isolation table must contain paths A, B, C and D in order")
+            errors.append(f"{name}: isolation table must contain paths A, B, C and D (and E) in order")
     return errors
 
 
 def check_information_alignment(pages: dict[str, str]) -> list[str]:
     claims = json.loads(read("evidence/claims.json"))
     errors = []
-    letters = ("A", "B", "C", "D")
+    letters = ("A", "B", "C", "D", "E")
     en_names = " | ".join(f"{letter} · {claims['letter_mapping'][letter]['name']}" for letter in letters)
     header = f"| Question | {en_names} |"
     if header not in pages["README.md"]:
         errors.append("README.md: Purpose table names differ from evidence/claims.json")
-    comparison_header_en = f"| Observed or documented | {en_names} |"
-    comparison_header_zh = f"| 实测或文档项 | {en_names} |"
-    if comparison_header_en not in pages["README.md"]:
-        errors.append("README.md: Results comparison names differ from evidence/claims.json")
-    if comparison_header_zh not in pages["README_CN.md"]:
-        errors.append("README_CN.md: Results comparison names differ from evidence/claims.json")
+    for name, label in (("README.md", "Observed or documented"), ("README_CN.md", "实测或文档项")):
+        block = next((m.group(3) for m in rd.BLOCK_RE.finditer(pages[name]) if m.group(2) == "comparison"), "")
+        if f"| {label} | {en_names} |" not in rd.unwrap_table_layout(block):
+            errors.append(f"{name}: Results comparison names differ from evidence/claims.json")
     status_en = " | ".join(claims["paths"][letter]["status_en"] for letter in letters)
     status_zh = " | ".join(claims["paths"][letter]["status_zh"] for letter in letters)
     if f"| Status | {status_en} |" not in pages["README.md"]:
@@ -135,6 +143,8 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
         ("lifecycle_owner", "Who runs the session lifecycle", "谁负责会话生命周期"),
         ("session_location", "Where the session's micro-VM runs", "会话的 micro-VM 跑在哪里"),
         ("memory_suspend", "Suspend with memory snapshot", "带内存快照的挂起"),
+        ("state_storage", "External storage to keep data across suspend and resume",
+         "挂起再恢复后保留数据，是否必须挂外置存储"),
         ("selectable_compute", "Selectable size / node SKU (docs)", "可选规格 / 节点 SKU（文档）"),
     ):
         values_en = " | ".join(claims["paths"][letter][f"{field}_en"] for letter in letters)
@@ -143,11 +153,6 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             errors.append(f"README.md: {field} row differs from evidence/claims.json")
         if f"| {label_zh} | {values_zh} |" not in pages["README_CN.md"]:
             errors.append(f"README_CN.md: {field} row differs from evidence/claims.json")
-    for name, lang, label in (("README.md", "en", "**Idle policy (official docs)**"),
-                              ("README_CN.md", "zh", "**空闲策略（官方说明）**")):
-        policies = " | ".join(claims["paths"][letter][f"idle_policy_{lang}"] for letter in letters)
-        if f"| {label} | {policies} |" not in pages[name]:
-            errors.append(f"{name}: official idle-policy row differs from evidence/claims.json")
     boundary_en = " | ".join(claims["paths"][letter]["boundary_en"] for letter in letters)
     boundary_zh = " | ".join(claims["paths"][letter]["boundary_zh"] for letter in letters)
     owner_en = " | ".join(claims["paths"][letter]["node_owner_en"] for letter in letters)
@@ -166,18 +171,16 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             "For a long-running, per-user workload",
             "A = ACA Sandboxes, B = Foundry hosted agent, C = AKS + agent-sandbox, D = BYO-AKS",
             "not the same container",
-            "component sums, not a single end-to-end client stopwatch",
+            "leaves out answer times",
             "stop and idle waiting are excluded",
-            "pod age, not idle duration",
         ],
         "README_CN.md": [
             "一般企业 agent 在 B 的限制可接受时先选 B。",
             "对于需要按用户长期运行",
             "A = ACA Sandboxes，B = Foundry hosted agent，C = AKS + agent-sandbox，D = BYO-AKS",
             "不是相同容器",
-            "采用分段相加，不是客户端连续端到端计时",
+            "不比较回答时间",
             "不含停止和空闲等待",
-            "pod 的年龄，不是空闲时长",
         ],
         "VALIDATION.md": [
             "The workload contract is comparable, but the container is not identical",
@@ -185,15 +188,17 @@ def check_information_alignment(pages: dict[str, str]) -> list[str]:
             "the total grows with the node pool",
             "does **not** establish continuity of the deleted session",
             "component sums, not a single end-to-end client stopwatch",
+            "does not show that code ran in the sandbox",
             "stop and idle waiting are excluded",
             "pod age, not idle duration",
         ],
         "VALIDATION_CN.md": [
-            "四条路径的工作负载口径可比，但容器并不完全相同",
+            "路径的工作负载口径可比，但容器并不完全相同",
             "9 个固定的 Deployment 副本",
             "总数随节点池增长",
             "不能**证明被删会话自身的连续性",
             "采用分段相加，不是客户端连续端到端计时",
+            "不能说明代码在沙箱里执行",
             "不含停止和空闲等待",
             "pod 的年龄，不是空闲时长",
         ],
@@ -375,7 +380,7 @@ NUM_RE = re.compile(r"(?<![\w.])\d+(?:\.\d+)?(?![\w])")
 
 
 def numbers(text: str) -> Counter:
-    body = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    body = re.sub(r"<!--.*?-->", "", rd.unwrap_table_layout(text), flags=re.S)
     body = re.sub(r"\(https?://[^)]*\)|https?://\S+", "", body)
     body = re.sub(r"\]\([^)]*\)", "]", body)
     body = re.sub(r"<img[^>]*>", "", body)
@@ -419,12 +424,13 @@ def check_commands(pages: dict[str, str]) -> list[str]:
         commands = "\n".join(blocks)
         for required in ("./setup.sh", "./prepare-agent-sandbox.sh", "kubectl apply -f agent-sandbox.yaml",
                          "./sandbox-deploy.sh", "python tools/aca_sandbox.py create", "azd ai agent init",
-                         "azd provision", "azd deploy", "azd ai agent invoke", '"$C_AGENT_URL/reflect"'):
+                         "azd provision", "azd deploy", "azd ai agent invoke", '"$C_AGENT_URL/reflect"',
+                         "python tools/e2b_agent.py"):
             if required not in commands:
                 errors.append(f"{name}: missing deployment or real invocation command {required}")
         if 'export HOSTING_REPO="$PWD"' not in commands:
             errors.append(f"{name}: missing stable repository return directory")
-        if re.search(r"tools/(?:measure_aca|measure_responses|check_isolation|build_measurements|render_docs|validate_docs)\.py", commands):
+        if re.search(r"tools/(?:measure_aca|measure_responses|measure_e2b|check_isolation|build_measurements|render_docs|validate_docs)\.py", commands):
             errors.append(f"{name}: measurement or evidence check used in deployment Steps")
         if "C invocation failed: non-empty response missing" not in commands:
             errors.append(f"{name}: C invocation does not reject a missing application answer")
@@ -449,6 +455,21 @@ def check_commands(pages: dict[str, str]) -> list[str]:
     strip = lambda s: re.sub(r"#.*", "", s).strip()  # noqa: E731
     if [strip(b) for b in en] != [strip(b) for b in zh]:
         errors.append("README.md and README_CN.md command blocks differ (comments aside)")
+    return errors
+
+
+def check_shell_syntax(pages: dict[str, str]) -> list[str]:
+    # Readers paste each block into bash; a block that does not parse fails before its first command runs.
+    bash = shutil.which("bash")
+    if bash is None:
+        return ["bash not found; the Steps blocks are bash and are checked with bash -n"]
+    errors = []
+    for name in ("README.md", "README_CN.md"):
+        for i, block in enumerate(re.findall(r"(?ms)^```bash\n(.*?)^```", pages[name]), 1):
+            p = subprocess.run([bash, "-n"], input=block, capture_output=True, text=True, timeout=30)
+            if p.returncode:
+                last = (p.stderr.strip().splitlines() or [""])[-1]
+                errors.append(f"{name}: bash block {i} does not parse: {last[:160]}")
     return errors
 
 
@@ -481,11 +502,16 @@ def check_private(_pages: dict[str, str], files: list[Path] | None = None) -> li
                     continue  # loopback, or the private example subnet prefix 10.x.y.0
                 if kind == "guid" and hit in ALLOWED_GUIDS:
                     continue
+                if kind == "local-path" and hit in ALLOWED_LOCAL_PATHS:
+                    continue
                 if kind == "email" and hit.endswith("@example.com"):
                     continue
                 errors.append(f"{rel}: {kind} {hit[:40]}")
         for frag in INTERNAL_NAMES:
             if frag.lower() in text.lower():
+                errors.append(f"{rel}: internal name {frag}")
+        for frag in INTERNAL_NAMES_CASED:
+            if frag in text:
                 errors.append(f"{rel}: internal name {frag}")
         if rel.endswith(".md"):
             for claim in RETIRED_CLAIMS:
@@ -498,7 +524,8 @@ RULES = {
     "readme-sections": check_readme_sections, "four-path-tables": check_four_path_tables,
     "information-alignment": check_information_alignment, "validation-sections": check_validation_sections,
     "run-sections": check_run_sections, "runs-listed": check_runs_listed, "run-order": check_run_order, "links": check_links,
-    "images": check_images, "numbers": check_numbers, "commands": check_commands, "private": check_private,
+    "images": check_images, "numbers": check_numbers, "commands": check_commands,
+    "shell-syntax": check_shell_syntax, "private": check_private,
 }
 
 

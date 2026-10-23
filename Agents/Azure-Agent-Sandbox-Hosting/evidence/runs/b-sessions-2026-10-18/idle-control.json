@@ -1,0 +1,583 @@
+{
+  "run_id": "b-2026-10-18-idle",
+  "path": "B",
+  "what": "Foundry hosted agent: session lifecycle with resume after the idle timeout (create, first answer, follow-up, 300 s without requests, resume on the next request, file kept, delete)",
+  "resume_after": "idle",
+  "date_utc": "2026-10-18",
+  "started_at": "2026-10-18T04:47:58.821Z",
+  "finished_at": "2026-10-18T05:04:35.566Z",
+  "region": "eastus2",
+  "client": "Windows VM in Japan East (WSL Ubuntu) calling the Foundry project in East US 2 through an Azure API Management gateway",
+  "docs": "https://learn.microsoft.com/azure/foundry/agents/how-to/manage-hosted-sessions",
+  "agent": {
+    "name": "maf-agent",
+    "version": "2",
+    "read_status": 200,
+    "kind": "hosted",
+    "cpu": "0.5",
+    "memory": "1Gi",
+    "protocols": [
+      "responses 2.0.0"
+    ],
+    "model_deployment": "gpt-5.4-mini",
+    "model_routing": "direct"
+  },
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "later_turns": "How many questions have I asked before this one? Number only.",
+    "marker_file": "state-marker.txt",
+    "request": "POST .../agents/<agent>/endpoint/protocols/openai/responses with agent_session_id; later turns add previous_response_id"
+  },
+  "clocks": {
+    "create_to_active_s": "POST .../endpoint/sessions until the session reads active (a successful create returns active directly); includes failed attempts and 2 s pauses",
+    "<turn>_total_s": "first attempt of POST .../protocols/openai/responses until its answer, including failed attempts and 2 s pauses",
+    "<turn>_success_s": "the successful HTTP attempt alone",
+    "<turn>_server_s": "response completed_at minus created_at as recorded by the service (whole seconds)",
+    "stop_to_idle_s": "POST .../sessions/{id}:stop until GET .../sessions/{id} reads idle",
+    "idle_wait": "--resume-after idle: no request to the session for the wait, then one GET .../sessions/{id}",
+    "resume": "the next /responses call on the stopped or idle session; the platform provisions compute and restores $HOME",
+    "marker": "file written with PUT .../files/content before stop and read with GET after resume"
+  },
+  "retry_policy": "up to 4 attempts per call after HTTP 408, 429, 5xx or a network error, 2 s apart; every attempt is recorded",
+  "runs": [
+    {
+      "run": 1,
+      "started_at": "2026-10-18T04:47:59.458Z",
+      "create": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 6.294
+          }
+        ],
+        "total_s": 6.294,
+        "success_s": 6.294,
+        "state": "active"
+      },
+      "upload_marker": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 0.778
+          }
+        ],
+        "total_s": 0.778,
+        "success_s": 0.778
+      },
+      "first": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.508
+          }
+        ],
+        "total_s": 4.508,
+        "success_s": 4.508,
+        "input": "Where is Bangkok? Answer in one short sentence.",
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "same_session": true,
+        "server_s": 1
+      },
+      "warm": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 3.702
+          }
+        ],
+        "total_s": 3.702,
+        "success_s": 3.702,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "2",
+        "same_session": true,
+        "server_s": 1
+      },
+      "idle": {
+        "waited_s": 301.75,
+        "state_before_resume": "active"
+      },
+      "resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 5.764
+          }
+        ],
+        "total_s": 5.764,
+        "success_s": 5.764,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "3",
+        "same_session": true,
+        "server_s": 3
+      },
+      "state_after_resume": "active",
+      "marker_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 0.794
+          }
+        ],
+        "total_s": 0.794,
+        "success_s": 0.794,
+        "matches": true
+      },
+      "warm_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.157
+          }
+        ],
+        "total_s": 4.157,
+        "success_s": 4.157,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "4",
+        "same_session": true,
+        "server_s": 1
+      },
+      "delete": {
+        "status": 204,
+        "attempts": [
+          {
+            "status": 204,
+            "seconds": 2.252
+          }
+        ],
+        "total_s": 2.252,
+        "success_s": 2.252
+      },
+      "deleted": true,
+      "finished_at": "2026-10-18T04:53:30.073Z",
+      "session": "session-1"
+    },
+    {
+      "run": 2,
+      "started_at": "2026-10-18T04:53:30.073Z",
+      "create": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 6.934
+          }
+        ],
+        "total_s": 6.934,
+        "success_s": 6.934,
+        "state": "active"
+      },
+      "upload_marker": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 0.78
+          }
+        ],
+        "total_s": 0.78,
+        "success_s": 0.78
+      },
+      "first": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 5.437
+          }
+        ],
+        "total_s": 5.437,
+        "success_s": 5.437,
+        "input": "Where is Bangkok? Answer in one short sentence.",
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "same_session": true,
+        "server_s": 2
+      },
+      "warm": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 3.854
+          }
+        ],
+        "total_s": 3.854,
+        "success_s": 3.854,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "2",
+        "same_session": true,
+        "server_s": 2
+      },
+      "idle": {
+        "waited_s": 301.454,
+        "state_before_resume": "active"
+      },
+      "resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 5.162
+          }
+        ],
+        "total_s": 5.162,
+        "success_s": 5.162,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "3",
+        "same_session": true,
+        "server_s": 2
+      },
+      "state_after_resume": "active",
+      "marker_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 0.832
+          }
+        ],
+        "total_s": 0.832,
+        "success_s": 0.832,
+        "matches": true
+      },
+      "warm_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.401
+          }
+        ],
+        "total_s": 4.401,
+        "success_s": 4.401,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "4",
+        "same_session": true,
+        "server_s": 2
+      },
+      "delete": {
+        "status": 204,
+        "attempts": [
+          {
+            "status": 204,
+            "seconds": 3.323
+          }
+        ],
+        "total_s": 3.323,
+        "success_s": 3.323
+      },
+      "deleted": true,
+      "finished_at": "2026-10-18T04:59:02.887Z",
+      "session": "session-2"
+    },
+    {
+      "run": 3,
+      "started_at": "2026-10-18T04:59:02.888Z",
+      "create": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 7.951
+          }
+        ],
+        "total_s": 7.951,
+        "success_s": 7.951,
+        "state": "active"
+      },
+      "upload_marker": {
+        "status": 201,
+        "attempts": [
+          {
+            "status": 201,
+            "seconds": 0.88
+          }
+        ],
+        "total_s": 0.88,
+        "success_s": 0.88
+      },
+      "first": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.659
+          }
+        ],
+        "total_s": 4.659,
+        "success_s": 4.659,
+        "input": "Where is Bangkok? Answer in one short sentence.",
+        "response": "Bangkok is the capital city of Thailand in Southeast Asia.",
+        "same_session": true,
+        "server_s": 2
+      },
+      "warm": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.214
+          }
+        ],
+        "total_s": 4.214,
+        "success_s": 4.214,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "2",
+        "same_session": true,
+        "server_s": 2
+      },
+      "idle": {
+        "waited_s": 301.466,
+        "state_before_resume": "active"
+      },
+      "resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 4.432
+          }
+        ],
+        "total_s": 4.432,
+        "success_s": 4.432,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "3",
+        "same_session": true,
+        "server_s": 2
+      },
+      "state_after_resume": "active",
+      "marker_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 0.828
+          }
+        ],
+        "total_s": 0.828,
+        "success_s": 0.828,
+        "matches": true
+      },
+      "warm_after_resume": {
+        "status": 200,
+        "attempts": [
+          {
+            "status": 200,
+            "seconds": 3.886
+          }
+        ],
+        "total_s": 3.886,
+        "success_s": 3.886,
+        "input": "How many questions have I asked before this one? Number only.",
+        "response": "4",
+        "same_session": true,
+        "server_s": 1
+      },
+      "delete": {
+        "status": 204,
+        "attempts": [
+          {
+            "status": 204,
+            "seconds": 3.071
+          }
+        ],
+        "total_s": 3.071,
+        "success_s": 3.071
+      },
+      "deleted": true,
+      "finished_at": "2026-10-18T05:04:34.904Z",
+      "session": "session-3"
+    }
+  ],
+  "cleanup": {
+    "list_status": 200,
+    "extra_sessions": 0,
+    "extra_deleted": 0
+  },
+  "http_log": [
+    {
+      "op": "read_version",
+      "status": 200,
+      "seconds": 0.636
+    },
+    {
+      "op": "create_session",
+      "status": 201,
+      "seconds": 6.294
+    },
+    {
+      "op": "upload_file",
+      "status": 201,
+      "seconds": 0.778
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.508
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 3.702
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 1.747
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 5.764
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 0.605
+    },
+    {
+      "op": "download_file",
+      "status": 200,
+      "seconds": 0.794
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.157
+    },
+    {
+      "op": "delete_session",
+      "status": 204,
+      "seconds": 2.252
+    },
+    {
+      "op": "create_session",
+      "status": 201,
+      "seconds": 6.934
+    },
+    {
+      "op": "upload_file",
+      "status": 201,
+      "seconds": 0.78
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 5.437
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 3.854
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 1.452
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 5.162
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 0.621
+    },
+    {
+      "op": "download_file",
+      "status": 200,
+      "seconds": 0.832
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.401
+    },
+    {
+      "op": "delete_session",
+      "status": 204,
+      "seconds": 3.323
+    },
+    {
+      "op": "create_session",
+      "status": 201,
+      "seconds": 7.951
+    },
+    {
+      "op": "upload_file",
+      "status": 201,
+      "seconds": 0.88
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.659
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.214
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 1.466
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 4.432
+    },
+    {
+      "op": "get_session",
+      "status": 200,
+      "seconds": 0.62
+    },
+    {
+      "op": "download_file",
+      "status": 200,
+      "seconds": 0.828
+    },
+    {
+      "op": "responses",
+      "status": 200,
+      "seconds": 3.886
+    },
+    {
+      "op": "delete_session",
+      "status": 204,
+      "seconds": 3.071
+    },
+    {
+      "op": "list_sessions",
+      "status": 200,
+      "seconds": 0.662
+    }
+  ],
+  "_sources": [
+    {
+      "file": "b-sessions-idle-control-raw.json",
+      "sha256": "2fd71c6c22133ea221121c3cbfae6dabdf7e8cd8d9ce471374ae42ca23b74873",
+      "bytes": 18515,
+      "role": "private raw record from this tool (session IDs, response IDs, endpoint)"
+    },
+    {
+      "file": "export_20261018.py",
+      "sha256": "38751e2132bafea4b4a092375ddc0277f7ae85f562e431af58d88b648656618c",
+      "bytes": 18495,
+      "role": "this projection (private run folder): field selection and neutral labels"
+    }
+  ],
+  "tool": {
+    "file": "tools/measure_sessions.py",
+    "sha256": "fd24f84b38165a895d72006f9ab280f236a85f475506b6bfac0dc3617c7d05f0"
+  }
+}

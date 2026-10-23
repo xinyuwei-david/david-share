@@ -1,0 +1,864 @@
+{
+  "run_id": "e-2026-10-17-ci-perf",
+  "what": "the D-matched perf protocol with the code-interpreter executor (cold n=5, warm, 4 and 8 at once, sandbox replacement), and idle sandbox capacity of host c by template and hugepage pool",
+  "path": "E",
+  "date_utc": "2026-10-17",
+  "region": "eastus2",
+  "host": "host c: Standard_D4ds_v7 (4 vCPU, 16 GiB), eastus2 zone 2, Ubuntu 24.04 LTS Gen2, 128 GB OS disk",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "executor": "code-interpreter",
+  "template": {
+    "name": "code-interpreter-v1",
+    "source": "e2b-dev/code-interpreter@162a2a25b6a5ea5806749a437b96cbdc5bfc087e, template/build_prod.py unchanged",
+    "vcpus": 2,
+    "memory_mb": 2048,
+    "build_sdk": "e2b 2.32.0 in the build environment (template/requirements-dev.txt)"
+  },
+  "model": "gpt-5.4-mini",
+  "sdk": {
+    "e2b": "2.56.0",
+    "e2b-code-interpreter": "2.11.0"
+  },
+  "tool": {
+    "file": "tools/measure_e2b.py",
+    "sha256": "cbc96f273c0736d470297cde9a8fcb87aa21c22f1b1939c6d3a4298ba7e0c69a"
+  },
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "command": "measure_e2b.py perf --cold 5 --scale 4,8 --recovery --executor code-interpreter",
+  "inputs": {
+    "cold": "Use run_in_e2b_sandbox to print COLD-{i}, then reply with exactly COLD-{i}",
+    "warm": [
+      "Use run_in_e2b_sandbox to save the code word LANTERN-7 to /home/user/codeword.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/codeword.txt. What is the code word? Reply with the word only.",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-1",
+      "Use run_in_e2b_sandbox to verify the sandbox is alive, then reply with exactly WARM-2"
+    ],
+    "scale": [
+      "Use run_in_e2b_sandbox to write SCALE-{k} to /home/user/scale.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/scale.txt. What did I ask you to remember? Word only."
+    ],
+    "live": [
+      "Use run_in_e2b_sandbox to write LANTERN-7 to /home/user/live.txt. Reply only OK.",
+      "Use run_in_e2b_sandbox to read /home/user/live.txt. What is the code word? Reply with the word only."
+    ]
+  },
+  "cold": [
+    {
+      "i": 1,
+      "host": "c",
+      "started_utc": "16:56:18.514",
+      "sandbox_create_to_ready_s": 0.126,
+      "wall_s": 3.347,
+      "agent_turn_s": 3.17,
+      "sandbox_tool_s": 0.052,
+      "http": 200,
+      "answer": "COLD-1",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 2,
+      "host": "c",
+      "started_utc": "16:56:21.975",
+      "sandbox_create_to_ready_s": 0.073,
+      "wall_s": 5.662,
+      "agent_turn_s": 5.43,
+      "sandbox_tool_s": 0.048,
+      "http": 200,
+      "answer": "COLD-2",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 3,
+      "host": "c",
+      "started_utc": "16:56:27.742",
+      "sandbox_create_to_ready_s": 0.072,
+      "wall_s": 3.638,
+      "agent_turn_s": 3.48,
+      "sandbox_tool_s": 0.048,
+      "http": 200,
+      "answer": "COLD-3",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 4,
+      "host": "c",
+      "started_utc": "16:56:31.445",
+      "sandbox_create_to_ready_s": 0.069,
+      "wall_s": 3.306,
+      "agent_turn_s": 3.12,
+      "sandbox_tool_s": 0.058,
+      "http": 200,
+      "answer": "COLD-4",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    },
+    {
+      "i": 5,
+      "host": "c",
+      "started_utc": "16:56:34.823",
+      "sandbox_create_to_ready_s": 0.1,
+      "wall_s": 2.696,
+      "agent_turn_s": 2.5,
+      "sandbox_tool_s": 0.047,
+      "http": 200,
+      "answer": "COLD-5",
+      "correct": true,
+      "sandbox_deleted": true,
+      "conversation_deleted": true
+    }
+  ],
+  "warm": {
+    "host": "c",
+    "turns": [
+      {
+        "started_utc": "16:56:37.760",
+        "http": 200,
+        "wall_s": 3.68,
+        "sandbox_tool_s": 0.05,
+        "answer": "OK"
+      },
+      {
+        "started_utc": "16:56:41.439",
+        "http": 200,
+        "wall_s": 3.36,
+        "sandbox_tool_s": 0.014,
+        "answer": "LANTERN-7"
+      },
+      {
+        "started_utc": "16:56:44.794",
+        "http": 200,
+        "wall_s": 3.93,
+        "sandbox_tool_s": 0.012,
+        "answer": "WARM-1"
+      },
+      {
+        "started_utc": "16:56:48.727",
+        "http": 200,
+        "wall_s": 4.59,
+        "sandbox_tool_s": 0.012,
+        "answer": "WARM-2"
+      }
+    ],
+    "sandbox_create_to_ready_s": 0.07,
+    "remembered": true,
+    "sandbox_deleted": true,
+    "conversation_deleted": true
+  },
+  "at_once": [
+    {
+      "sessions_at_once": 4,
+      "answered": 3,
+      "per_host": {
+        "c": {
+          "sessions": 4,
+          "answered": 3
+        }
+      },
+      "wall_s": 15.14,
+      "model_http_statuses": {
+        "200": 12
+      },
+      "sessions": [
+        {
+          "slot": 1,
+          "host": "c",
+          "started_utc": "16:56:53.449",
+          "sandbox_create_to_ready_s": 0.264,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.98,
+            "wall_s": 3.244,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 3.12,
+            "answer": "SCALE-1",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 6.431,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 2,
+          "host": "c",
+          "started_utc": "16:56:53.450",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.39,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 3,
+          "host": "c",
+          "started_utc": "16:56:53.450",
+          "sandbox_create_to_ready_s": 0.288,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 4.64,
+            "wall_s": 4.928,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 5.12,
+            "answer": "SCALE-3",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 10.113,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 4,
+          "host": "c",
+          "started_utc": "16:56:53.450",
+          "sandbox_create_to_ready_s": 0.23,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 3.44,
+            "wall_s": 3.67,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 11.34,
+            "answer": "SCALE-4",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 15.071,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        }
+      ]
+    },
+    {
+      "sessions_at_once": 8,
+      "answered": 3,
+      "per_host": {
+        "c": {
+          "sessions": 8,
+          "answered": 3
+        }
+      },
+      "wall_s": 8.65,
+      "model_http_statuses": {
+        "200": 12
+      },
+      "sessions": [
+        {
+          "slot": 1,
+          "host": "c",
+          "started_utc": "16:57:08.589",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.407,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 2,
+          "host": "c",
+          "started_utc": "16:57:08.589",
+          "sandbox_create_to_ready_s": 0.181,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 3.87,
+            "wall_s": 4.051,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 4.47,
+            "answer": "SCALE-2",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 8.587,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 3,
+          "host": "c",
+          "started_utc": "16:57:08.589",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.318,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 4,
+          "host": "c",
+          "started_utc": "16:57:08.589",
+          "sandbox_create_to_ready_s": 0.124,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.76,
+            "wall_s": 2.884,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 3.01,
+            "answer": "SCALE-4",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 5.943,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 5,
+          "host": "c",
+          "started_utc": "16:57:08.590",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.545,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 6,
+          "host": "c",
+          "started_utc": "16:57:08.590",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.342,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 7,
+          "host": "c",
+          "started_utc": "16:57:08.590",
+          "error": "SandboxException: 500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us",
+          "remembered": false,
+          "failed_turn_http_statuses": [],
+          "session_s": 0.314,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        },
+        {
+          "slot": 8,
+          "host": "c",
+          "started_utc": "16:57:08.590",
+          "sandbox_create_to_ready_s": 0.231,
+          "turn1": {
+            "http": 200,
+            "agent_turn_s": 2.87,
+            "wall_s": 3.101,
+            "answer": "OK",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "turn2": {
+            "http": 200,
+            "wall_s": 4.43,
+            "answer": "SCALE-8",
+            "http_statuses": [
+              200,
+              200
+            ]
+          },
+          "remembered": true,
+          "session_s": 7.591,
+          "sandbox_deleted": true,
+          "conversation_deleted": true
+        }
+      ]
+    }
+  ],
+  "recovery": {
+    "host": "c",
+    "sandbox_killed_utc": "16:57:43.056",
+    "replacement_ready_s": 0.118,
+    "followup_on_live_session": {
+      "http": 200,
+      "wall_s": 6.86,
+      "answer": "LANTERN-7",
+      "state_preserved": true
+    },
+    "sandboxes_deleted": true,
+    "conversation_deleted": true
+  },
+  "leftover_sandboxes": 0,
+  "agent_version_deleted": true,
+  "idle_capacity": {
+    "started_at": "2026-10-17T16:58:56+00:00",
+    "host": "c",
+    "kernel": "7.0.0-1017-azure",
+    "e2b_dir": "the Embed install directory",
+    "sdk": {
+      "e2b": "2.56.0",
+      "e2b-code-interpreter": "2.11.0"
+    },
+    "hugepage_size_kb": 2048,
+    "hugepages_env_found": 4096,
+    "leftover_at_start": 0,
+    "phases": [
+      {
+        "hugepages_env": 4096,
+        "compose_up_rc": 0,
+        "services": [
+          "api:running",
+          "clickhouse:running",
+          "client-proxy:running",
+          "dashboard:running",
+          "dashboard-api:running",
+          "orchestrator:running",
+          "postgres:running",
+          "ready:running",
+          "redis:running",
+          "vector:running"
+        ],
+        "meminfo": {
+          "hp_total": 4096,
+          "hp_free": 4083,
+          "mem_avail_mb": 5700
+        },
+        "results": [
+          {
+            "template": "code-interpreter-v1",
+            "running_at_once": 3,
+            "created": 3,
+            "cap": 10,
+            "stopped_by": {
+              "at": 4,
+              "error": "SandboxException",
+              "message": "500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+            },
+            "before": {
+              "hp_total": 4096,
+              "hp_free": 4083,
+              "mem_avail_mb": 5700
+            },
+            "rows_cols": [
+              "n",
+              "create_and_check_s",
+              "check_ok",
+              "hp_free",
+              "mem_avail_mb"
+            ],
+            "rows": [
+              [
+                1,
+                0.164,
+                true,
+                3811,
+                5701
+              ],
+              [
+                2,
+                0.148,
+                true,
+                3539,
+                5702
+              ],
+              [
+                3,
+                0.161,
+                true,
+                3254,
+                5697
+              ]
+            ],
+            "killed": 3,
+            "after": {
+              "hp_total": 4096,
+              "hp_free": 4083,
+              "mem_avail_mb": 5697
+            },
+            "leftover": 0
+          },
+          {
+            "template": "base",
+            "running_at_once": 15,
+            "created": 15,
+            "cap": 24,
+            "stopped_by": {
+              "at": 16,
+              "error": "SandboxException",
+              "message": "500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+            },
+            "before": {
+              "hp_total": 4096,
+              "hp_free": 4083,
+              "mem_avail_mb": 5697
+            },
+            "rows_cols": [
+              "n",
+              "create_and_check_s",
+              "check_ok",
+              "hp_free",
+              "mem_avail_mb"
+            ],
+            "rows": [
+              [
+                1,
+                4.644,
+                true,
+                3997,
+                5753
+              ],
+              [
+                2,
+                0.09,
+                true,
+                3913,
+                5754
+              ],
+              [
+                3,
+                0.077,
+                true,
+                3828,
+                5753
+              ],
+              [
+                4,
+                0.084,
+                true,
+                3743,
+                5753
+              ],
+              [
+                5,
+                0.572,
+                true,
+                3656,
+                5778
+              ],
+              [
+                6,
+                0.149,
+                true,
+                3570,
+                5773
+              ],
+              [
+                7,
+                0.069,
+                true,
+                3486,
+                5773
+              ],
+              [
+                8,
+                0.067,
+                true,
+                3401,
+                5772
+              ],
+              [
+                9,
+                0.064,
+                true,
+                3316,
+                5771
+              ],
+              [
+                10,
+                0.081,
+                true,
+                3231,
+                5768
+              ],
+              [
+                11,
+                0.094,
+                true,
+                3146,
+                5763
+              ],
+              [
+                12,
+                0.08,
+                true,
+                3061,
+                5788
+              ],
+              [
+                13,
+                0.072,
+                true,
+                2976,
+                5782
+              ],
+              [
+                14,
+                0.089,
+                true,
+                2889,
+                5777
+              ],
+              [
+                15,
+                0.069,
+                true,
+                2805,
+                5772
+              ]
+            ],
+            "killed": 15,
+            "after": {
+              "hp_total": 4096,
+              "hp_free": 4083,
+              "mem_avail_mb": 5692
+            },
+            "leftover": 0
+          }
+        ]
+      },
+      {
+        "hugepages_env": 2048,
+        "compose_up_rc": 0,
+        "services": [
+          "api:running",
+          "clickhouse:running",
+          "client-proxy:running",
+          "dashboard:running",
+          "dashboard-api:running",
+          "orchestrator:running",
+          "postgres:running",
+          "ready:running",
+          "redis:running",
+          "vector:running"
+        ],
+        "meminfo": {
+          "hp_total": 2048,
+          "hp_free": 2035,
+          "mem_avail_mb": 9782
+        },
+        "results": [
+          {
+            "template": "code-interpreter-v1",
+            "running_at_once": 1,
+            "created": 1,
+            "cap": 10,
+            "stopped_by": {
+              "at": 2,
+              "error": "SandboxException",
+              "message": "500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+            },
+            "before": {
+              "hp_total": 2048,
+              "hp_free": 2035,
+              "mem_avail_mb": 9782
+            },
+            "rows_cols": [
+              "n",
+              "create_and_check_s",
+              "check_ok",
+              "hp_free",
+              "mem_avail_mb"
+            ],
+            "rows": [
+              [
+                1,
+                0.152,
+                true,
+                1774,
+                9783
+              ]
+            ],
+            "killed": 1,
+            "after": {
+              "hp_total": 2048,
+              "hp_free": 2035,
+              "mem_avail_mb": 9754
+            },
+            "leftover": 0
+          },
+          {
+            "template": "base",
+            "running_at_once": 7,
+            "created": 7,
+            "cap": 24,
+            "stopped_by": {
+              "at": 8,
+              "error": "SandboxException",
+              "message": "500: Failed to place sandbox: sandbox creation failed on 1 node(s), please retry; if the problem persists, contact us"
+            },
+            "before": {
+              "hp_total": 2048,
+              "hp_free": 2035,
+              "mem_avail_mb": 9754
+            },
+            "rows_cols": [
+              "n",
+              "create_and_check_s",
+              "check_ok",
+              "hp_free",
+              "mem_avail_mb"
+            ],
+            "rows": [
+              [
+                1,
+                0.132,
+                true,
+                1951,
+                9764
+              ],
+              [
+                2,
+                0.063,
+                true,
+                1866,
+                9762
+              ],
+              [
+                3,
+                0.065,
+                true,
+                1781,
+                9758
+              ],
+              [
+                4,
+                0.084,
+                true,
+                1696,
+                9756
+              ],
+              [
+                5,
+                0.106,
+                true,
+                1611,
+                9753
+              ],
+              [
+                6,
+                0.071,
+                true,
+                1526,
+                9753
+              ],
+              [
+                7,
+                0.082,
+                true,
+                1440,
+                9751
+              ]
+            ],
+            "killed": 7,
+            "after": {
+              "hp_total": 2048,
+              "hp_free": 2035,
+              "mem_avail_mb": 9799
+            },
+            "leftover": 0
+          }
+        ]
+      }
+    ],
+    "restore_rc": 0,
+    "restored_meminfo": {
+      "hp_total": 4096,
+      "hp_free": 4083,
+      "mem_avail_mb": 5662
+    },
+    "finished_at": "2026-10-17T16:59:40+00:00"
+  },
+  "_sources": [
+    {
+      "file": "e2b-perf-20261017T165615Z.json",
+      "sha256": "44f27f570d42e0f46718b3e15c8c9f37b49d03823b9f869988ca39bd57c3f871",
+      "bytes": 13310,
+      "role": "measure_e2b.py perf --cold 5 --scale 4,8 --recovery --executor code-interpreter"
+    },
+    {
+      "file": "capacity-20261017T165843Z.json",
+      "sha256": "49798cea7620f4acea95e4b01a823eff4d1ddac173f5eff5be0a35a642de781a",
+      "bytes": 3606,
+      "role": "measure-e2b-capacity.sh: idle sandboxes per template and hugepage pool"
+    },
+    {
+      "file": "measure-e2b-capacity.sh",
+      "sha256": "608f3af7bcc29dde7c395026e57b5840e8f8533ea356873f235a49214f5ef458",
+      "bytes": 5857,
+      "role": "the capacity probe"
+    }
+  ]
+}

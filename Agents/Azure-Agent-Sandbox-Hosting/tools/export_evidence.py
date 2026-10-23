@@ -72,15 +72,6 @@ class Aliases:
         return self.map[name]
 
 
-NODE_RE = re.compile(r"aks-[a-z0-9]+-\d+-vmss[0-9a-z]+")
-POD_RE = re.compile(r"sbx-[0-9a-z]+-[0-9a-z]+")
-
-
-def redact_text(text: str, nodes: Aliases, pods: Aliases) -> str:
-    text = NODE_RE.sub(lambda m: nodes(m.group(0)), text)
-    return POD_RE.sub(lambda m: pods(m.group(0)), text)
-
-
 def source(path: Path, digest: str, role: str) -> dict:
     return {"file": path.name, "sha256": digest.lower(), "bytes": path.stat().st_size, "role": role}
 

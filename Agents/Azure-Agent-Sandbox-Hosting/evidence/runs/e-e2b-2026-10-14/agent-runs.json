@@ -1,0 +1,384 @@
+{
+  "run_id": "e-2026-10-14-agent",
+  "path": "E",
+  "what": "Foundry Prompt Agent + E2B Firecracker sandbox on Azure VM, three times: create, first answer, follow-up, pause (memory+disk snapshot), resume, answer after resume",
+  "date_utc": "2026-10-14",
+  "region": "eastus2",
+  "model": "gpt-5.4-mini",
+  "host_vm_sku": "Standard_D4ds_v7",
+  "e2b_runtime_commit": "588e5b9500b0987bc5a700d91483b03f0ae7d2a2",
+  "sdk": "e2b 2.46.0",
+  "isolation_check": {
+    "vmm_type": "firecracker",
+    "firecracker_version": "v1.14-0.2.0",
+    "guest_kernel": "6.1.177+",
+    "host_kernel": "6.17.0-1022-azure",
+    "vcpus": 2,
+    "memory_mb": 512,
+    "vmm_source": "host process list: /fc-versions/v1.14-0.2.0/amd64/firecracker",
+    "guest_kernel_source": "uname -r inside the sandbox"
+  },
+  "cost_floor_usd_per_hour": {
+    "vm_d4ds_v7": 0.326,
+    "public_ip": 0.005,
+    "premium_ssd_p6": 0.013,
+    "shape": "1 x Standard_D4ds_v7 Linux + 1 Standard Static Public IP + 50 GB Premium SSD P6 in East US 2",
+    "source": "Azure Retail Prices API, queried 2026-10-14, pay-as-you-go, before discounts and tax"
+  },
+  "agent": {
+    "instructions": "You are a concise assistant with access to `run_in_e2b_sandbox`. For EVERY user message, first call `run_in_e2b_sandbox` once to inspect or update files in /home/user, then answer concisely as instructed. When asked for a number only or word only, reply with that exact token only.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "run_in_e2b_sandbox",
+        "description": "Execute Python 3 code inside the session's isolated E2B Firecracker microVM sandbox on Azure.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "python_code": {
+              "type": "string",
+              "description": "Python 3 code to run inside the E2B sandbox. Print output to stdout."
+            }
+          },
+          "required": [
+            "python_code"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    ]
+  },
+  "inputs": {
+    "first": "Where is Bangkok? Answer in one short sentence.",
+    "warm": "How many questions have I asked before this one? Number only.",
+    "first_after_resume": "How many questions have I asked before this one? Number only.",
+    "warm_after_resume": "How many questions have I asked before this one? Number only.",
+    "request": "POST <Foundry project>/openai/v1/responses with Prompt Agent calling function tool run_in_e2b_sandbox on E2B API :3000/:3002"
+  },
+  "clocks": {
+    "create_total_s": "E2B Sandbox.create('base') wall time from the client until Running",
+    "guest_s": "Foundry Prompt Agent turn wall time (model tool-call + E2B sandbox command + final answer)",
+    "sandbox_tool_s": "E2B commands.run execution time inside the Firecracker sandbox during that turn",
+    "cold_total_s": "create_total_s + first.guest_s",
+    "stop_total_s": "sbx.beta_pause() wall time until Paused (memory + disk snapshot)",
+    "resume_total_s": "Sandbox.connect(sandbox_id) wall time until Running",
+    "recover_total_s": "resume_total_s + first_after_resume.guest_s"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "started_at": "2026-10-14T06:13:38.590Z",
+      "sandbox_id": "e2b-sandbox-1",
+      "create_total_s": 0.14,
+      "cold_total_s": 4.26,
+      "stop_total_s": 0.13,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.08,
+      "state_after_resume": "Running",
+      "recover_total_s": 6.48,
+      "delete_post_s": 0.01,
+      "finished_at": "2026-10-14T06:14:03.391Z",
+      "first": {
+        "guest_s": 4.12,
+        "sandbox_tool_s": 0.118,
+        "response": "Bangkok is the capital of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 2.95,
+        "sandbox_tool_s": 0.029,
+        "response": "2",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 6.4,
+        "sandbox_tool_s": 0.031,
+        "response": "3",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 5.57,
+        "sandbox_tool_s": 0.029,
+        "response": "4",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 2,
+      "started_at": "2026-10-14T06:14:03.391Z",
+      "sandbox_id": "e2b-sandbox-2",
+      "create_total_s": 0.07,
+      "cold_total_s": 2.89,
+      "stop_total_s": 0.11,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.11,
+      "state_after_resume": "Running",
+      "recover_total_s": 12.82,
+      "delete_post_s": 0.01,
+      "finished_at": "2026-10-14T06:14:30.570Z",
+      "first": {
+        "guest_s": 2.82,
+        "sandbox_tool_s": 0.108,
+        "response": "Bangkok is the capital of Thailand in Southeast Asia.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 2.83,
+        "sandbox_tool_s": 0.028,
+        "response": "1",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 12.71,
+        "sandbox_tool_s": 0.029,
+        "response": "2",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 3.37,
+        "sandbox_tool_s": 0.034,
+        "response": "3",
+        "history_length": 4
+      }
+    },
+    {
+      "run": 3,
+      "started_at": "2026-10-14T06:14:30.570Z",
+      "sandbox_id": "e2b-sandbox-3",
+      "create_total_s": 0.06,
+      "cold_total_s": 8.44,
+      "stop_total_s": 0.15,
+      "state_after_stop": "Paused",
+      "resume_total_s": 0.09,
+      "state_after_resume": "Running",
+      "recover_total_s": 4.73,
+      "delete_post_s": 0.01,
+      "finished_at": "2026-10-14T06:14:58.186Z",
+      "first": {
+        "guest_s": 8.38,
+        "sandbox_tool_s": 0.114,
+        "response": "Bangkok is the capital city of Thailand.",
+        "history_length": 1
+      },
+      "warm": {
+        "guest_s": 3.92,
+        "sandbox_tool_s": 0.029,
+        "response": "1",
+        "history_length": 2
+      },
+      "first_after_resume": {
+        "guest_s": 4.64,
+        "sandbox_tool_s": 0.03,
+        "response": "2",
+        "history_length": 3
+      },
+      "warm_after_resume": {
+        "guest_s": 5.18,
+        "sandbox_tool_s": 0.028,
+        "response": "3",
+        "history_length": 4
+      }
+    }
+  ],
+  "on_host_microbench_20x": {
+    "clock": "on-host localhost:3000 / localhost:3002, zero WAN RTT, 20 sequential sandboxes",
+    "create_only_s": [
+      0.0638,
+      0.0616,
+      0.062,
+      0.059,
+      0.0784,
+      0.0712,
+      0.0669,
+      0.0587,
+      0.0566,
+      0.0888,
+      0.0599,
+      0.0507,
+      0.0555,
+      0.0684,
+      0.0763,
+      0.0571,
+      0.0721,
+      0.0595,
+      0.0597,
+      0.057
+    ],
+    "first_cmd_s": [
+      0.0122,
+      0.0103,
+      0.0128,
+      0.01,
+      0.0114,
+      0.0129,
+      0.0209,
+      0.0152,
+      0.0123,
+      0.0126,
+      0.013,
+      0.0115,
+      0.0116,
+      0.0105,
+      0.0112,
+      0.0186,
+      0.0114,
+      0.0124,
+      0.0124,
+      0.0121
+    ],
+    "create_to_first_cmd_s": [
+      0.0759,
+      0.0719,
+      0.0748,
+      0.069,
+      0.0898,
+      0.084,
+      0.0878,
+      0.0738,
+      0.069,
+      0.1014,
+      0.0729,
+      0.0622,
+      0.0671,
+      0.0789,
+      0.0874,
+      0.0757,
+      0.0835,
+      0.0718,
+      0.0721,
+      0.0692
+    ],
+    "warm_cmd_s": [
+      0.008,
+      0.0082,
+      0.0073,
+      0.0083,
+      0.0071,
+      0.0081,
+      0.0101,
+      0.0077,
+      0.0079,
+      0.0087,
+      0.0082,
+      0.0091,
+      0.0084,
+      0.0074,
+      0.0091,
+      0.008,
+      0.009,
+      0.0096,
+      0.0085,
+      0.0084
+    ],
+    "pause_s": [
+      0.0826,
+      0.1239,
+      0.0645,
+      0.051,
+      0.7076,
+      0.6304,
+      0.4288,
+      1.2205,
+      0.7329,
+      0.7311,
+      1.0236,
+      1.589,
+      0.3391,
+      0.8064,
+      0.9593,
+      0.8807,
+      0.6747,
+      0.9785,
+      1.8112,
+      0.4686
+    ],
+    "resume_connect_s": [
+      0.1396,
+      0.1041,
+      0.143,
+      0.1885,
+      0.0908,
+      0.1719,
+      0.086,
+      0.1212,
+      0.2117,
+      0.1369,
+      0.1407,
+      0.3607,
+      0.5537,
+      0.4789,
+      0.12,
+      0.1457,
+      0.5704,
+      0.4567,
+      0.1167,
+      0.6156
+    ],
+    "resume_to_first_cmd_s": [
+      0.1502,
+      0.1133,
+      0.1527,
+      0.198,
+      0.1025,
+      0.1829,
+      0.1005,
+      0.133,
+      0.2236,
+      0.1481,
+      0.1528,
+      0.37,
+      0.5629,
+      0.4887,
+      0.1307,
+      0.1544,
+      0.5799,
+      0.467,
+      0.127,
+      0.6247
+    ],
+    "state_verified_count": 20
+  },
+  "leftover_sandboxes": 0,
+  "setup": {
+    "apt_and_docker_s": 33.0,
+    "compose_and_template_s": 144.0,
+    "total_s": 177.0
+  },
+  "_corrections": [
+    "2026-10-15: added the agent's instructions and tool schema from the driver source",
+    "2026-10-15: removed runs[*].vmm_type, a constant the driver wrote rather than read; the VMM comes from the host process list (isolation_check.vmm_source)"
+  ],
+  "_sources": [
+    {
+      "file": "e-2026-10-14-agent.json",
+      "sha256": "66fea9bb055ded121dab067305fb14901248b765e07a019d477cf8ae1ae8b8d2",
+      "bytes": 4011,
+      "role": "A/C-matched 3-run agent record"
+    },
+    {
+      "file": "e2b-on-vm-bench-20x.json",
+      "sha256": "b6a47f130fb516b6b475a4b75243a2eb707ceec86ba1bf09dcfc32a33046b77b",
+      "bytes": 10988,
+      "role": "20-iteration on-host Firecracker microbenchmark"
+    },
+    {
+      "file": "e2b-compose-up.log",
+      "sha256": "123d44347e375e99ee20746517c574d9f92535e31137d8e184cff1273ba23dfd",
+      "bytes": 78531,
+      "role": "E2B Embed Docker Compose setup log"
+    },
+    {
+      "file": "host-kvm-check.txt",
+      "sha256": "35d429ebc7dab2c9994305d4118632912bf923beb3dc83fa56cb7683a63779d5",
+      "bytes": 625,
+      "role": "host kernel and KVM verification"
+    },
+    {
+      "file": "run_abcd_matched_benchmarks.py",
+      "sha256": "8e8f6fc5b7b61c707f596666b6d76ce23fa4a5147f5ef38739f621b2b30a20b0",
+      "bytes": 24728,
+      "role": "benchmark driver"
+    }
+  ]
+}
